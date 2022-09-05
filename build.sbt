@@ -6,6 +6,7 @@ val appName = "find-my-nino-add-to-wallet"
 val silencerVersion = "1.7.7"
 
 lazy val microservice = Project(appName, file("."))
+  .disablePlugins(JUnitXmlReportPlugin)
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
     majorVersion                     := 0,
