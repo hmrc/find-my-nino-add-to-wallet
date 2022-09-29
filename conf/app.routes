@@ -1,3 +1,5 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.findmyninoaddtowallet.controllers.MicroserviceHelloWorldController.hello
+POST        /create-apple-pass          uk.gov.hmrc.findmyninoaddtowallet.controllers.ApplePassController.createPass
+GET         /get-pass-card              uk.gov.hmrc.findmyninoaddtowallet.controllers.ApplePassController.getPassCardByPassId(passId: String)
+GET         /get-qr-code                uk.gov.hmrc.findmyninoaddtowallet.controllers.ApplePassController.getQrCodeByPassId(passId: String)
