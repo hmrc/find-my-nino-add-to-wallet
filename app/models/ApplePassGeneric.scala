@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.findmyninoaddtowallet.config
+package models
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-
-@Singleton
-class AppConfig @Inject()(config: Configuration) {
-
-  val appName: String = config.get[String]("appName")
-}
+case class ApplePassGeneric(primaryFields: Array[ApplePassField], secondaryFields: Array[ApplePassField], auxiliaryFields: Array[ApplePassField])

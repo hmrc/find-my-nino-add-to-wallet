@@ -16,7 +16,7 @@ lazy val microservice = Project(appName, file("."))
     // ***************
     // Use the silencer plugin to suppress warnings
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;.*repositories.*;" +
-      ".*BuildInfo.*;.*Routes.*;.*javascript.*;.*GuiceInjector;.*AppConfig;.*Module;" +
+      ".*models.*;.*BuildInfo.*;.*Routes.*;.*javascript.*;.*GuiceInjector;.*AppConfig;.*Module;" +
       ".*ControllerConfiguration;.*TestController;.*LanguageSwitchController",
     ScoverageKeys.coverageExcludedPackages := "<empty>;target.*",
     ScoverageKeys.coverageMinimumStmtTotal := 50,
