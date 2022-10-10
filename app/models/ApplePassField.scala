@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.findmyninoaddtowallet.config
+package models
 
-import com.google.inject.AbstractModule
-
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-
-    bind(classOf[AppConfig]).asEagerSingleton()
-  }
-}
+case class ApplePassField(key: String, label: Option[String], value: String, textAlignment: String = "PKTextAlignmentLeft")
