@@ -19,6 +19,7 @@ package services
 import com.google.common.hash.Hashing
 import com.google.common.io.{Files => ioFiles}
 import models.{ApplePassCard, ApplePassField, ApplePassGeneric}
+import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 
 import java.io.{BufferedInputStream, ByteArrayOutputStream, File, FileInputStream}
@@ -29,7 +30,7 @@ import javax.inject.Inject
 import scala.reflect.io.Directory
 import scala.util.{Success, Try}
 
-class FileService @Inject()() {
+class FileService @Inject()() extends Logging {
 
   import FileService._
 
@@ -43,9 +44,14 @@ class FileService @Inject()() {
     val isIconFileCreated = writeToAFile(path.resolve(ICON_FILE_NAME), iconSource)
     val thumbnailSource = getClass.getResourceAsStream(THUMBNAIL_RESOURCE_PATH).readAllBytes()
     val isThumbnailCreated = writeToAFile(path.resolve(THUMBNAIL_FILE_NAME), thumbnailSource)
+    logger.info(s"[Creating Directory For Pass] isFilePassCreated: $isFilePassCreated || " +
+      s"isIconFileCreated: $isIconFileCreated || " +
+      s"isThumbnailCreated: $isThumbnailCreated"
+    )
 
     // Create Manifest File:
     val isManifestCreated = createManifestFile(path)
+    logger.info(s"[Creating Directory For Pass] isManifestCreated: $isManifestCreated")
 
     isDirectoryCreated && isFilePassCreated && isIconFileCreated && isThumbnailCreated && isManifestCreated
   }
