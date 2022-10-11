@@ -21,10 +21,10 @@ import models.{ApplePassCard, ApplePassDetails}
 import play.api.Logging
 import repositories.ApplePassRepository
 
-import java.nio.file.Paths
 import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import java.nio.file.Files
 
 class ApplePassService @Inject()(val config: AppConfig,
                                  val applePassRepository: ApplePassRepository,
@@ -46,8 +46,7 @@ class ApplePassService @Inject()(val config: AppConfig,
 
   def createPass(name: String, nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
     val uuid = UUID.randomUUID().toString
-    val passDirectory = config.passPath
-    val path = Paths.get(s"$passDirectory/$uuid.pass")
+    val path = Files.createTempDirectory(s"$uuid.pass").toAbsolutePath
 
     val pass = ApplePassCard(name, nino, uuid)
     val isDirectoryCreated = fileService.createDirectoryForPass(path, pass)
