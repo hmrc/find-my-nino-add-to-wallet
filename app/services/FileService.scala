@@ -106,7 +106,9 @@ class FileService @Inject()() extends Logging {
   }
 
   private def createManifestFile(path: Path): Boolean = {
-    val files = path.toFile.listFiles(f => f.getName != ".DS_Store")
+    logger.info(s"[CREATE MANIFEST FILE] Path: $path")
+    val files = path.toFile.listFiles(f => f.getName != ".DS_STORE")
+    logger.info(s"[CREATE MANIFEST FILE] File count: ${files.length}")
     val map = files.map(f => (f.getName, ioFiles.asByteSource(f).hash(Hashing.sha1()).toString)).toMap
     Try(Files.write(path.resolve(MANIFEST_JSON_FILE_NAME), Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))) match {
       case Success(_) => true
