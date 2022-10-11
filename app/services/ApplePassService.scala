@@ -51,7 +51,10 @@ class ApplePassService @Inject()(val config: AppConfig,
 
     val pass = ApplePassCard(name, nino, uuid)
     val isDirectoryCreated = fileService.createDirectoryForPass(path, pass)
+    logger.info(s"[Creating Apple Pass] isDirectoryCreated: $isDirectoryCreated")
+
     val isPassSigned = signatureService.createSignatureForPass(path, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
+    logger.info(s"[Creating Apple Pass] isPassSigned: $isPassSigned")
 
     if (isDirectoryCreated && isPassSigned) {
       val passDataTuple = for {
@@ -59,10 +62,15 @@ class ApplePassService @Inject()(val config: AppConfig,
         qrCodeByteArray <- qrCodeService.createQRCode(s"${config.serviceUrl}/get-pass-details?passId=$uuid")
       } yield (pkPassByteArray, qrCodeByteArray)
 
+      logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")
       fileService.deleteDirectory(path)
       passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
       Right(uuid)
     } else {
+      logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
+        s"isDirectoryCreated: $isDirectoryCreated " +
+        s"|| isPassSigned: $isPassSigned"
+      )
       fileService.deleteDirectory(path) // It should delete the pass directory even there is a mistake
       Left(new Exception(s"Problem occurred while creating Apple Pass. " +
         s"Directory created: $isDirectoryCreated, pass signed: $isPassSigned"))
