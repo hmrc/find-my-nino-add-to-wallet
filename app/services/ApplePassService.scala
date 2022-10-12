@@ -58,7 +58,7 @@ class ApplePassService @Inject()(val config: AppConfig,
     if (isDirectoryCreated && isPassSigned) {
       val passDataTuple = for {
         pkPassByteArray <- fileService.createPkPassZipForPass(path)
-        qrCodeByteArray <- qrCodeService.createQRCode(s"${config.serviceUrl}/get-pass-details?passId=$uuid")
+        qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid")
       } yield (pkPassByteArray, qrCodeByteArray)
 
       logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")

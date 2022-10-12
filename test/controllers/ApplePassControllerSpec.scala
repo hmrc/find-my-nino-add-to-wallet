@@ -92,7 +92,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       whenReady(result) { _ =>
         status(result) mustBe OK
         contentAsBytes(result).length should be > 1
-        header("Content-Disposition", result) mustBe Some("attachment; filename=NinoPass.pkpass")
       }
     }
 
@@ -118,7 +117,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       whenReady(result) { _ =>
         status(result) mustBe OK
         contentAsBytes(result).length should be > 1
-        header("Content-Disposition", result) mustBe Some("attachment; filename=QrCode.png")
       }
     }
 
