@@ -23,6 +23,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ApplePassService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,7 +59,7 @@ class ApplePassController @Inject()(cc: ControllerComponents, val passService: A
   def getPassCardByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     logger.debug(message = s"[Get Pass Card] $passId")
     passService.getPassCardByPassId(passId).map {
-      case Some(data) => Ok(data).withHeaders("Content-Disposition" -> "attachment; filename=NinoPass.pkpass")
+      case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
       case _ => NotFound
     }
   }
@@ -66,7 +67,7 @@ class ApplePassController @Inject()(cc: ControllerComponents, val passService: A
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     logger.debug(message = s"[Get QR Code] $passId")
     passService.getQrCodeByPassId(passId).map {
-      case Some(data) => Ok(data).withHeaders("Content-Disposition" -> "attachment; filename=QrCode.png")
+      case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
       case _ => NotFound
     }
   }
