@@ -35,12 +35,12 @@ class ApplePassController @Inject()(cc: ControllerComponents, val passService: A
 
   implicit val passRequestFormatter = Json.format[ApplePassDetails]
   implicit val writes: Writes[ApplePassDetails] = Json.writes[ApplePassDetails]
-  private val DEFAULT_YEAR = 100
+  private val DEFAULT_EXPIRATION_YEARS = 100
 
   def createPass(): Action[AnyContent] = Action.async { implicit request =>
     val passRequest = request.body.asJson.get.as[ApplePassDetails]
     logger.debug(message = s"[Create Pass Event]$passRequest")
-    val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_YEAR)
+    val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
     Future(passService.createPass(passRequest.fullName, passRequest.nino, expirationDate.toString()) match {
       case Right(value) => Ok(value)
       case Left(exp) => InternalServerError(Json.obj(
