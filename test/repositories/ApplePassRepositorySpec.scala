@@ -17,6 +17,7 @@
 package repositories
 
 import com.github.simplyscala.MongoEmbedDatabase
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterAll
@@ -46,11 +47,17 @@ class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matcher
       mongoCollectionDrop()
 
       val passId = "test-pass-id-001"
-      val record = (passId, "Name Surname", "AB 12 34 56 Q", Array[Byte](10), Array[Byte](10))
+      val record = (passId,
+        "Name Surname",
+        "AB 12 34 56 Q",
+        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        Array[Byte](10),
+        Array[Byte](10)
+      )
       val filters = Filters.eq("passId", passId)
 
       val documentsInDB = for {
-        _ <- applePassRepository.insert(record._1, record._2, record._3, record._4, record._5)
+        _ <- applePassRepository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
         documentsInDB <- applePassRepository.collection.find[ApplePass](filters).toFuture()
       } yield documentsInDB
 
@@ -65,10 +72,10 @@ class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matcher
       mongoCollectionDrop()
 
       val passId = "test-pass-id-002"
-      val record = (passId, "Name Surname", "AB 12 34 56 Q", Array[Byte](10), Array[Byte](10))
+      val record = (passId, "Name Surname", "AB 12 34 56 Q", DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), Array[Byte](10), Array[Byte](10))
 
       val documentsInDB = for {
-        _ <- applePassRepository.insert(record._1, record._2, record._3, record._4, record._5)
+        _ <- applePassRepository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
         documentsInDB <- applePassRepository.findByPassId(passId)
       } yield documentsInDB
 
@@ -87,6 +94,7 @@ object ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar {
   private val databasePort = 12345
   private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000&rm.failover=default"
   private val mongoComponent = MongoComponent(mongoUri)
+  private val DEFAULT_EXPIRATION_YEARS = 100
 
   private def mongoCollectionDrop(): Void =
     Await.result(applePassRepository.collection.drop().toFuture(), Duration.Inf)

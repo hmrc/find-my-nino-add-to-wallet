@@ -44,11 +44,11 @@ class ApplePassService @Inject()(val config: AppConfig,
     applePassRepository.findByPassId(passId).map(_.map(r => ApplePassDetails(r.fullName, r.nino)))
   }
 
-  def createPass(name: String, nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
+  def createPass(name: String, nino: String, expirationDate: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
     val uuid = UUID.randomUUID().toString
     val path = Files.createTempDirectory(s"$uuid.pass").toAbsolutePath
 
-    val pass = ApplePassCard(name, nino, uuid)
+    val pass = ApplePassCard(name, nino, uuid, expirationDate)
     val isDirectoryCreated = fileService.createDirectoryForPass(path, pass)
     logger.info(s"[Creating Apple Pass] isDirectoryCreated: $isDirectoryCreated")
 
@@ -63,7 +63,7 @@ class ApplePassService @Inject()(val config: AppConfig,
 
       logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")
       fileService.deleteDirectory(path)
-      passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
+      passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, expirationDate, tuple._1, tuple._2))
       Right(uuid)
     } else {
       logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +

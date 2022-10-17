@@ -17,6 +17,7 @@
 package services
 
 import models.ApplePassCard
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
@@ -32,7 +33,11 @@ class FileServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
   "fileService" must {
     "should create test.pass directory with icon, thumbnail, pass.json, manifest files" in {
       val uuid = UUID.randomUUID().toString
-      val applePass = ApplePassCard("Test Pass", "AB 12 34 56 Q", uuid)
+      val DEFAULT_EXPIRATION_YEARS = 100
+      val applePass = ApplePassCard(
+        "Test Pass", "AB 12 34 56 Q",
+        uuid,
+        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString())
       val passDirectoryCreated = fileService.createDirectoryForPass(Paths.get("./test.pass"), applePass)
       passDirectoryCreated mustBe true
       File("./test.pass").exists mustBe true
