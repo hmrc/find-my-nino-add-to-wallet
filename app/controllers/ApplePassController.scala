@@ -17,6 +17,7 @@
 package controllers
 
 import models.ApplePassDetails
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logging
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -34,12 +35,13 @@ class ApplePassController @Inject()(cc: ControllerComponents, val passService: A
 
   implicit val passRequestFormatter = Json.format[ApplePassDetails]
   implicit val writes: Writes[ApplePassDetails] = Json.writes[ApplePassDetails]
-
+  private val DEFAULT_YEAR = 100
 
   def createPass(): Action[AnyContent] = Action.async { implicit request =>
     val passRequest = request.body.asJson.get.as[ApplePassDetails]
     logger.debug(message = s"[Create Pass Event]$passRequest")
-    Future(passService.createPass(passRequest.fullName, passRequest.nino) match {
+    val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_YEAR)
+    Future(passService.createPass(passRequest.fullName, passRequest.nino, expirationDate.toString()) match {
       case Right(value) => Ok(value)
       case Left(exp) => InternalServerError(Json.obj(
         "status" -> "500",

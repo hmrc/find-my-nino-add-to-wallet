@@ -27,11 +27,17 @@ import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class ApplePass(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte], lastUpdated: DateTime)
+case class ApplePass(passId: String,
+                     fullName: String,
+                     nino: String,
+                     expirationDate: String,
+                     applePassCard: Array[Byte],
+                     qrCode: Array[Byte],
+                     lastUpdated: DateTime)
 
 object ApplePass {
-  def apply(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
-    ApplePass(passId, fullName, nino, applePassCard, qrCode, DateTime.now(DateTimeZone.UTC))
+  def apply(passId: String, fullName: String, nino: String, expirationDate: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
+    ApplePass(passId, fullName, nino, expirationDate: String, applePassCard, qrCode, DateTime.now(DateTimeZone.UTC))
   }
 
   implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
@@ -57,9 +63,15 @@ class ApplePassRepository @Inject()(
     )
   )
 ) with Logging {
-  def insert(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte])(implicit ec: ExecutionContext): Future[Unit] = {
+  def insert(passId: String,
+             fullName: String,
+             nino: String,
+             expirationDate: String,
+             applePassCard: Array[Byte],
+             qrCode: Array[Byte])
+            (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(ApplePass(passId, fullName, nino, applePassCard, qrCode))
+    collection.insertOne(ApplePass(passId, fullName, nino, expirationDate, applePassCard, qrCode))
       .toFuture().map(_ => ())
   }
 

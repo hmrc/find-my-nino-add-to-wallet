@@ -30,6 +30,7 @@ case class ApplePassCard
   foregroundColor: String,
   backgroundColor: String,
   labelColor: String,
+  expirationDate: String,
   generic: ApplePassGeneric
 )
 
@@ -43,7 +44,7 @@ object ApplePassCard {
   val COLOR_WHITE = "rgb(255, 255, 255)"
   val COLOR_HMRC_GRAY = "rgb(0, 137, 133)"
 
-  def apply(fullName: String, nino: String, uuid: String): ApplePassCard = {
+  def apply(fullName: String, nino: String, uuid: String, expirationDate: String): ApplePassCard = {
     val generic = ApplePassGeneric(
       Array(ApplePassField(KEY_NINO, Some(LABEL_NINO), nino)),
       Array(ApplePassField(KEY_NAME, Some(LABEL_NAME), fullName)),
@@ -61,6 +62,7 @@ object ApplePassCard {
       ApplePassCard.COLOR_WHITE,
       ApplePassCard.COLOR_HMRC_GRAY,
       ApplePassCard.COLOR_WHITE,
+      expirationDate,
       generic
     )
   }
