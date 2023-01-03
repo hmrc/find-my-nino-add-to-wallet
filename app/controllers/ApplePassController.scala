@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,59 +18,87 @@ package controllers
 
 import models.ApplePassDetails
 import org.joda.time.{DateTime, DateTimeZone}
-import play.api.Logging
-import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.libs.json.{Json, OFormat, Writes}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.{Configuration, Environment, Logging}
 import services.ApplePassService
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.auth.core.AuthConnector
 
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class ApplePassController @Inject()(cc: ControllerComponents, val passService: ApplePassService)(implicit ec: ExecutionContext)
-  extends BackendController(cc)
-    with Logging {
+class ApplePassController @Inject()(
+                                     authConnector: AuthConnector,
+                                     passService: ApplePassService)(implicit
+                                                                    config: Configuration,
+                                                                    env: Environment,
+                                                                    cc: MessagesControllerComponents,
+                                                                    ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
 
-  implicit val passRequestFormatter = Json.format[ApplePassDetails]
+  implicit val passRequestFormatter: OFormat[ApplePassDetails] = Json.format[ApplePassDetails]
   implicit val writes: Writes[ApplePassDetails] = Json.writes[ApplePassDetails]
   private val DEFAULT_EXPIRATION_YEARS = 100
 
-  def createPass(): Action[AnyContent] = Action.async { implicit request =>
-    val passRequest = request.body.asJson.get.as[ApplePassDetails]
-    logger.debug(message = s"[Create Pass Event]$passRequest")
-    val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
-    Future(passService.createPass(passRequest.fullName, passRequest.nino, expirationDate.toString()) match {
-      case Right(value) => Ok(value)
-      case Left(exp) => InternalServerError(Json.obj(
-        "status" -> "500",
-        "message" -> exp.getMessage
-      ))
-    })
+
+  def createPass: Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { authContext => {
+      val passRequest = request.body.asJson.get.as[ApplePassDetails]
+      val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
+      logger.debug(message = s"[Create Pass Event]$passRequest")
+      Future(passService.createPass(passRequest.fullName, passRequest.nino, expirationDate.toString()) match {
+        case Right(value) => Ok(value)
+        case Left(exp) => InternalServerError(Json.obj(
+          "status" -> "500",
+          "message" -> exp.getMessage
+        ))
+      })
+    }
+    }
   }
 
   def getPassDetails(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.debug(message = s"[Get Pass Details] $passId")
-    passService.getPassDetails(passId).map {
-      case Some(data) => Ok(Json.toJson(data))
-      case _ => NotFound
+    authorisedAsFMNUser { authContext => {
+      logger.debug(message = s"[Get Pass Details] $passId")
+      passService.getPassDetails(passId).map {
+        case Some(data) => Ok(Json.toJson(data))
+        case _ => NotFound
+      }
+    }
+    }
+  }
+
+  def getPassDetailsWithNameAndNino(fullName: String, nino: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { authContext => {
+      logger.debug(message = s"[Get Pass Details] fullName=$fullName, nino=$nino")
+      passService.getPassDetailsWithNameAndNino(fullName, nino).map {
+        case Some(data) => Ok(Json.toJson(data))
+        case _ => NotFound
+      }
+    }
     }
   }
 
   def getPassCardByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.debug(message = s"[Get Pass Card] $passId")
-    passService.getPassCardByPassId(passId).map {
-      case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
-      case _ => NotFound
+    authorisedAsFMNUser { authContext => {
+      logger.debug(message = s"[Get Pass Card] $passId")
+      passService.getPassCardByPassId(passId).map {
+        case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
+        case _ => NotFound
+      }
+    }
     }
   }
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.debug(message = s"[Get QR Code] $passId")
-    passService.getQrCodeByPassId(passId).map {
-      case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
-      case _ => NotFound
+    authorisedAsFMNUser { authContext => {
+      logger.debug(message = s"[Get QR Code] $passId")
+      passService.getQrCodeByPassId(passId).map {
+        case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
+        case _ => NotFound
+      }
+    }
     }
   }
 }
