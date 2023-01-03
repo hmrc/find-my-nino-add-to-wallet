@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import models.{ApplePassCard, ApplePassDetails}
 import play.api.Logging
 import repositories.ApplePassRepository
 
+import java.nio.file.Files
 import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-import java.nio.file.Files
 
 class ApplePassService @Inject()(val config: AppConfig,
                                  val applePassRepository: ApplePassRepository,
@@ -42,6 +42,10 @@ class ApplePassService @Inject()(val config: AppConfig,
 
   def getPassDetails(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {
     applePassRepository.findByPassId(passId).map(_.map(r => ApplePassDetails(r.fullName, r.nino)))
+  }
+
+  def getPassDetailsWithNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {
+    applePassRepository.findByNameAndNino(fullName, nino).map(_.map(r => ApplePassDetails(r.fullName, r.nino)))
   }
 
   def createPass(name: String, nino: String, expirationDate: String)(implicit ec: ExecutionContext): Either[Exception, String] = {

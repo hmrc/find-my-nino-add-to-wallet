@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,4 +78,12 @@ class ApplePassRepository @Inject()(
   def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
     collection.find(Filters.equal("passId", passId))
       .headOption()
+
+  def findByNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
+    collection.find(
+      Filters.and(
+        Filters.equal("fullName", fullName),
+        Filters.equal("nino", nino)
+      )).headOption()
+
 }
