@@ -58,7 +58,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
         contentAsString(result) mustBe passId
       }
     }
-
   }
 
   "getPassDetailsByPassId" must {

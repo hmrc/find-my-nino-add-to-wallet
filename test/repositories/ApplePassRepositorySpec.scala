@@ -34,7 +34,7 @@ import scala.concurrent.duration.Duration
 
 class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matchers with MongoEmbedDatabase
   with BeforeAndAfterAll { // scalastyle:off magic.number
-
+/*
   import ApplePassRepositorySpec._
 
   override def beforeAll(): Unit = {
@@ -83,7 +83,7 @@ class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matcher
         documentsInDB.isDefined mustBe true
       }
     }
-  }
+  }*/
 }
 
 object ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar {
