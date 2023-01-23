@@ -25,7 +25,7 @@ import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 class PersonDetailsService @Inject()(val config: AppConfig,
-                                 val personDetailsRepo: PersonDetailsRepo,
+                                 val personDetailsRepo: PersonDetailsRepo
                                  ) extends Logging {
 
   def getPersonDetailsById(pdId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
