@@ -5,3 +5,5 @@ GET         /get-pass-details           controllers.ApplePassController.getPassD
 GET         /get-pass-details-by-name-and-nino           controllers.ApplePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
 GET         /get-pass-card              controllers.ApplePassController.getPassCardByPassId(passId: String)
 GET         /get-qr-code                controllers.ApplePassController.getQrCodeByPassId(passId: String)
+POST        /create-person-details      controllers.PersonDetailsController.createPersonDetailsRow
+GET         /get-person-details         controllers.PersonDetailsController.getPersonDetails(pdId: String)
