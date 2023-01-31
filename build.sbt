@@ -6,6 +6,8 @@ val appName = "find-my-nino-add-to-wallet"
 
 val silencerVersion = "1.7.7"
 
+// 14005
+
 lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -13,6 +15,7 @@ lazy val microservice = Project(appName, file("."))
     majorVersion                     := 0,
     scalaVersion                     := "2.12.15",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+    PlayKeys.playDefaultPort := 14005,
     // ***************
     // Use the silencer plugin to suppress warnings
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;.*repositories.*;" +
