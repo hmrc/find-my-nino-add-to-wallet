@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import com.google.inject.AbstractModule
-import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
+//import play.api.libs.json.Json
 
-class Module extends AbstractModule {
 
-  override def configure(): Unit = {
+import play.api.libs.json._
 
-    bind(classOf[AppConfig]).asEagerSingleton()
-    bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]).asEagerSingleton()
-  }
+case class PersonDetails(
+                          person: Person,
+                          address: Option[Address],
+                          correspondenceAddress: Option[Address]
+                        )
+
+object PersonDetails {
+  implicit val formats = Json.format[PersonDetails]
+
 }
+
+
