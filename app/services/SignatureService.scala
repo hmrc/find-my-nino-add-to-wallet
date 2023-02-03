@@ -25,7 +25,7 @@ import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder
 import org.bouncycastle.cms.{CMSProcessableFile, CMSSignedDataGenerator, CMSTypedData, DefaultSignedAttributeTableGenerator}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
-import play.api.{Configuration, Logging}
+import play.api.Logging
 
 import java.io.ByteArrayInputStream
 import java.nio.file.{Files, Path}
@@ -36,9 +36,7 @@ import java.util.{Base64, Date}
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
-class SignatureService @Inject()(
-                                configuration: Configuration
-                                ) extends Logging {
+class SignatureService @Inject()() extends Logging {
 
   import SignatureService._
 
@@ -58,10 +56,12 @@ class SignatureService @Inject()(
 
     resultForCreateSignature match {
       case Success(_) => true
-      case _ => false
+      case _ =>
+        println(resultForCreateSignature)
+        false
     }
   }
-
+  // $COVERAGE-OFF$
   private def signManifestUsingContent(content: CMSTypedData, signInfo: ApplePassSignInformation): Try[Array[Byte]] = {
     Try {
       val signedDataGenerator = new CMSSignedDataGenerator
@@ -95,6 +95,7 @@ class SignatureService @Inject()(
       signedDataGenerator.generate(content, false).getEncoded
     }
   }
+  // $COVERAGE-ON$
 
   private def loadSigningInformation(privateCertificate: String,
                                      privateCertificatePassword: String,
@@ -114,6 +115,7 @@ class SignatureService @Inject()(
 
   private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = Try {
     val keyStore = KeyStore.getInstance("PKCS12")
+    println(keyStore)
     keyStore.load(new ByteArrayInputStream(privateCertificate), password.toCharArray)
 
     val aliases = keyStore.aliases

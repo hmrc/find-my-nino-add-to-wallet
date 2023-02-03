@@ -6,7 +6,7 @@ val appName = "find-my-nino-add-to-wallet"
 
 val silencerVersion = "1.7.7"
 
-// 14005
+addCommandAlias("report", ";clean; coverage; test; it:test; coverageReport")
 
 lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
@@ -20,9 +20,9 @@ lazy val microservice = Project(appName, file("."))
     // Use the silencer plugin to suppress warnings
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;.*repositories.*;" +
       ".*models.*;.*BuildInfo.*;.*Routes.*;.*javascript.*;.*GuiceInjector;.*AppConfig;.*Module;" +
-      ".*ControllerConfiguration;.*TestController;.*LanguageSwitchController",
+      ".*ControllerConfiguration;",
     ScoverageKeys.coverageExcludedPackages := "<empty>;target.*",
-    ScoverageKeys.coverageMinimumStmtTotal := 50,
+    ScoverageKeys.coverageMinimumStmtTotal := 80,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
     scalacOptions += "-P:silencer:pathFilters=routes",
