@@ -57,7 +57,6 @@ class SignatureService @Inject()() extends Logging {
     resultForCreateSignature match {
       case Success(_) => true
       case _ =>
-        println(resultForCreateSignature)
         false
     }
   }
@@ -115,7 +114,6 @@ class SignatureService @Inject()() extends Logging {
 
   private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = Try {
     val keyStore = KeyStore.getInstance("PKCS12")
-    println(keyStore)
     keyStore.load(new ByteArrayInputStream(privateCertificate), password.toCharArray)
 
     val aliases = keyStore.aliases
