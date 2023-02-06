@@ -62,6 +62,21 @@ class PersonDetailsControllerSpec extends AnyWordSpec with Matchers with Mockito
         contentAsString(result) mustBe "pdId"
       }
     }
+
+    "should return InternalServerError when failure occurs" in {
+      when(mockPersonDetailsService.createPersonDetails(
+        any(),
+        any(),
+        any(),
+        any())(any()))
+        .thenReturn(Left(new Exception("failed")))
+
+      val result = controller.createPersonDetailsRow()(fakeRequestWithAuth.withJsonBody(Json.parse(fakePersonDetailsJson)))
+
+      whenReady(result) { _ =>
+        status(result) mustBe 500
+      }
+    }
   }
 
   "getPersonDetails" must {

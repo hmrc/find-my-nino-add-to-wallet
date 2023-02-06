@@ -35,9 +35,8 @@ class PersonDetailsService @Inject()(val config: AppConfig,
   def createPersonDetails(fullName: String, nino: String, personDetails:String, expirationDate: String)
                          (implicit ec: ExecutionContext): Either[Exception, String] = {
     val uuid = UUID.randomUUID().toString
-    personDetailsRepo.insert(uuid, fullName, nino, personDetails, expirationDate )
+    personDetailsRepo.insert(uuid, fullName, nino, personDetails, expirationDate)
       Right(uuid)
-
   }
 }
 

@@ -46,6 +46,7 @@ trait FMNAuth extends AuthorisedFunctions with AuthRedirects with Logging{
   def authorisedAsFMNUser(body: FMNAction[Any])
   (implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): Future[Result] = authorisedUser(body)
 
+  // $COVERAGE-OFF$
   def authorisedAsFMNUser(implicit
                           ec: ExecutionContext,
                           cc: ControllerComponents
@@ -61,7 +62,7 @@ trait FMNAuth extends AuthorisedFunctions with AuthRedirects with Logging{
         authorisedUser(authContext)
       }
     }
-
+  // $COVERAGE-ON$
 
   private def authorisedUser[A](
                                  block: FMNAction[A]
