@@ -16,7 +16,6 @@
 
 package repositories
 
-import com.github.simplyscala.MongoEmbedDatabase
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
@@ -32,7 +31,7 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matchers with MongoEmbedDatabase
+class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matchers
   with BeforeAndAfterAll { // scalastyle:off magic.number
 /*
   import ApplePassRepositorySpec._
