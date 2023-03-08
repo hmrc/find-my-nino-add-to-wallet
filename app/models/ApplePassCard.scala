@@ -16,7 +16,7 @@
 
 package models
 
-import services.ApplePassService.{KEY_NAME, KEY_NINO, KEY_WARNING, LABEL_NAME, LABEL_NINO, TEXT_WARNING}
+import services.ApplePassService._
 
 case class ApplePassCard
 (
@@ -40,7 +40,7 @@ object ApplePassCard {
   val TEAM_IDENTIFIER = "4LL5YKZZU7"
   val ORGANIZATION_NAME = "HMRC"
   val DESCRIPTION = "National Insurance Number Card"
-  val LOGO_TEXT = "National Insurance Number Card"
+  val LOGO_TEXT = "HM Revenue & Customs"
   val COLOR_WHITE = "rgb(255, 255, 255)"
   val COLOR_HMRC_GRAY = "rgb(0, 137, 133)"
 
@@ -48,7 +48,10 @@ object ApplePassCard {
     val generic = ApplePassGeneric(
       Array(ApplePassField(KEY_NINO, Some(LABEL_NINO), nino)),
       Array(ApplePassField(KEY_NAME, Some(LABEL_NAME), fullName)),
-      Array(ApplePassField(KEY_WARNING, None, TEXT_WARNING))
+      Array(ApplePassField(KEY_WARNING, None, TEXT_WARNING)),
+      Array(
+        ApplePassField("downloadpasspdf", Some("Print your NINO PDF"), "https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter")
+      )
     )
 
     ApplePassCard(
