@@ -44,19 +44,19 @@ class FileService @Inject()() extends Logging {
     val isIconFileCreated = writeToAFile(path.resolve(ICON_FILE_NAME), iconSource)
     val logoSource = getClass.getResourceAsStream(LOGO_RESOURCE_PATH).readAllBytes()
     val isLogoFileCreated = writeToAFile(path.resolve(LOGO_FILE_NAME), logoSource)
-    val thumbnailSource = getClass.getResourceAsStream(THUMBNAIL_RESOURCE_PATH).readAllBytes()
-    val isThumbnailCreated = writeToAFile(path.resolve(THUMBNAIL_FILE_NAME), thumbnailSource)
+//    val thumbnailSource = getClass.getResourceAsStream(THUMBNAIL_RESOURCE_PATH).readAllBytes()
+//    val isThumbnailCreated = writeToAFile(path.resolve(THUMBNAIL_FILE_NAME), thumbnailSource)
     logger.info(s"[Creating Directory For Pass] isFilePassCreated: $isFilePassCreated || " +
       s"isIconFileCreated: $isIconFileCreated || " +
-      s"isThumbnailCreated: $isThumbnailCreated || " +
-      s"isLogoCreated: $isLogoFileCreated"
+      s"isLogoCreated: $isLogoFileCreated" // +
+//    s"isThumbnailCreated: $isThumbnailCreated || "
     )
 
     // Create Manifest File:
     val isManifestCreated = createManifestFile(path)
     logger.info(s"[Creating Directory For Pass] isManifestCreated: $isManifestCreated")
 
-    isDirectoryCreated && isFilePassCreated && isIconFileCreated && isThumbnailCreated && isManifestCreated && isLogoFileCreated
+    isDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated // && isThumbnailCreated
   }
 
   def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
