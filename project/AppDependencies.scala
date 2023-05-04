@@ -4,7 +4,7 @@ object AppDependencies {
 
   val compile = Seq(
     "uk.gov.hmrc"             %% "bootstrap-backend-play-28"  % "7.1.0",
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % "0.71.0",
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % "1.1.0",
     "org.bouncycastle"        % "bcpkix-jdk18on"              % "1.71",
     "org.bouncycastle"        % "bcprov-jdk18on"              % "1.71",
     "org.bouncycastle"        % "bcutil-jdk18on"              % "1.71",
