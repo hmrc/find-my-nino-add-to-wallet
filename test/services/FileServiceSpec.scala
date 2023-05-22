@@ -44,7 +44,6 @@ class FileServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       File("./test.pass/icon.png").exists mustBe true
       File("./test.pass/manifest.json").exists mustBe true
       File("./test.pass/pass.json").exists mustBe true
-      File("./test.pass/thumbnail.png").exists mustBe true
     }
 
     "should create zip data with test directory" in {

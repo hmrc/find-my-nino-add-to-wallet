@@ -16,7 +16,7 @@
 
 package models
 
-import services.ApplePassService.{KEY_NAME, KEY_NINO, KEY_WARNING, LABEL_NAME, LABEL_NINO, TEXT_WARNING}
+import services.ApplePassService._
 
 case class ApplePassCard
 (
@@ -39,8 +39,8 @@ object ApplePassCard {
   val PASS_TYPE_IDENTIFIER = "pass.uk.gov.hmrc.sca.nino"
   val TEAM_IDENTIFIER = "4LL5YKZZU7"
   val ORGANIZATION_NAME = "HMRC"
-  val DESCRIPTION = "National Insurance Number Card"
-  val LOGO_TEXT = "National Insurance Number Card"
+  val DESCRIPTION = "National Insurance number"
+  val LOGO_TEXT = "HM Revenue & Customs"
   val COLOR_WHITE = "rgb(255, 255, 255)"
   val COLOR_HMRC_GRAY = "rgb(0, 137, 133)"
 
@@ -48,7 +48,16 @@ object ApplePassCard {
     val generic = ApplePassGeneric(
       Array(ApplePassField(KEY_NINO, Some(LABEL_NINO), nino)),
       Array(ApplePassField(KEY_NAME, Some(LABEL_NAME), fullName)),
-      Array(ApplePassField(KEY_WARNING, None, TEXT_WARNING))
+      Array(ApplePassField(KEY_WARNING, None, TEXT_WARNING)),
+      Array(
+        ApplePassField("downloadpasspdf", Some("Your National Insurance number on a letter"), "You can get a letter confirming your National Insurance number from your personal tax account.\n" +
+          "To sign in, you’ll need to create or use an existing Government Gateway user ID and password.\n" +
+          "https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter"),
+        ApplePassField("warning", None, "To help prevent identity fraud, only share your number when necessary."),
+        ApplePassField("steps", Some("You'll need it when you:"), "• start paid work\n• apply for a driving licence\n• apply for a student loan\n• register to vote\n• claim state benefits"),
+        ApplePassField("info", Some("Your National Insurance number is:"), "• unique to you and never changes\n• not proof of your identity\n• not proof of your right to work in the UK"),
+        ApplePassField("findoutmore", Some("Find out more about National Insurance"), "https://www.gov.uk/national-insurance")
+      )
     )
 
     ApplePassCard(
