@@ -89,5 +89,5 @@ object ApplePassService {
   val LABEL_NAME = "NAME"
 
   val KEY_WARNING = "warning"
-  val TEXT_WARNING = "This is not proof of your identity or your right to work in the UK. Only share it when necessary."
+  val TEXT_WARNING = "This is not proof of your identity or your right to work in the UK."
 }
