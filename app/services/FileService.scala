@@ -127,7 +127,7 @@ object FileService {
 
   val PASS_FILE_NAME = "pass.json"
   val ICON_FILE_NAME = "icon.png"
-  val LOGO_FILE_NAME = "logo.png"
+  val LOGO_FILE_NAME = "logo.png" //top of the card logo
   val THUMBNAIL_FILE_NAME = "thumbnail.png"
   val MANIFEST_JSON_FILE_NAME = "manifest.json"
   val ICON_RESOURCE_PATH = s"/resources/pass/$ICON_FILE_NAME"
