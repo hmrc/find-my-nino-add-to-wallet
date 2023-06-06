@@ -30,6 +30,7 @@ case class ApplePassCard
   foregroundColor: String,
   backgroundColor: String,
   labelColor: String,
+  sharingProhibited : Boolean,
   expirationDate: String,
   generic: ApplePassGeneric
 )
@@ -43,6 +44,7 @@ object ApplePassCard {
   val LOGO_TEXT = "HM Revenue & Customs"
   val COLOR_WHITE = "rgb(255, 255, 255)"
   val COLOR_HMRC_GRAY = "rgb(0, 137, 133)"
+  val SHARING_PROHIBITED = true
 
   def apply(fullName: String, nino: String, uuid: String, expirationDate: String): ApplePassCard = {
     val generic = ApplePassGeneric(
@@ -71,6 +73,7 @@ object ApplePassCard {
       ApplePassCard.COLOR_WHITE,
       ApplePassCard.COLOR_HMRC_GRAY,
       ApplePassCard.COLOR_WHITE,
+      ApplePassCard.SHARING_PROHIBITED,
       expirationDate,
       generic
     )
