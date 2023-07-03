@@ -5,14 +5,18 @@ object AppDependencies {
   private val mongoVersion = "1.1.0"
 
   val compile = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-backend-play-28"  % "7.1.0",
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % mongoVersion,
-    "org.bouncycastle"        % "bcpkix-jdk18on"              % "1.71",
-    "org.bouncycastle"        % "bcprov-jdk18on"              % "1.71",
-    "org.bouncycastle"        % "bcutil-jdk18on"              % "1.71",
-    "com.google.zxing"        % "core"                        % "3.5.0",
-    "com.nimbusds"            % "nimbus-jose-jwt"             % "9.25.1",
-    "uk.gov.hmrc"             %% "crypto"                     % "7.2.0"
+    "uk.gov.hmrc"             %% "bootstrap-backend-play-28"      % "7.1.0",
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"             % mongoVersion,
+    "org.bouncycastle"        % "bcpkix-jdk18on"                  % "1.71",
+    "org.bouncycastle"        % "bcprov-jdk18on"                  % "1.71",
+    "org.bouncycastle"        % "bcutil-jdk18on"                  % "1.71",
+    "com.google.zxing"        % "core"                            % "3.5.0",
+    "com.nimbusds"            % "nimbus-jose-jwt"                 % "9.25.1",
+    "uk.gov.hmrc"             %% "crypto"                         % "7.2.0",
+    "com.google.api-client"   % "google-api-client"               % "2.2.0",
+    "com.google.zxing"        % "core"                            % "3.5.0",
+    "com.google.auth"         % "google-auth-library-oauth2-http" % "1.16.0",
+    "com.auth0"               % "java-jwt"                        % "4.4.0",
   )
 
   val test = Seq(
