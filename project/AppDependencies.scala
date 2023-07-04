@@ -17,6 +17,7 @@ object AppDependencies {
     "com.google.zxing"        % "core"                            % "3.5.0",
     "com.google.auth"         % "google-auth-library-oauth2-http" % "1.16.0",
     "com.auth0"               % "java-jwt"                        % "4.4.0",
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"                 %   "2.14.2",
   )
 
   val test = Seq(
