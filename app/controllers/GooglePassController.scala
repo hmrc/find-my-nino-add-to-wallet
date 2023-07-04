@@ -80,10 +80,10 @@ class GooglePassController @Inject()(
     }
   }
 
-  def getPassCardByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getPassUrlByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       logger.debug(message = s"[Get Pass Card] $passId")
-      passService.getPassCardByPassId(passId).map {
+      passService.getPassUrlByPassId(passId).map {
         case Some(data) => Ok(data)
         case _ => NotFound
       }

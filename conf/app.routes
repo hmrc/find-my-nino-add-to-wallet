@@ -12,5 +12,5 @@ GET         /get-person-details         controllers.PersonDetailsController.getP
 POST        /create-google-pass          controllers.GooglePassController.createPass
 GET         /get-google-pass-details           controllers.GooglePassController.getPassDetails(passId: String)
 GET         /get-google-pass-details-by-name-and-nino           controllers.GooglePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
-GET         /get-google-pass-card              controllers.GooglePassController.getPassCardByPassId(passId: String)
+GET         /get-google-pass-url              controllers.GooglePassController.getPassUrlByPassId(passId: String)
 GET         /get-google-qr-code                controllers.GooglePassController.getQrCodeByPassId(passId: String)

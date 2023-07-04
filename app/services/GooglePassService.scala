@@ -31,7 +31,7 @@ class GooglePassService @Inject()(val config: AppConfig,
                                  val googlePassRepository: GooglePassRepository,
                                  val qrCodeService: QrCodeService) extends Logging {
 
-  def getPassCardByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
+  def getPassUrlByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
     googlePassRepository.findByPassId(passId).map(_.map(_.googlePassUrl))
   }
 
@@ -51,10 +51,10 @@ class GooglePassService @Inject()(val config: AppConfig,
     val uuid = UUID.randomUUID().toString
     val googlePassUrl: String = googlePassUtil.createGooglePass(name, nino)
 
-    val qrCode = qrCodeService.createQRCode(googlePassUrl).getOrElse(Array.emptyByteArray)
+    val qrCode = qrCodeService.createQRCode(googlePassUrl + "&qr-code=true").getOrElse(Array.emptyByteArray)
     logger.info(s"[Creating Google Pass] Qr Code Completed")
     googlePassRepository.insert(uuid, name, nino, expirationDate, googlePassUrl, qrCode)
-
+    logger.info(s"$qrCode")
     Right(uuid)
 
   }
