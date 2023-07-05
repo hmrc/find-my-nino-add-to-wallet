@@ -114,10 +114,10 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
   "getPassCardByPassId" must {
     "should return OK with the byte data of pass" in {
-      when(mockGooglePassService.getPassCardByPassId(eqTo(passId))(any()))
+      when(mockGooglePassService.getPassUrlByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Some("SomePassCodeData")))
 
-      val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
+      val result = controller.getPassUrlByPassId(passId)(fakeRequestWithAuth)
 
       whenReady(result) { _ =>
         status(result) mustBe OK
@@ -126,10 +126,10 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "should return NotFound when there is no record for given passId" in {
-      when(mockGooglePassService.getPassCardByPassId(eqTo(passId))(any()))
+      when(mockGooglePassService.getPassUrlByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
+      val result = controller.getPassUrlByPassId(passId)(fakeRequestWithAuth)
 
       whenReady(result) { _ =>
         status(result) mustBe NOT_FOUND

@@ -114,7 +114,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      googlePassService.getPassCardByPassId(passId)(implicitly).map { result =>
+      googlePassService.getPassUrlByPassId(passId)(implicitly).map { result =>
         result mustBe Some(googlePassUrl)
       }
     }
@@ -123,7 +123,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      googlePassService.getPassCardByPassId(passId)(implicitly).map { result =>
+      googlePassService.getPassUrlByPassId(passId)(implicitly).map { result =>
         result mustBe None
       }
     }
