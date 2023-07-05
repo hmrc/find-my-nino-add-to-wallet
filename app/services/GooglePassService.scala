@@ -51,10 +51,9 @@ class GooglePassService @Inject()(val config: AppConfig,
     val uuid = UUID.randomUUID().toString
     val googlePassUrl: String = googlePassUtil.createGooglePass(name, nino)
 
-    val qrCode = qrCodeService.createQRCode(googlePassUrl + "&qr-code=true").getOrElse(Array.emptyByteArray)
+    val qrCode = qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-google-pass?passId=$uuid&qr-code=true").getOrElse(Array.emptyByteArray)
     logger.info(s"[Creating Google Pass] Qr Code Completed")
     googlePassRepository.insert(uuid, name, nino, expirationDate, googlePassUrl, qrCode)
-    logger.info(s"$qrCode")
     Right(uuid)
 
   }
