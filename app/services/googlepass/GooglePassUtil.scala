@@ -80,7 +80,7 @@ class GooglePassUtil @Inject()(config: AppConfig, createGenericPrivatePass: Crea
         GooglePassTextRow(
           id = Some("row10left"),
           header = Some("Find out more about National Insurance"),
-          body = Some("https://www.gov.uk/national-insurance")),
+          body = Some("https://www.gov.uk/national-insurance"))
         )),
       hexBackgroundColour = "#008670",
       language = "en"
