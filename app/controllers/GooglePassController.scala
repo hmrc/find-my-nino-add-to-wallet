@@ -16,17 +16,20 @@
 
 package controllers
 
-import models.GooglePassDetails
+import com.google.auth.oauth2.GoogleCredentials
+import models.{GooglePassDetails, GooglePassDetailsWithCredentials}
 import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
-import services.GooglePassService
+import services.{DeSerializer, GooglePassService}
 import uk.gov.hmrc.auth.core.AuthConnector
 
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.runtime.universe.Try
 
 @Singleton()
 class GooglePassController @Inject()(
@@ -38,16 +41,21 @@ class GooglePassController @Inject()(
                                                                     ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
 
   implicit val passRequestFormatter: OFormat[GooglePassDetails] = Json.format[GooglePassDetails]
+  implicit val passRequestFormatterWithCredentials: OFormat[GooglePassDetailsWithCredentials] = Json.format[GooglePassDetailsWithCredentials]
+
   implicit val writes: Writes[GooglePassDetails] = Json.writes[GooglePassDetails]
+  implicit val writesWithCredentials: Writes[GooglePassDetailsWithCredentials] = Json.writes[GooglePassDetailsWithCredentials]
+
   private val DEFAULT_EXPIRATION_YEARS = 100
 
 
-  def createPass: Action[AnyContent] = Action.async { implicit request =>
+  def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      val passRequest = request.body.asJson.get.as[GooglePassDetails]
+      val passRequest = request.body.asJson.get.as[GooglePassDetailsWithCredentials]
       val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
-      logger.debug(message = s"[Create Pass Event]$passRequest")
-      Future(passService.createPass(passRequest.fullName, passRequest.nino, expirationDate.toString()) match {
+      val googleCredentials = DeSerializer.deserializeObjectFromBase64[GoogleCredentials](passRequest.credentials)
+
+      Future(passService.createPassWithCredentials(passRequest.fullName, passRequest.nino, expirationDate.toString(), googleCredentials) match {
         case Right(value) => Ok(value)
         case Left(exp) => InternalServerError(Json.obj(
           "status" -> "500",
@@ -58,9 +66,9 @@ class GooglePassController @Inject()(
     }
   }
 
+
   def getPassDetails(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get Pass Details] $passId")
       passService.getPassDetails(passId).map {
         case Some(data) => Ok(Json.toJson(data))
         case _ => NotFound
@@ -71,7 +79,6 @@ class GooglePassController @Inject()(
 
   def getPassDetailsWithNameAndNino(fullName: String, nino: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get Pass Details] fullName=$fullName, nino=$nino")
       passService.getPassDetailsWithNameAndNino(fullName, nino).map {
         case Some(data) => Ok(Json.toJson(data))
         case _ => NotFound
@@ -82,7 +89,6 @@ class GooglePassController @Inject()(
 
   def getPassUrlByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get Pass Card] $passId")
       passService.getPassUrlByPassId(passId).map {
         case Some(data) => Ok(data)
         case _ => NotFound
@@ -93,7 +99,6 @@ class GooglePassController @Inject()(
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get QR Code] $passId")
       passService.getQrCodeByPassId(passId).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
         case _ => NotFound

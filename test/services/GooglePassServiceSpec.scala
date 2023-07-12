@@ -16,6 +16,7 @@
 
 package services
 
+import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import models.GooglePassDetails
 import org.joda.time.{DateTime, DateTimeZone}
@@ -137,10 +138,10 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
         .thenReturn(Some("SomeQrCode".getBytes()))
 
 
-      val eitherResult = googlePassService.createPass(
+      val eitherResult = googlePassService.createPassWithCredentials(
         "TestName TestSurname",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString()
+        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),mockGoogleCredentials
       )
 
       eitherResult.isLeft mustBe false
@@ -162,6 +163,7 @@ object GooglePassServiceSpec {
   private val mockQrCodeService = mock[QrCodeService]
   private val mockAppConfig = mock[AppConfig]
   private val DEFAULT_EXPIRATION_YEARS = 100
+  private val mockGoogleCredentials = mock[GoogleCredentials]
 
   val googlePassService = new GooglePassService(mockAppConfig, mockGooglePassUtil, mockGooglePassRepository, mockQrCodeService)
 }

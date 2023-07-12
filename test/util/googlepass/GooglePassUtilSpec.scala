@@ -16,6 +16,7 @@
 
 package util.googlepass
 
+import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import config.AppConfig
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
@@ -27,15 +28,17 @@ class GooglePassUtilSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
   val mockConfig: AppConfig = mock[AppConfig]
   val mockCreateGenericPrivatePass: CreateGenericPrivatePass = mock[CreateGenericPrivatePass]
+  val mockGoogleCredentials: GoogleCredentials = mock[GoogleCredentials]
 
   val googlePassUtil: GooglePassUtil = new GooglePassUtil(mockConfig, mockCreateGenericPrivatePass)
 
-  when(mockCreateGenericPrivatePass.createJwt(any, any, any, any)) thenReturn "testJwt"
+  when(mockCreateGenericPrivatePass.createJwtWithCredentials(any, any, any, any)) thenReturn "testJwt"
 
 
   "GooglePassUtil createGooglePass" must {
     "must return valid url" in {
-      val result = googlePassUtil.createGooglePass("test name", "AB 01 23 45 C")
+      val result = googlePassUtil.createGooglePassWithCredentials("test name", "AB 01 23 45 C", mockGoogleCredentials)
+
       result mustBe "https://pay.google.com/gp/v/save/testJwt"
     }
   }

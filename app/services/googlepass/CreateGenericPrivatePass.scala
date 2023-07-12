@@ -45,24 +45,28 @@ class CreateGenericPrivatePass{
    * @param googlePassCard  The google pass card model containing the data to display on the card
    * @return The generated JWT string
    */
-  def createJwt(id: String, issuerId: String, key: String, googlePassCard: GooglePassCard): String = try {
-    val scope = "https://www.googleapis.com/auth/wallet_object.issuer"
 
-    val decodedKey: Array[Byte] = Base64.getDecoder.decode(key)
-    val keyAsStream: java.io.InputStream = new ByteArrayInputStream(decodedKey)
-
-    val credentials: GoogleCredentials = GoogleCredentials
-      .fromStream(keyAsStream)
-      .createScoped(Collections.singletonList(scope))
-
-    credentials.refresh()
-    val genericPrivatePass = createGenericPrivatePassObject(id, issuerId, googlePassCard)
-    createAndSignJWT(credentials, genericPrivatePass)
+  /*def createJwt(id: String, issuerId: String, key: String, googlePassCard: GooglePassCard): String = try {
+    createAndSignJWT(createGoogleCredentials(key), createGenericPrivatePassObject(id, issuerId, googlePassCard))
   } catch {
     case e: IOException =>
       throw new RuntimeException("Error saving JWT: " + e)
   }
 
+  def createGoogleCredentials(key:String): GoogleCredentials = {
+    val scope = "https://www.googleapis.com/auth/wallet_object.issuer"
+    val keyAsStream = new ByteArrayInputStream(Base64.getDecoder.decode(key))
+    val credentials: GoogleCredentials = GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
+    credentials.refresh()
+    credentials
+  }*/
+
+  def createJwtWithCredentials(id: String, issuerId: String, googlePassCard: GooglePassCard, googleCredentials: GoogleCredentials): String = try {
+    createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard))
+  } catch {
+    case e: IOException =>
+      throw new RuntimeException("Error saving JWT: " + e)
+  }
 
   /**
    * Creates the generic private pass object

@@ -16,6 +16,7 @@
 
 package services
 
+import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import models.GooglePassDetails
 import play.api.Logging
@@ -47,14 +48,15 @@ class GooglePassService @Inject()(val config: AppConfig,
     googlePassRepository.findByNameAndNino(fullName, nino).map(_.map(r => GooglePassDetails(r.fullName, r.nino)))
   }
 
-  def createPass(name: String, nino: String, expirationDate: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
+  def createPassWithCredentials(name: String,
+                                nino: String,
+                                expirationDate: String,
+                                googleCredentials: GoogleCredentials)(implicit ec: ExecutionContext): Either[Exception, String] = {
     val uuid = UUID.randomUUID().toString
-    val googlePassUrl: String = googlePassUtil.createGooglePass(name, nino)
-
+    val googlePassUrl: String = googlePassUtil.createGooglePassWithCredentials(name, nino, googleCredentials)
     val qrCode = qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-google-pass?passId=$uuid&qr-code=true").getOrElse(Array.emptyByteArray)
-    logger.info(s"[Creating Google Pass] Qr Code Completed")
     googlePassRepository.insert(uuid, name, nino, expirationDate, googlePassUrl, qrCode)
     Right(uuid)
-
   }
+
 }

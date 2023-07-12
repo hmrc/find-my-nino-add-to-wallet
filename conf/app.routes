@@ -9,8 +9,8 @@ GET         /get-qr-code                controllers.ApplePassController.getQrCod
 POST        /create-person-details      controllers.PersonDetailsController.createPersonDetailsRow
 GET         /get-person-details         controllers.PersonDetailsController.getPersonDetails(pdId: String)
 
-POST        /create-google-pass          controllers.GooglePassController.createPass
-GET         /get-google-pass-details           controllers.GooglePassController.getPassDetails(passId: String)
-GET         /get-google-pass-details-by-name-and-nino           controllers.GooglePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
-GET         /get-google-pass-url              controllers.GooglePassController.getPassUrlByPassId(passId: String)
-GET         /get-google-qr-code                controllers.GooglePassController.getQrCodeByPassId(passId: String)
+GET         /get-google-pass-details                        controllers.GooglePassController.getPassDetails(passId: String)
+GET         /get-google-pass-details-by-name-and-nino       controllers.GooglePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
+GET         /get-google-pass-url                            controllers.GooglePassController.getPassUrlByPassId(passId: String)
+GET         /get-google-qr-code                             controllers.GooglePassController.getQrCodeByPassId(passId: String)
+POST        /create-google-pass-with-credentials            controllers.GooglePassController.createPassWithCredentials
