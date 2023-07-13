@@ -32,7 +32,7 @@ class GooglePassUtilSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
   val googlePassUtil: GooglePassUtil = new GooglePassUtil(mockConfig, mockCreateGenericPrivatePass)
 
-  when(mockCreateGenericPrivatePass.createJwtWithCredentials(any, any, any, any)) thenReturn "testJwt"
+  when(mockCreateGenericPrivatePass.createJwtWithCredentials(any, any, any, any, any)) thenReturn "testJwt"
 
 
   "GooglePassUtil createGooglePass" must {
