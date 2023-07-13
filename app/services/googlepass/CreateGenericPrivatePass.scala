@@ -25,6 +25,7 @@ import googleModels.{GenericPrivatePass, Image, ImageUri, LocalizedString, TextM
 
 import java.io._
 import java.security.interfaces.RSAPrivateKey
+import java.time.{LocalDateTime, ZoneId}
 import java.util
 import java.util._
 import scala.jdk.CollectionConverters._
@@ -61,8 +62,8 @@ class CreateGenericPrivatePass{
     credentials
   }*/
 
-  def createJwtWithCredentials(id: String, issuerId: String, googlePassCard: GooglePassCard, googleCredentials: GoogleCredentials): String = try {
-    createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard))
+  def createJwtWithCredentials(id: String, issuerId: String, googlePassCard: GooglePassCard, googleCredentials: GoogleCredentials, expiry: Int): String = try {
+    createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard), expiry)
   } catch {
     case e: IOException =>
       throw new RuntimeException("Error saving JWT: " + e)
@@ -123,7 +124,7 @@ class CreateGenericPrivatePass{
    * @param genericPrivatePass The generic private pass object
    * @return The generated JWT string signed with a private key
    */
-  private def createAndSignJWT(googleCredentials: GoogleCredentials, genericPrivatePass: GenericPrivatePass): String = {
+  private def createAndSignJWT(googleCredentials: GoogleCredentials, genericPrivatePass: GenericPrivatePass, expiry: Int): String = {
     // Create the JWT as a HashMap object
     val claims: util.HashMap[String, Object] = new util.HashMap[String, Object]()
 
@@ -135,10 +136,11 @@ class CreateGenericPrivatePass{
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
     payload.put("genericPrivatePasses", util.Arrays.asList(genericPrivatePass))
     claims.put("payload", payload)
+    val JWTExpiryDate  = Date.from(LocalDateTime.now().plusMinutes(expiry).atZone(ZoneId.systemDefault()).toInstant)
     // The service account credentials are used to sign the JWT
     val algorithm: Algorithm = Algorithm.RSA256(null,
       (googleCredentials.asInstanceOf[ServiceAccountCredentials].getPrivateKey()).asInstanceOf[RSAPrivateKey])
-    JWT.create.withPayload(claims).sign(algorithm)
+    JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
   }
 }
 // $COVERAGE-ON$

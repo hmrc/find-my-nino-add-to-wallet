@@ -28,4 +28,5 @@ class AppConfig @Inject()(config: Configuration) {
   val privateCertificatePassword: String = config.get[String]("applePass.privateCertificatePassword")
   val googleIssuerId: String = config.get[String]("googlePass.issuerId")
   val googleKey: String = config.get[String]("googlePass.key")
+  val googleJWTExpiry: Int = config.get[Int]("googlePass.expiry")
 }
