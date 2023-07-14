@@ -65,7 +65,9 @@ class GooglePassUtil @Inject()(config: AppConfig, createGenericPrivatePass: Crea
           header = Some("Your National Insurance number on a letter"),
           body = Some("You can get a letter confirming your National Insurance number from your personal tax account.\n" +
             "To sign in, you’ll need to create or use an existing Government Gateway user ID and password.\n" +
-            "https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter")),
+            "<a href='https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter'>" +
+            "https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter" +
+            "</a>")),
         GooglePassTextRow(
           id = Some("row7left"),
           header = None,
@@ -81,9 +83,11 @@ class GooglePassUtil @Inject()(config: AppConfig, createGenericPrivatePass: Crea
         GooglePassTextRow(
           id = Some("row10left"),
           header = Some("Find out more about National Insurance"),
-          body = Some("https://www.gov.uk/national-insurance"))
+          body = Some("<a href='https://www.gov.uk/national-insurance'>" +
+            "https://www.gov.uk/national-insurance" +
+            "</a>"))
         )),
-      hexBackgroundColour = "#008670",
+      hexBackgroundColour = "#008985",
       language = "en"
     )
     pass
