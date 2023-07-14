@@ -21,9 +21,13 @@ import play.api.Configuration
 
 @Singleton
 class AppConfig @Inject()(config: Configuration) {
+
   val appName: String = config.get[String]("appName")
   val frontendServiceUrl: String = config.get[String]("frontendServiceUrl")
   val appleWWDRCA: String = config.get[String]("applePass.appleWWDRCA")
   val privateCertificate: String = config.get[String]("applePass.privateCertificate")
   val privateCertificatePassword: String = config.get[String]("applePass.privateCertificatePassword")
+
+  val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
+
 }

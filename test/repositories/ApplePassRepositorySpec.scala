@@ -17,6 +17,7 @@
 package repositories
 
 import com.github.simplyscala.MongoEmbedDatabase
+import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
@@ -95,9 +96,9 @@ object ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar {
   private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000&rm.failover=default"
   private val mongoComponent = MongoComponent(mongoUri)
   private val DEFAULT_EXPIRATION_YEARS = 100
-
+  private val appCofnig = mock[AppConfig]
   private def mongoCollectionDrop(): Void =
     Await.result(applePassRepository.collection.drop().toFuture(), Duration.Inf)
 
-  def applePassRepository: ApplePassRepository = new ApplePassRepository(mongoComponent)
+  def applePassRepository: ApplePassRepository = new ApplePassRepository(mongoComponent, appCofnig)
 }
