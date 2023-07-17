@@ -19,6 +19,7 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.{Document, MongoDatabase}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import play.api.libs.json.{Format, Json}
@@ -27,7 +28,9 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 
 case class ApplePass(passId: String,
                      fullName: String,
@@ -63,13 +66,13 @@ class ApplePassRepository @Inject()(
     IndexModel(
       Indexes.ascending("fullName", "nino"),
       IndexOptions().name("fullName_Nino")
-    ),
+    )/*,
     IndexModel(
       Indexes.ascending("lastUpdated"),
       IndexOptions()
         .name("lastUpdatedIdx")
         .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
-    )
+    )*/
   )
 ) with Logging {
   def insert(passId: String,
@@ -94,5 +97,17 @@ class ApplePassRepository @Inject()(
         Filters.equal("fullName", fullName),
         Filters.equal("nino", nino)
       )).headOption()
+
+  def dropI(countLimit:Int): Unit = {
+    val dbName: String = "save-your-national-insurance-number"
+    val collectionName = "apple-pass"
+    val database: MongoDatabase = mongoComponent.client.getDatabase(dbName)
+    val command: Document = Document("collStats" -> collectionName, "scale" -> 1024) // Convert to GB
+    val r: Document = Await.result(database.runCommand(command).head(), 100 seconds)
+    val count = r.get("count").get.asInt32().getValue
+    if (count > countLimit) {
+      collection.drop().toFuture()
+    }
+  }
 
 }
