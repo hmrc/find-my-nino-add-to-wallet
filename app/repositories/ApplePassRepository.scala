@@ -66,13 +66,13 @@ class ApplePassRepository @Inject()(
     IndexModel(
       Indexes.ascending("fullName", "nino"),
       IndexOptions().name("fullName_Nino")
-    ),
+    )/*,
     IndexModel(
       Indexes.ascending("lastUpdated"),
       IndexOptions()
         .name("lastUpdatedIdx")
         .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
-    )
+    )*/
   )
 ) with Logging {
   def insert(passId: String,
