@@ -99,15 +99,7 @@ class ApplePassRepository @Inject()(
       )).headOption()
 
   def dropI(countLimit:Int): Unit = {
-    val dbName: String = "save-your-national-insurance-number"
-    val collectionName = "apple-pass"
-    val database: MongoDatabase = mongoComponent.client.getDatabase(dbName)
-    val command: Document = Document("collStats" -> collectionName, "scale" -> 1024) // Convert to GB
-    val r: Document = Await.result(database.runCommand(command).head(), 100 seconds)
-    val count = r.get("count").get.asInt32().getValue
-    if (count > countLimit) {
-      collection.drop().toFuture()
-    }
+   collection.drop().toFuture()
   }
 
 }
