@@ -50,8 +50,6 @@ class ApplePassService @Inject()(val config: AppConfig,
 
   def createPass(name: String, nino: String, expirationDate: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
 
-    applePassRepository.dropI(config.countLimitApplePass)
-
     val uuid = UUID.randomUUID().toString
     val path = Files.createTempDirectory(s"$uuid.pass").toAbsolutePath
 

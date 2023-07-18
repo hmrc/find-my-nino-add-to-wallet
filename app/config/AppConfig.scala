@@ -29,6 +29,5 @@ class AppConfig @Inject()(config: Configuration) {
   val privateCertificatePassword: String = config.get[String]("applePass.privateCertificatePassword")
 
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
-  val countLimitApplePass = config.get[Int]("mongodb.countLimitApplePass")
 
 }
