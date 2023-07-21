@@ -21,6 +21,7 @@ import play.api.Configuration
 
 @Singleton
 class AppConfig @Inject()(config: Configuration) {
+
   val appName: String = config.get[String]("appName")
   val frontendServiceUrl: String = config.get[String]("frontendServiceUrl")
   val appleWWDRCA: String = config.get[String]("applePass.appleWWDRCA")
@@ -29,4 +30,6 @@ class AppConfig @Inject()(config: Configuration) {
   val googleIssuerId: String = config.get[String]("googlePass.issuerId")
   val googleKey: String = config.get[String]("googlePass.key")
   val googleJWTExpiry: Int = config.get[Int]("googlePass.expiry")
+  val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
+  
 }

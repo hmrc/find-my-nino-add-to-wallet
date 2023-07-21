@@ -17,7 +17,9 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
+import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.{Document, MongoDatabase}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import play.api.libs.json.{Format, Json}
@@ -25,7 +27,10 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 
 case class ApplePass(passId: String,
                      fullName: String,
@@ -47,7 +52,8 @@ object ApplePass {
 
 @Singleton
 class ApplePassRepository @Inject()(
-                                     mongoComponent: MongoComponent
+                                     mongoComponent: MongoComponent,
+                                     appConfig: AppConfig
                                    )(implicit ec: ExecutionContext) extends PlayMongoRepository[ApplePass](
   collectionName = "apple-pass",
   mongoComponent = mongoComponent,
@@ -60,8 +66,15 @@ class ApplePassRepository @Inject()(
     IndexModel(
       Indexes.ascending("fullName", "nino"),
       IndexOptions().name("fullName_Nino")
+    ),
+    IndexModel(
+      Indexes.ascending("lastUpdated"),
+      IndexOptions()
+        .name("lastUpdatedIdx")
+        .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
     )
-  )
+  ),
+  replaceIndexes = true
 ) with Logging {
   def insert(passId: String,
              fullName: String,
