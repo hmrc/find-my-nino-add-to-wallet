@@ -70,7 +70,8 @@ class GooglePassRepository @Inject()(
         .name("lastUpdatedIdx")
         .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
     )
-  )
+  ),
+  replaceIndexes = true
 ) with Logging {
   def insert(passId: String,
              fullName: String,

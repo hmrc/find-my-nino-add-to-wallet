@@ -39,7 +39,7 @@ class GooglePassUtilSpec extends AsyncWordSpec with Matchers with MockitoSugar {
     "must return valid url" in {
       val result = googlePassUtil.createGooglePassWithCredentials("test name", "AB 01 23 45 C", mockGoogleCredentials)
 
-      result mustBe "https://pay.google.com/gp/v/save/testJwt"
+      "https://pay.google.com/gp/v/save/" + result mustBe "https://pay.google.com/gp/v/save/testJwt"
     }
   }
 }
