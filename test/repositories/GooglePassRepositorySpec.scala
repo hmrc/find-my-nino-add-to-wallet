@@ -17,10 +17,12 @@
 package repositories
 
 import com.github.simplyscala.MongoEmbedDatabase
+import config.AppConfig
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import repositories.ApplePassRepositorySpec.mock
 import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.Await
@@ -89,9 +91,10 @@ object GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar {
   private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000&rm.failover=default"
   private val mongoComponent = MongoComponent(mongoUri)
   private val DEFAULT_EXPIRATION_YEARS = 100
+  private val appConfig = mock[AppConfig]
 
   private def mongoCollectionDrop(): Void =
     Await.result(googlePassRepository.collection.drop().toFuture(), Duration.Inf)
 
-  def googlePassRepository: GooglePassRepository = new GooglePassRepository(mongoComponent)
+  def googlePassRepository: GooglePassRepository = new GooglePassRepository(mongoComponent, appConfig)
 }

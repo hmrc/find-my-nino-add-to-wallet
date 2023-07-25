@@ -17,6 +17,7 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
+import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
@@ -25,6 +26,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 
 case class GooglePass(passId: String,
@@ -47,7 +49,8 @@ object GooglePass {
 
 @Singleton
 class GooglePassRepository @Inject()(
-                                     mongoComponent: MongoComponent
+                                     mongoComponent: MongoComponent,
+                                     appConfig: AppConfig
                                    )(implicit ec: ExecutionContext) extends PlayMongoRepository[GooglePass](
   collectionName = "google-pass",
   mongoComponent = mongoComponent,
@@ -60,6 +63,12 @@ class GooglePassRepository @Inject()(
     IndexModel(
       Indexes.ascending("fullName", "nino"),
       IndexOptions().name("fullName_Nino")
+    ),
+    IndexModel(
+      Indexes.ascending("lastUpdated"),
+      IndexOptions()
+        .name("lastUpdatedIdx")
+        .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
     )
   )
 ) with Logging {

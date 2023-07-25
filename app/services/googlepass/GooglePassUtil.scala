@@ -29,13 +29,14 @@ class GooglePassUtil @Inject()(config: AppConfig, createGenericPrivatePass: Crea
   val id: String = s"hmrc-${UUID.randomUUID()}"
   val key: String = config.googleKey
   val expiry: Int = config.googleJWTExpiry
+  val googleAddUrl: String = config.googleAddUrl
 
 
   def createGooglePassWithCredentials(name: String, nino: String, googleCredentials: GoogleCredentials): String = {
 
     val googlePassCardContent = createGooglePassCardContent(name, nino)
     val jwt = createGenericPrivatePass.createJwtWithCredentials(id, issuerId, googlePassCardContent, googleCredentials, expiry)
-    val saveUrl = "https://pay.google.com/gp/v/save/" + jwt
+    val saveUrl = googleAddUrl + jwt
     saveUrl
   }
 
