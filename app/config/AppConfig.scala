@@ -27,7 +27,10 @@ class AppConfig @Inject()(config: Configuration) {
   val appleWWDRCA: String = config.get[String]("applePass.appleWWDRCA")
   val privateCertificate: String = config.get[String]("applePass.privateCertificate")
   val privateCertificatePassword: String = config.get[String]("applePass.privateCertificatePassword")
-
+  val googleIssuerId: String = config.get[String]("googlePass.issuerId")
+  val googleKey: String = config.get[String]("googlePass.key")
+  val googleJWTExpiry: Int = config.get[Int]("googlePass.expiry")
+  val googleAddUrl: String = config.get[String]("googlePass.url")
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
-
+  
 }
