@@ -19,7 +19,6 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mongodb.scala.{Document, MongoDatabase}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import play.api.libs.json.{Format, Json}
@@ -28,8 +27,7 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 case class ApplePass(passId: String,

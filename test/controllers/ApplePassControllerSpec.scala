@@ -85,7 +85,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
   }
 
-
   "getPassDetailsWithNameAndNino" must {
     "should return OK with the details of name and nino pass" in {
       when(mockApplePassService.getPassDetailsWithNameAndNino(eqTo("somename"), eqTo("somenino"))(any()))
@@ -111,7 +110,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
   }
 
-
   "getPassCardByPassId" must {
     "should return OK with the byte data of pass" in {
       when(mockApplePassService.getPassCardByPassId(eqTo(passId))(any()))
@@ -136,7 +134,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
   }
-
 
   "getQrCodeByPassId" must {
     "should return OK with the byte data of qr code" in {
@@ -184,7 +181,6 @@ object ApplePassControllerSpec {
       any[Predicate],
       any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
     .thenReturn(retrievalResult)
-
 
   val modules: Seq[GuiceableModule] =
     Seq(
