@@ -73,7 +73,8 @@ class PersonDetailsRepo @Inject()(mongoComponent: MongoComponent,
           .name("lastUpdatedIdx")
           .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
       )
-    )
+    ),
+    replaceIndexes = true
   ) with Logging {
   def insert(detailsId: String,
              fullName: String,
