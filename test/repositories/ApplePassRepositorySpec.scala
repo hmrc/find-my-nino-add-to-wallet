@@ -95,7 +95,6 @@ object ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar {
   private val databasePort = 12345
   private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000&rm.failover=default"
   private val mongoComponent = MongoComponent(mongoUri)
-  private val DEFAULT_EXPIRATION_YEARS = 100
   private val appCofnig = mock[AppConfig]
   private def mongoCollectionDrop(): Void =
     Await.result(applePassRepository.collection.drop().toFuture(), Duration.Inf)
