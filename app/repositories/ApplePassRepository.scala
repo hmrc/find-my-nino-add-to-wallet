@@ -35,14 +35,13 @@ import scala.language.postfixOps
 case class ApplePass(passId: String,
                      fullName: String,
                      nino: String,
-                     expirationDate: String,
                      applePassCard: Array[Byte],
                      qrCode: Array[Byte],
                      lastUpdated: DateTime)
 
 object ApplePass {
-  def apply(passId: String, fullName: String, nino: String, expirationDate: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
-    ApplePass(passId, fullName, nino, expirationDate: String, applePassCard, qrCode, DateTime.now(DateTimeZone.UTC))
+  def apply(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
+    ApplePass(passId, fullName, nino, applePassCard, qrCode, DateTime.now(DateTimeZone.UTC))
   }
 
   implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
@@ -79,12 +78,11 @@ class ApplePassRepository @Inject()(
   def insert(passId: String,
              fullName: String,
              nino: String,
-             expirationDate: String,
              applePassCard: Array[Byte],
              qrCode: Array[Byte])
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(ApplePass(passId, fullName, nino, expirationDate, applePassCard, qrCode))
+    collection.insertOne(ApplePass(passId, fullName, nino, applePassCard, qrCode))
       .toFuture().map(_ => ())
   }
 

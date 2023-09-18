@@ -36,8 +36,7 @@ class FileServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val DEFAULT_EXPIRATION_YEARS = 100
       val applePass = ApplePassCard(
         "Test Pass", "AB 12 34 56 Q",
-        uuid,
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString())
+        uuid)
       val passDirectoryCreated = fileService.createDirectoryForPass(Paths.get("./test.pass"), applePass)
       passDirectoryCreated mustBe true
       File("./test.pass").exists mustBe true

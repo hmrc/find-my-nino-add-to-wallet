@@ -45,9 +45,9 @@ class ApplePassController @Inject()(
   def createPass: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       val passRequest = request.body.asJson.get.as[ApplePassDetails]
-      val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
+
       logger.debug(message = s"[Create Pass Event]$passRequest")
-      Future(passService.createPass(passRequest.fullName, passRequest.nino, expirationDate.toString()) match {
+      Future(passService.createPass(passRequest.fullName, passRequest.nino) match {
         case Right(value) => Ok(value)
         case Left(exp) => InternalServerError(Json.obj(
           "status" -> "500",
