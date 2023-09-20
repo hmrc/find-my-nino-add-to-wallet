@@ -44,7 +44,6 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       val pass = new ApplePass(passId,
         "Test Name",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
         applePassCard,
         qrCode,
         DateTime.now()
@@ -74,7 +73,6 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       val pass = new ApplePass(passId,
         "Test Name",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
         applePassCard,
         qrCode,
         DateTime.now()
@@ -105,7 +103,6 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         passId,
         "Test Name",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
         applePassCard,
         qrCode,
         DateTime.now()
@@ -137,15 +134,14 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         .thenReturn(true)
 
       val eitherResult = applePassService.createPass("TestName TestSurname",
-        "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString())
+        "AB 12 34 56 Q")
       eitherResult.isRight mustBe false
       eitherResult match {
         case Left(exception: Exception) =>
           verify(mockFileService, times(1)).deleteDirectory(any())
           verify(mockFileService, never).createPkPassZipForPass(any())
           verify(mockQrCodeService, never).createQRCode(any(), any())
-          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any(), any())(any())
+          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
           exception.getMessage mustBe "Problem occurred while creating Apple Pass. Directory created: false, pass signed: true"
       }
     }
@@ -158,8 +154,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         .thenReturn(false)
 
       val eitherResult = applePassService.createPass("TestName TestSurname",
-        "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString()
+        "AB 12 34 56 Q"
       )
       eitherResult.isRight mustBe false
       eitherResult match {
@@ -167,7 +162,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
           verify(mockFileService, times(1)).deleteDirectory(any())
           verify(mockFileService, never).createPkPassZipForPass(any())
           verify(mockQrCodeService, never).createQRCode(any(), any())
-          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any(), any())(any())
+          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
           exception.getMessage mustBe "Problem occurred while creating Apple Pass. Directory created: true, pass signed: false"
       }
     }
@@ -187,8 +182,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
       val eitherResult = applePassService.createPass(
         "TestName TestSurname",
-        "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString()
+        "AB 12 34 56 Q"
       )
 
       eitherResult.isLeft mustBe false
@@ -197,7 +191,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
           verify(mockFileService, times(1)).deleteDirectory(any())
           verify(mockFileService, times(1)).createPkPassZipForPass(any())
           verify(mockQrCodeService, times(1)).createQRCode(any(), any())
-          verify(mockApplePassRepository, times(1)).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any(), any())(any())
+          verify(mockApplePassRepository, times(1)).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
           uuid.length mustBe 36
       }
     }

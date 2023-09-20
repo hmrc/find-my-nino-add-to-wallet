@@ -48,7 +48,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "createPass" must {
     "should return OK with the uuid of the pass" in {
-      when(mockApplePassService.createPass(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any())(any()))
+      when(mockApplePassService.createPass(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"))(any()))
         .thenReturn(Right(passId))
 
       val result = controller.createPass()(fakeRequestWithAuth.withJsonBody(createPassRequest))
