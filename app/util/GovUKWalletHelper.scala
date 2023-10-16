@@ -16,9 +16,11 @@
 
 package util
 
+import com.google.inject.Inject
+import config.AppConfig
 import models.{CredentialSubject, GovUKVCDocument, Name, NameParts, SocialSecurityRecord, VCDocument}
 
-class GovUKWalletHelper {
+class GovUKWalletHelper @Inject()(val config: AppConfig) {
 
   def createGovUKVCDocument(givenName :List[String], familyName: String, nino: String): GovUKVCDocument = {
     val nameParts = NameParts(givenName, familyName)
@@ -27,11 +29,11 @@ class GovUKWalletHelper {
     val credentialSubject = CredentialSubject(name, socialSecurityRecord)
     val vcDocument = VCDocument(List("VerifiableCredential", "SocialSecurityCredential"), credentialSubject)
     GovUKVCDocument(
-      "test user identifier",
-      1670336441,
-      "https://dev.issuer.hmrc.gov.uk/",
-      1670336441,
-      1670336441,
+      config.govukPassSub,
+      config.govukPassNbf,
+      config.govukPassIss,
+      config.govukPassExp,
+      config.govukPassIat,
       vcDocument
     )
   }
