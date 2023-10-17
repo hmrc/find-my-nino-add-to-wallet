@@ -16,9 +16,7 @@
 
 package controllers
 
-import akka.http.scaladsl.model.HttpHeader.ParsingResult.Ok
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.{mock, when}
 import org.scalatest.BeforeAndAfter
@@ -32,7 +30,6 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.{PersonDetailsRepo, RowPersonDetails}
 import services.PersonDetailsService
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}

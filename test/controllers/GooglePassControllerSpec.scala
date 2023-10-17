@@ -87,7 +87,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
     }
   }
 
-
   "getPassDetailsWithNameAndNino" must {
     "should return OK with the details of name and nino pass" in {
       when(mockGooglePassService.getPassDetailsWithNameAndNino(eqTo("somename"), eqTo("somenino"))(any()))
@@ -112,7 +111,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
   }
-
 
   "getPassCardByPassId" must {
     "should return OK with the byte data of pass" in {
@@ -139,7 +137,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
     }
   }
 
-
   "getQrCodeByPassId" must {
     "should return OK with the byte data of qr code" in {
       when(mockGooglePassService.getQrCodeByPassId(eqTo(passId))(any()))
@@ -164,6 +161,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
   }
+
 }
 
 object GooglePassControllerSpec {
