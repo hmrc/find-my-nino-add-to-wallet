@@ -62,7 +62,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
   }
 
 //replace the passed param below to use gov wallet pass object
-  private def createAndSignJWT(genericPrivatePass: GenericPrivatePass): String = {
+  def createAndSignJWT(govUKVCDocument: GovUKVCDocument): String = {
 
     val algorithm: Algorithm = Algorithm.RSA256(null, privateKeyFromString(config.privateCertificate))
     val now = LocalDateTime.now(ZoneId.of("UTC"))

@@ -46,16 +46,17 @@ class GovUKPassService @Inject()(val config: AppConfig,
 
     // create a helper class to prepare VCDocument from input data
     val vcDocument = govUKWalletHelper.createGovUKVCDocument(giveNames, familyName, personalNumber)
-    val encodedVCDocument: String = Base64.getEncoder.encodeToString(vcDocument.toString.getBytes)
+    //val encodedVCDocument: String = Base64.getEncoder.encodeToString(vcDocument.toString.getBytes)
 
     //create and sign JWT here
-
+    val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
 
     val qrCode = qrCodeService
       .createQRCode(s"${config.frontendServiceUrl}/get-govuk-pass?passId=$uuid&qr-code=true")
       .getOrElse(Array.emptyByteArray)
 
-    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, encodedVCDocument, qrCode)
+    //we probably dont need to save names and personal number, as the JWT containes all the data
+    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, signedJWT, qrCode)
     Right(uuid)
   }
 
