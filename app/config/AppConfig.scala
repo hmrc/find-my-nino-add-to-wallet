@@ -39,4 +39,5 @@ class AppConfig @Inject()(config: Configuration) {
   val govukPassExp: Int = config.get[Int]("govukpass.exp")
   val govukPassIat: Int = config.get[Int]("govukpass.iat")
   val govukPassdefaultExpirationYears = config.get[Int]("govukpass.defaultExpirationYears")
+  val govukPrivateKey = config.get[String]("govukpass.privateKey")
 }

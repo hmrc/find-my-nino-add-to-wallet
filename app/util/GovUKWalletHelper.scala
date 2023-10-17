@@ -64,7 +64,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
 //replace the passed param below to use gov wallet pass object
   def createAndSignJWT(govUKVCDocument: GovUKVCDocument): String = {
 
-    val algorithm: Algorithm = Algorithm.RSA256(null, privateKeyFromString(config.privateCertificate))
+    val algorithm: Algorithm = Algorithm.RSA256(null, privateKeyFromString(config.govukPrivateKey))
     val now = LocalDateTime.now(ZoneId.of("UTC"))
     val expiresAt = now.plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant.toEpochMilli
 
@@ -77,7 +77,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
 
     //replace this to use gov wallet card
-    payload.put("genericPrivatePasses", util.Arrays.asList(genericPrivatePass))
+    payload.put("govUkPasses", util.Arrays.asList(govUKVCDocument))
 
     claims.put("payload", payload)
 
