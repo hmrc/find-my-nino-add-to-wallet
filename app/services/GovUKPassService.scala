@@ -16,12 +16,18 @@
 
 package services
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import config.AppConfig
 import play.api.Logging
 import repositories.GovUKPassRepository
+import services.googlepass.googleModels.GenericPrivatePass
 import util.GovUKWalletHelper
 
-import java.util.{Base64, UUID}
+import java.security.interfaces.RSAPrivateKey
+import java.time.{LocalDateTime, ZoneId}
+import java.util
+import java.util.{Base64, Collections, Date, UUID}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -42,6 +48,9 @@ class GovUKPassService @Inject()(val config: AppConfig,
     val vcDocument = govUKWalletHelper.createGovUKVCDocument(giveNames, familyName, personalNumber)
     val encodedVCDocument: String = Base64.getEncoder.encodeToString(vcDocument.toString.getBytes)
 
+    //create and sign JWT here
+
+
     val qrCode = qrCodeService
       .createQRCode(s"${config.frontendServiceUrl}/get-govuk-pass?passId=$uuid&qr-code=true")
       .getOrElse(Array.emptyByteArray)
@@ -49,5 +58,10 @@ class GovUKPassService @Inject()(val config: AppConfig,
     govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, encodedVCDocument, qrCode)
     Right(uuid)
   }
+
+
+
+
+
 
 }
