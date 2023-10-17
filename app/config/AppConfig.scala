@@ -32,5 +32,11 @@ class AppConfig @Inject()(config: Configuration) {
   val googleJWTExpiry: Int = config.get[Int]("googlePass.expiry")
   val googleAddUrl: String = config.get[String]("googlePass.url")
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
-  
+
+  val govukPassSub: String = config.get[String]("govukpass.sub")
+  val govukPassNbf: Int = config.get[Int]("govukpass.nbf")
+  val govukPassIss: String = config.get[String]("govukpass.iss")
+  val govukPassExp: Int = config.get[Int]("govukpass.exp")
+  val govukPassIat: Int = config.get[Int]("govukpass.iat")
+
 }

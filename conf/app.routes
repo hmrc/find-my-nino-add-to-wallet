@@ -1,16 +1,18 @@
 # microservice specific routes
 
-POST        /create-apple-pass          controllers.ApplePassController.createPass
-GET         /get-pass-details           controllers.ApplePassController.getPassDetails(passId: String)
-GET         /get-pass-details-by-name-and-nino           controllers.ApplePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
-GET         /get-pass-card              controllers.ApplePassController.getPassCardByPassId(passId: String)
-GET         /get-qr-code                controllers.ApplePassController.getQrCodeByPassId(passId: String)
+POST        /create-apple-pass                              controllers.ApplePassController.createPass
+GET         /get-pass-details                               controllers.ApplePassController.getPassDetails(passId: String)
+GET         /get-pass-details-by-name-and-nino              controllers.ApplePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
+GET         /get-pass-card                                  controllers.ApplePassController.getPassCardByPassId(passId: String)
+GET         /get-qr-code                                    controllers.ApplePassController.getQrCodeByPassId(passId: String)
 
-POST        /create-person-details      controllers.PersonDetailsController.createPersonDetailsRow
-GET         /get-person-details         controllers.PersonDetailsController.getPersonDetails(pdId: String)
+POST        /create-person-details                          controllers.PersonDetailsController.createPersonDetailsRow
+GET         /get-person-details                             controllers.PersonDetailsController.getPersonDetails(pdId: String)
 
 GET         /get-google-pass-details                        controllers.GooglePassController.getPassDetails(passId: String)
 GET         /get-google-pass-details-by-name-and-nino       controllers.GooglePassController.getPassDetailsWithNameAndNino(fullName: String, nino: String)
 GET         /get-google-pass-url                            controllers.GooglePassController.getPassUrlByPassId(passId: String)
 GET         /get-google-qr-code                             controllers.GooglePassController.getQrCodeByPassId(passId: String)
 POST        /create-google-pass-with-credentials            controllers.GooglePassController.createPassWithCredentials
+
+POST        /create-govuk-pass                              controllers.GovUKPassController.createGovUKPass

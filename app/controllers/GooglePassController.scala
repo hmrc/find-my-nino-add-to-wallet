@@ -46,8 +46,8 @@ class GooglePassController @Inject()(
   implicit val writes: Writes[GooglePassDetails] = Json.writes[GooglePassDetails]
   implicit val writesWithCredentials: Writes[GooglePassDetailsWithCredentials] = Json.writes[GooglePassDetailsWithCredentials]
 
+  // shall we configure it in application.conf file
   private val DEFAULT_EXPIRATION_YEARS = 100
-
 
   def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
@@ -65,7 +65,6 @@ class GooglePassController @Inject()(
     }
     }
   }
-
 
   def getPassDetails(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
