@@ -61,6 +61,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     keyFactory.generatePrivate(keySpec).asInstanceOf[RSAPrivateKey]
   }
 
+//replace the passed param below to use gov wallet pass object
   private def createAndSignJWT(genericPrivatePass: GenericPrivatePass): String = {
 
     val algorithm: Algorithm = Algorithm.RSA256(null, privateKeyFromString(config.privateCertificate))
@@ -75,6 +76,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     // Create the Wallet payload and add to the JWT
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
 
+    //replace this to use gov wallet card
     payload.put("genericPrivatePasses", util.Arrays.asList(genericPrivatePass))
 
     claims.put("payload", payload)
