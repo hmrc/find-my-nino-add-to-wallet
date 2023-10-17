@@ -62,8 +62,8 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
   }
 
   private def createAndSignJWT(genericPrivatePass: GenericPrivatePass): String = {
-    val privateKey: RSAPrivateKey =
-    val algorithm: Algorithm = Algorithm.RSA256(null, privateKey)
+
+    val algorithm: Algorithm = Algorithm.RSA256(null, privateKeyFromString(config.privateCertificate))
     val now = LocalDateTime.now(ZoneId.of("UTC"))
     val expiresAt = now.plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant.toEpochMilli
 
@@ -81,7 +81,6 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
 
     val JWTExpiryDate = java.util.Date.from(LocalDateTime.now().plusMinutes(expiresAt).atZone(ZoneId.systemDefault()).toInstant)
     // The service account credentials are used to sign the JWT
-    val algorithm: Algorithm = Algorithm.RSA256(null, privateKey)
 
     JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
   }
