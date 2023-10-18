@@ -23,8 +23,8 @@ import config.AppConfig
 import models.{CredentialSubject, GovUKVCDocument, Name, NameParts, SocialSecurityRecord, VCDocument}
 import services.googlepass.googleModels.GenericPrivatePass
 
-import java.security.KeyFactory
-import java.security.interfaces.RSAPrivateKey
+import java.security.{KeyFactory, PrivateKey}
+import java.security.interfaces.{ECPrivateKey, RSAPrivateKey}
 import java.security.spec.PKCS8EncodedKeySpec
 import java.time.{LocalDateTime, ZoneId}
 import java.util
@@ -48,44 +48,43 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     )
   }
 
-  def privateKeyFromString(privateKeyString: String): RSAPrivateKey = {
-    val privateKeyPEM = privateKeyString
-      .replaceAll("\\n", "") // Remove newlines if present
-      .replaceAll("-----BEGIN PRIVATE KEY-----", "")
-      .replaceAll("-----END PRIVATE KEY-----", "")
+  /*def privateKeyFromString(privateKeyString: String): RSAPrivateKey = {
 
-    val keyBytes = Base64.getDecoder.decode(privateKeyPEM)
+
+    val keyBytes = Base64.getDecoder.decode(privateKeyString)
 
     val keySpec = new PKCS8EncodedKeySpec(keyBytes)
     val keyFactory = KeyFactory.getInstance("RSA")
     keyFactory.generatePrivate(keySpec).asInstanceOf[RSAPrivateKey]
-  }
+  }*/
 
 //replace the passed param below to use gov wallet pass object
   def createAndSignJWT(govUKVCDocument: GovUKVCDocument): String = {
 
-    val algorithm: Algorithm = Algorithm.RSA256(null, privateKeyFromString(config.govukPrivateKey))
+    val pk = createECPrivateKeyFromBase64(config.govukPrivateKey)
+
+    val algorithm: Algorithm = Algorithm.ECDSA256(null, pk)
+
     val now = LocalDateTime.now(ZoneId.of("UTC"))
     val expiresAt = now.plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant.toEpochMilli
 
-    val issuedAt = now.atZone(ZoneId.of("UTC")).toInstant.toEpochMilli
-    val jwtId = UUID.randomUUID().toString
-
     val claims: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
-
-    // Create the Wallet payload and add to the JWT
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
 
-    //replace this to use gov wallet card
-    payload.put("govUkPasses", util.Arrays.asList(govUKVCDocument))
+    payload.put("govUkPasses", util.Arrays.asList(govUKVCDocument.vc))
 
     claims.put("payload", payload)
 
     val JWTExpiryDate = java.util.Date.from(LocalDateTime.now().plusMinutes(expiresAt).atZone(ZoneId.systemDefault()).toInstant)
-    // The service account credentials are used to sign the JWT
 
     JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
   }
 
+  def createECPrivateKeyFromBase64(base64PrivateKey: String): ECPrivateKey = {
+    val keyBytes = Base64.getDecoder.decode(base64PrivateKey)
+    val keySpec = new PKCS8EncodedKeySpec(keyBytes)
+    val keyFactory = KeyFactory.getInstance("EC")
+    keyFactory.generatePrivate(keySpec).asInstanceOf[ECPrivateKey]
+  }
 
 }
