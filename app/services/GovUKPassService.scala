@@ -51,6 +51,12 @@ class GovUKPassService @Inject()(val config: AppConfig,
     //create and sign JWT here
     val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
 
+    if(govUKWalletHelper.verifyJwt(signedJWT))
+          println("****************JWT verified**************")
+    else
+        println("*****************JWT not verified***************")
+
+
     val qrCode = qrCodeService
       .createQRCode(s"${config.frontendServiceUrl}/get-govuk-pass?passId=$uuid&qr-code=true")
       .getOrElse(Array.emptyByteArray)
@@ -59,10 +65,5 @@ class GovUKPassService @Inject()(val config: AppConfig,
     govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, signedJWT, qrCode)
     Right(uuid)
   }
-
-
-
-
-
 
 }
