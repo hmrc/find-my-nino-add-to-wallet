@@ -51,17 +51,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     )
   }
 
-  /*def privateKeyFromString(privateKeyString: String): RSAPrivateKey = {
 
-
-    val keyBytes = Base64.getDecoder.decode(privateKeyString)
-
-    val keySpec = new PKCS8EncodedKeySpec(keyBytes)
-    val keyFactory = KeyFactory.getInstance("RSA")
-    keyFactory.generatePrivate(keySpec).asInstanceOf[RSAPrivateKey]
-  }*/
-
-//replace the passed param below to use gov wallet pass object
   def createAndSignJWT(govUKVCDocument: GovUKVCDocument): String = {
 
     val pk = createECPrivateKeyFromBase64(config.govukVerificatonPrivateKey)
@@ -92,21 +82,8 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
 
   def verifyJwt(jwt: String): Boolean = {
     try {
-      // Decode the Base64-encoded x and y components of the public key
-      //val xBytes = Base64.getDecoder.decode(config.govukVerificatonPublicKeyX)
-      //val yBytes = Base64.getDecoder.decode(config.govukVerificatonPublicKeyY)
-
-      // Combine x and y components to form the full public key bytes
-      //val publicKeyBytes = Array[Byte](0x04.toByte) ++ xBytes ++ yBytes
-
-      // Create a public key from the decoded bytes
       val publicKey = generatePublicKey(config.govukVerificatonPublicKeyX, config.govukVerificatonPublicKeyY)
-
-
-      // Verify the JWT using the public key
       Jwts.parser().setSigningKey(publicKey).parseClaimsJws(jwt)
-
-
       true // Verification succeeded
     } catch {
       case e: JwtException =>
@@ -143,8 +120,4 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     val kf = KeyFactory.getInstance("EC")
     kf.generatePublic(pubKeySpec)
   }
-
-
-
-
 }
