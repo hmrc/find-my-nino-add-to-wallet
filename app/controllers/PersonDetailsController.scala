@@ -16,15 +16,13 @@
 
 package controllers
 
-import models.{ApplePassDetails, Person, PersonDetails}
-import org.joda.time.{DateTime, DateTimeZone}
+import models.PersonDetails
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
-import services.{ApplePassService, PersonDetailsService}
+import services.PersonDetailsService
 import uk.gov.hmrc.auth.core.AuthConnector
 
-import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
