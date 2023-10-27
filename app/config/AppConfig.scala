@@ -39,4 +39,5 @@ class AppConfig @Inject()(config: Configuration) {
   val govukPassExp: Int = config.get[Int]("govukpass.exp")
   val govukPassIat: Int = config.get[Int]("govukpass.iat")
 
+  lazy val govukWalletEnabled = config.getOptional[Boolean]("features.govuk-wallet-enabled").getOrElse(false)
 }
