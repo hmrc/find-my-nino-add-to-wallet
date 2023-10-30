@@ -27,7 +27,6 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
 
-
 @Singleton
 class FMNBaseController @Inject()(val authConnector: AuthConnector)
   (implicit val config: Configuration,
