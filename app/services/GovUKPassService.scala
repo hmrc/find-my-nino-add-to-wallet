@@ -16,12 +16,18 @@
 
 package services
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import config.AppConfig
 import play.api.Logging
 import repositories.GovUKPassRepository
+import services.googlepass.googleModels.GenericPrivatePass
 import util.GovUKWalletHelper
 
-import java.util.{Base64, UUID}
+import java.security.interfaces.RSAPrivateKey
+import java.time.{LocalDateTime, ZoneId}
+import java.util
+import java.util.{Base64, Collections, Date, UUID}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -40,13 +46,23 @@ class GovUKPassService @Inject()(val config: AppConfig,
 
     // create a helper class to prepare VCDocument from input data
     val vcDocument = govUKWalletHelper.createGovUKVCDocument(giveNames, familyName, personalNumber)
-    val encodedVCDocument: String = Base64.getEncoder.encodeToString(vcDocument.toString.getBytes)
+    //val encodedVCDocument: String = Base64.getEncoder.encodeToString(vcDocument.toString.getBytes)
+
+    //create and sign JWT here
+    val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
+
+    if(govUKWalletHelper.verifyJwt(signedJWT))
+          println("****************JWT verified**************")
+    else
+        println("*****************JWT not verified***************")
+
 
     val qrCode = qrCodeService
       .createQRCode(s"${config.frontendServiceUrl}/get-govuk-pass?passId=$uuid&qr-code=true")
       .getOrElse(Array.emptyByteArray)
 
-    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, encodedVCDocument, qrCode)
+    //we probably dont need to save names and personal number, as the JWT containes all the data
+    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, signedJWT, qrCode)
     Right(uuid)
   }
 
