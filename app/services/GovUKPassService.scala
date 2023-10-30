@@ -56,13 +56,13 @@ class GovUKPassService @Inject()(val config: AppConfig,
     else
         println("*****************JWT not verified***************")
 
+    val govukWalletUrlWithJWT = s"${config.govukWalletUrl}/$signedJWT"
 
-    val qrCode = qrCodeService
-      .createQRCode(s"${config.frontendServiceUrl}/get-govuk-pass?passId=$uuid&qr-code=true")
+    val qrCode = qrCodeService.createQRCode(govukWalletUrlWithJWT)
       .getOrElse(Array.emptyByteArray)
 
     //we probably dont need to save names and personal number, as the JWT containes all the data
-    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, signedJWT, qrCode)
+    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, govukWalletUrlWithJWT, qrCode)
     Right(uuid)
   }
 
