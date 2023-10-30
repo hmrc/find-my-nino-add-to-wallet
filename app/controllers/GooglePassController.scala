@@ -29,7 +29,6 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.runtime.universe.Try
 
 @Singleton()
 class GooglePassController @Inject()(

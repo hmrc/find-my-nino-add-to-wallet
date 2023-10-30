@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.AppConfig
 import models.GovUKPassDetails
 import play.api.libs.json.Json
 import play.api.{Configuration, Environment, Logging}
@@ -29,22 +30,29 @@ import scala.concurrent.{ExecutionContext, Future}
 class GovUKPassController @Inject()(authConnector: AuthConnector,
                                     passService: GovUKPassService
                                    )(implicit config: Configuration,
+                                     appConfig: AppConfig,
                                      env: Environment,
                                      cc: MessagesControllerComponents,
                                      ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
 
-  // TODO define DEFAULT_EXPIRATION_YEARS here
   def createGovUKPass: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      val passRequest = request.body.asJson.get.as[GovUKPassDetails]
+      if (appConfig.govukWalletEnabled) {
+        val passRequest = request.body.asJson.get.as[GovUKPassDetails]
 
-      Future(passService.createGovUKPass(passRequest.givenName, passRequest.familyName, passRequest.nino) match {
-        case Right(value) => Ok(value)
-        case Left(exp) => InternalServerError(Json.obj(
-          "status" -> "500",
-          "message" -> exp.getMessage
-        ))
-      })
+        Future(passService.createGovUKPass(passRequest.givenName, passRequest.familyName, passRequest.nino) match {
+          case Right(value) => Ok(value)
+          case Left(exp) => InternalServerError(Json.obj(
+            "status" -> "500",
+            "message" -> exp.getMessage
+          ))
+        })
+      } else {
+        Future.successful(Unauthorized(Json.obj(
+          "status" -> "401",
+          "message" -> "You cannot access this service with this account"
+        )))
+      }
     }}
   }
 
