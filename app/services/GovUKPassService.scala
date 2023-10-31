@@ -19,11 +19,13 @@ package services
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import config.AppConfig
+import org.bouncycastle.crypto.util.PublicKeyFactory
 import play.api.Logging
 import repositories.GovUKPassRepository
 import services.googlepass.googleModels.GenericPrivatePass
 import util.GovUKWalletHelper
 
+import java.security.PublicKey
 import java.security.interfaces.RSAPrivateKey
 import java.time.{LocalDateTime, ZoneId}
 import java.util
@@ -51,12 +53,32 @@ class GovUKPassService @Inject()(val config: AppConfig,
     //create and sign JWT here
     val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
 
+    //testing the verification of JWT, we can remove this code once we are happy with the JWT
     if(govUKWalletHelper.verifyJwt(signedJWT))
-          println("****************JWT verified**************")
+        println("****************JWT verified**************")
     else
         println("*****************JWT not verified***************")
 
+
+    /*
+
+    // This generates a public key from the hard-coded keyX and keyY, this requires us to get
+    // the x and y values from the DID document published by GovUK wallet team
+    // this would happen behind a toggle, so we can switch between the two methods
+
+    val govUkPublicKey = govUKWalletHelper.generatePublicKey( govUkWalletPublicKeyX, govUkWalletPublicKeyX)
+
+    val encryptedSignedJWT = if (config.govukWalletJWTEncrypted) {
+      govUKWalletHelper.encryptBase64JWTWithGovWalletPublicKey(govUkPublicKey,signedJWT)
+    } else {
+      signedJWT
+    }
+
+    */
+
+
     val govukWalletUrlWithJWT = s"${config.govukWalletUrl}/$signedJWT"
+
 
     val qrCode = qrCodeService.createQRCode(govukWalletUrlWithJWT)
       .getOrElse(Array.emptyByteArray)
