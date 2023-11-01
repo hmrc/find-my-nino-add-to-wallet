@@ -80,6 +80,8 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     keyFactory.generatePrivate(keySpec).asInstanceOf[ECPrivateKey]
   }
 
+  // This is purely to test the verification of JWT on our side, This is not required functionally on our side,and this
+  // code can be removed later, The GovUK Wallet Team will do the verification
   def verifyJwt(jwt: String): Boolean = {
     try {
       val publicKey = generatePublicKey(config.govukVerificatonPublicKeyX, config.govukVerificatonPublicKeyY)
@@ -120,4 +122,15 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     val kf = KeyFactory.getInstance("EC")
     kf.generatePublic(pubKeySpec)
   }
+
+  // this is to encrypt the JWT with the public key of GovUK Wallet
+  def encryptBase64JWTWithGovWalletPublicKey(key: PublicKey, jwtBase64: String): String = {
+    val cipher = javax.crypto.Cipher.getInstance("RSA/ECB/PKCS1Padding")
+    cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, key)
+    val encryptedBytes = cipher.doFinal(jwtBase64.getBytes("UTF-8"))
+    Base64.getEncoder.encodeToString(encryptedBytes)
+  }
+
+
+
 }
