@@ -32,16 +32,39 @@ class ApplePassService @Inject()(val config: AppConfig,
                                  val signatureService: SignatureService,
                                  val qrCodeService: QrCodeService) extends Logging {
 
-  def getPassCardByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
-    applePassRepository.findByPassId(passId).map(_.map(_.applePassCard))
+
+  def getPassCardByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
+    for {
+      ap <- applePassRepository.findByPassId(passId)
+    } yield {
+      ap match {
+        case Some(applePass) if (applePass.nino.replace(" ", "")).equals(nino) => Some(applePass.applePassCard)
+        case _ => None
+      }
+    }
   }
 
-  def getQrCodeByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
-    applePassRepository.findByPassId(passId).map(_.map(_.qrCode))
+
+  def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
+    for {
+      aQrCode <- applePassRepository.findByPassId(passId)
+    } yield {
+      aQrCode match {
+        case Some(applePass) if (applePass.nino.replace(" ","")).equals(nino) => Some(applePass.qrCode)
+        case _ => None
+      }
+    }
   }
 
-  def getPassDetails(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {
-    applePassRepository.findByPassId(passId).map(_.map(r => ApplePassDetails(r.fullName, r.nino)))
+  def getPassDetails(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {
+    for {
+      ap <- applePassRepository.findByPassId(passId)
+    } yield {
+      ap match {
+        case Some(applePass) if (applePass.nino.replace(" ","")).equals(nino) => Some(ApplePassDetails(applePass.fullName, applePass.nino))
+        case _ => None
+      }
+    }
   }
 
   def getPassDetailsWithNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {

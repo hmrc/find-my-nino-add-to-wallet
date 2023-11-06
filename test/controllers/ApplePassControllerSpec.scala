@@ -62,7 +62,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "getPassDetailsByPassId" must {
     "should return OK with the details of pass" in {
-      when(mockApplePassService.getPassDetails(eqTo(passId))(any()))
+      when(mockApplePassService.getPassDetails(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some(ApplePassDetails("TestName TestSurname", "AB 12 34 56 Q"))))
 
       val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
@@ -74,7 +74,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
 
     "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getPassDetails(eqTo(passId))(any()))
+      when(mockApplePassService.getPassDetails(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
@@ -114,7 +114,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "getPassCardByPassId" must {
     "should return OK with the byte data of pass" in {
-      when(mockApplePassService.getPassCardByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getPassCardByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomePassCodeData".getBytes())))
 
       val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
@@ -126,7 +126,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
 
     "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getPassCardByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getPassCardByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
@@ -140,7 +140,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "getQrCodeByPassId" must {
     "should return OK with the byte data of qr code" in {
-      when(mockApplePassService.getQrCodeByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomeQrCodeData".getBytes())))
 
       val result = controller.getQrCodeByPassId(passId)(fakeRequestWithAuth)
@@ -152,7 +152,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
 
     "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getQrCodeByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getQrCodeByPassId(passId)(fakeRequestWithAuth)
@@ -177,7 +177,7 @@ object ApplePassControllerSpec {
   private val mockAuthConnector = mock[AuthConnector]
 
   val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new~(new~(Some("nino"), Some(User)), Some("id")))
+    Future.successful(new~(new~(Some("AB123456Q"), Some(User)), Some("id")))
 
   when(
     mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](

@@ -54,7 +54,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      googlePassService.getPassDetails(passId)(implicitly).map { result =>
+      googlePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe Some(GooglePassDetails(pass.fullName, pass.nino))
       }
     }
@@ -63,7 +63,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      googlePassService.getPassDetails(passId)(implicitly).map { result =>
+      googlePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe None
       }
     }
@@ -84,7 +84,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      googlePassService.getQrCodeByPassId(passId)(implicitly).map { result =>
+      googlePassService.getQrCodeByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe Some(qrCode)
       }
     }
@@ -93,7 +93,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      googlePassService.getQrCodeByPassId(passId)(implicitly).map { result =>
+      googlePassService.getQrCodeByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe None
       }
     }
@@ -115,7 +115,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      googlePassService.getPassUrlByPassId(passId)(implicitly).map { result =>
+      googlePassService.getPassUrlByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe Some(googlePassUrl)
       }
     }
@@ -124,7 +124,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      googlePassService.getPassUrlByPassId(passId)(implicitly).map { result =>
+      googlePassService.getPassUrlByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe None
       }
     }
