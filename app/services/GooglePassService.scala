@@ -29,19 +29,64 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GooglePassService @Inject()(val config: AppConfig,
                                   val googlePassUtil: GooglePassUtil,
-                                 val googlePassRepository: GooglePassRepository,
-                                 val qrCodeService: QrCodeService) extends Logging {
+                                  val googlePassRepository: GooglePassRepository,
+                                  val qrCodeService: QrCodeService) extends Logging {
 
-  def getPassUrlByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
-    googlePassRepository.findByPassId(passId).map(_.map(_.googlePassUrl))
+
+
+  def getPassUrlByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
+    for {
+      gp <- googlePassRepository.findByPassId(passId)
+    } yield {
+      gp match {
+        case Some(googlePass) => {
+          if (googlePass.nino.replace(" ", "").equals(nino)) {
+            Some(googlePass.googlePassUrl)
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
+        case _ => None
+      }
+    }
   }
 
-  def getQrCodeByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
-    googlePassRepository.findByPassId(passId).map(_.map(_.qrCode))
+
+  def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
+    for {
+      gqrCode <- googlePassRepository.findByPassId(passId)
+    } yield {
+      gqrCode match {
+        case Some(googlePass) => {
+          if (googlePass.nino.replace(" ","").equals(nino)) {
+            Some(googlePass.qrCode)
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
+        case _ => None
+      }
+    }
   }
 
-  def getPassDetails(passId: String)(implicit ec: ExecutionContext): Future[Option[GooglePassDetails]] = {
-    googlePassRepository.findByPassId(passId).map(_.map(r => GooglePassDetails(r.fullName, r.nino)))
+  def getPassDetails(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[GooglePassDetails]] = {
+    for {
+      gpDetails <- googlePassRepository.findByPassId(passId)
+    } yield {
+      gpDetails match {
+        case Some(googlePass) => {
+          if (googlePass.nino.replace(" ","").equals(nino)) {
+            Some(GooglePassDetails(googlePass.fullName, googlePass.nino))
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
+        case _ => None
+      }
+    }
   }
 
   def getPassDetailsWithNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[GooglePassDetails]] = {

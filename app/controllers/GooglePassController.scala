@@ -32,12 +32,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class GooglePassController @Inject()(
-                                     authConnector: AuthConnector,
-                                     passService: GooglePassService)(implicit
-                                                                    config: Configuration,
-                                                                    env: Environment,
-                                                                    cc: MessagesControllerComponents,
-                                                                    ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
+                                      authConnector: AuthConnector,
+                                      passService: GooglePassService)(implicit
+                                                                      config: Configuration,
+                                                                      env: Environment,
+                                                                      cc: MessagesControllerComponents,
+                                                                      ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
 
   implicit val passRequestFormatter: OFormat[GooglePassDetails] = Json.format[GooglePassDetails]
   implicit val passRequestFormatterWithCredentials: OFormat[GooglePassDetailsWithCredentials] = Json.format[GooglePassDetailsWithCredentials]
@@ -67,7 +67,7 @@ class GooglePassController @Inject()(
 
   def getPassDetails(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      passService.getPassDetails(passId).map {
+      passService.getPassDetails(passId, authContext.nino.value).map {
         case Some(data) => Ok(Json.toJson(data))
         case _ => NotFound
       }
@@ -87,7 +87,7 @@ class GooglePassController @Inject()(
 
   def getPassUrlByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      passService.getPassUrlByPassId(passId).map {
+      passService.getPassUrlByPassIdAndNINO(passId,authContext.nino.value).map {
         case Some(data) => Ok(data)
         case _ => NotFound
       }
@@ -97,7 +97,7 @@ class GooglePassController @Inject()(
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      passService.getQrCodeByPassId(passId).map {
+      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino.value).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
         case _ => NotFound
       }

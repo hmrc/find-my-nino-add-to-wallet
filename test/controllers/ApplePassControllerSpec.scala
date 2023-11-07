@@ -46,6 +46,20 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   import ApplePassControllerSpec._
 
+  before {
+    MockitoSugar.reset(mockAuthConnector)
+
+    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
+      Future.successful(new~(new~(Some("AB123456Q"), Some(User)), Some("id")))
+
+    when(
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
+        any[Predicate],
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+      .thenReturn(retrievalResult)
+  }
+
+
   "createPass" must {
     "should return OK with the uuid of the pass" in {
       when(mockApplePassService.createPass(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"))(any()))
@@ -62,7 +76,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "getPassDetailsByPassId" must {
     "should return OK with the details of pass" in {
-      when(mockApplePassService.getPassDetails(eqTo(passId))(any()))
+      when(mockApplePassService.getPassDetails(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some(ApplePassDetails("TestName TestSurname", "AB 12 34 56 Q"))))
 
       val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
@@ -73,8 +87,31 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
 
+    "should return Unauthorised session NINO does not match pass NINO" in {
+
+      val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
+        Future.successful(new~(new~(Some("AB123456N"), Some(User)), Some("id")))
+
+      when(
+        mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
+          any[Predicate],
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(retrievalResult)
+
+      when(mockApplePassService.getPassDetails(eqTo(passId), eqTo("AB123456Q"))(any()))
+        .thenReturn(Future.successful(Some(ApplePassDetails("TestName TestSurname", "AB 12 34 56 Q"))))
+
+      val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
+
+      whenReady(result) { _ =>
+        status(result) mustBe UNAUTHORIZED
+      }
+    }
+
+
+
     "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getPassDetails(eqTo(passId))(any()))
+      when(mockApplePassService.getPassDetails(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
@@ -114,7 +151,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "getPassCardByPassId" must {
     "should return OK with the byte data of pass" in {
-      when(mockApplePassService.getPassCardByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getPassCardByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomePassCodeData".getBytes())))
 
       val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
@@ -125,8 +162,29 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
 
+    "should return Unauthorised when session NINO does not match Pass NINO" in {
+
+      val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
+        Future.successful(new~(new~(Some("AB123456N"), Some(User)), Some("id")))
+
+      when(
+        mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
+          any[Predicate],
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(retrievalResult)
+
+      when(mockApplePassService.getPassCardByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
+        .thenReturn(Future.successful(Some("SomePassCodeData".getBytes())))
+
+      val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
+
+      whenReady(result) { _ =>
+        status(result) mustBe UNAUTHORIZED
+      }
+    }
+
     "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getPassCardByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getPassCardByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
@@ -140,7 +198,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "getQrCodeByPassId" must {
     "should return OK with the byte data of qr code" in {
-      when(mockApplePassService.getQrCodeByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomeQrCodeData".getBytes())))
 
       val result = controller.getQrCodeByPassId(passId)(fakeRequestWithAuth)
@@ -152,7 +210,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
 
     "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getQrCodeByPassId(eqTo(passId))(any()))
+      when(mockApplePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getQrCodeByPassId(passId)(fakeRequestWithAuth)
@@ -177,7 +235,7 @@ object ApplePassControllerSpec {
   private val mockAuthConnector = mock[AuthConnector]
 
   val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new~(new~(Some("nino"), Some(User)), Some("id")))
+    Future.successful(new~(new~(Some("AB123456Q"), Some(User)), Some("id")))
 
   when(
     mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](

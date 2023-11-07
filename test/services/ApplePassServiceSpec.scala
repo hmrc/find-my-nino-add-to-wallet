@@ -51,7 +51,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      applePassService.getPassDetails(passId)(implicitly).map { result =>
+      applePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe Some(ApplePassDetails(pass.fullName, pass.nino))
       }
     }
@@ -60,7 +60,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      applePassService.getPassDetails(passId)(implicitly).map { result =>
+      applePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe None
       }
     }
@@ -80,7 +80,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      applePassService.getQrCodeByPassId(passId)(implicitly).map { result =>
+      applePassService.getQrCodeByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe Some(qrCode)
       }
     }
@@ -89,7 +89,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      applePassService.getQrCodeByPassId(passId)(implicitly).map { result =>
+      applePassService.getQrCodeByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe None
       }
     }
@@ -110,7 +110,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
 
-      applePassService.getPassCardByPassId(passId)(implicitly).map { result =>
+      applePassService.getPassCardByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe Some(applePassCard)
       }
     }
@@ -119,7 +119,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      applePassService.getPassCardByPassId(passId)(implicitly).map { result =>
+      applePassService.getPassCardByPassIdAndNINO(passId,"AB123456Q")(implicitly).map { result =>
         result mustBe None
       }
     }
