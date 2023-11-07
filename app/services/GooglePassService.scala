@@ -39,7 +39,14 @@ class GooglePassService @Inject()(val config: AppConfig,
       gp <- googlePassRepository.findByPassId(passId)
     } yield {
       gp match {
-        case Some(googlePass) if (googlePass.nino.replace(" ", "")).equals(nino) => Some(googlePass.googlePassUrl)
+        case Some(googlePass) => {
+          if (googlePass.nino.replace(" ", "").equals(nino)) {
+            Some(googlePass.googlePassUrl)
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
         case _ => None
       }
     }
@@ -51,7 +58,14 @@ class GooglePassService @Inject()(val config: AppConfig,
       gqrCode <- googlePassRepository.findByPassId(passId)
     } yield {
       gqrCode match {
-        case Some(googlePass) if (googlePass.nino.replace(" ","")).equals(nino) => Some(googlePass.qrCode)
+        case Some(googlePass) => {
+          if (googlePass.nino.replace(" ","").equals(nino)) {
+            Some(googlePass.qrCode)
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
         case _ => None
       }
     }
@@ -62,7 +76,14 @@ class GooglePassService @Inject()(val config: AppConfig,
       gpDetails <- googlePassRepository.findByPassId(passId)
     } yield {
       gpDetails match {
-        case Some(googlePass) if (googlePass.nino.replace(" ","")).equals(nino) => Some(GooglePassDetails(googlePass.fullName, googlePass.nino))
+        case Some(googlePass) => {
+          if (googlePass.nino.replace(" ","").equals(nino)) {
+            Some(GooglePassDetails(googlePass.fullName, googlePass.nino))
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
         case _ => None
       }
     }

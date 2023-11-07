@@ -38,7 +38,14 @@ class ApplePassService @Inject()(val config: AppConfig,
       ap <- applePassRepository.findByPassId(passId)
     } yield {
       ap match {
-        case Some(applePass) if (applePass.nino.replace(" ", "")).equals(nino) => Some(applePass.applePassCard)
+        case Some(applePass) => {
+          if (applePass.nino.replace(" ", "").equals(nino)) {
+            Some(applePass.applePassCard)
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
         case _ => None
       }
     }
@@ -50,7 +57,14 @@ class ApplePassService @Inject()(val config: AppConfig,
       aQrCode <- applePassRepository.findByPassId(passId)
     } yield {
       aQrCode match {
-        case Some(applePass) if (applePass.nino.replace(" ","")).equals(nino) => Some(applePass.qrCode)
+        case Some(applePass) => {
+          if (applePass.nino.replace(" ","").equals(nino)) {
+            Some(applePass.qrCode)
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
         case _ => None
       }
     }
@@ -61,7 +75,14 @@ class ApplePassService @Inject()(val config: AppConfig,
       ap <- applePassRepository.findByPassId(passId)
     } yield {
       ap match {
-        case Some(applePass) if (applePass.nino.replace(" ","")).equals(nino) => Some(ApplePassDetails(applePass.fullName, applePass.nino))
+        case Some(applePass) => {
+          if (applePass.nino.replace(" ","").equals(nino)) {
+            Some(ApplePassDetails(applePass.fullName, applePass.nino))
+          } else {
+            logger.warn("Pass NINO does not match session NINO")
+            None
+          }
+        }
         case _ => None
       }
     }
