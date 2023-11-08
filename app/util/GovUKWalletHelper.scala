@@ -21,7 +21,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.google.inject.Inject
 import config.AppConfig
 import io.jsonwebtoken.{JwtException, Jwts}
+import jdk.internal.net.http.common.Log
 import models.{CredentialSubject, GovUKVCDocument, Name, NameParts, SocialSecurityRecord, VCDocument}
+import play.api.{Logger, Logging}
 import play.api.libs.json.Json
 import services.googlepass.googleModels.GenericPrivatePass
 
@@ -33,7 +35,7 @@ import java.time.{LocalDateTime, ZoneId}
 import java.util
 import java.util.{Base64, Collections, UUID}
 
-class GovUKWalletHelper @Inject()(val config: AppConfig) {
+class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
 
   def createGovUKVCDocument(givenName :List[String], familyName: String, nino: String): GovUKVCDocument = {
     val nameParts = NameParts(givenName, familyName)
@@ -73,7 +75,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
   }
 
-  def createECPrivateKeyFromBase64(base64PrivateKey: String): ECPrivateKey = {
+  private def createECPrivateKeyFromBase64(base64PrivateKey: String): ECPrivateKey = {
     val keyBytes = Base64.getDecoder.decode(base64PrivateKey)
     val keySpec = new PKCS8EncodedKeySpec(keyBytes)
     val keyFactory = KeyFactory.getInstance("EC")
@@ -86,12 +88,24 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) {
     try {
       val publicKey = generatePublicKey(config.govukVerificatonPublicKeyX, config.govukVerificatonPublicKeyY)
       Jwts.parser().setSigningKey(publicKey).parseClaimsJws(jwt)
+      logger.info("JWT verification succeeded")
       true // Verification succeeded
     } catch {
       case e: JwtException =>
-        // JWT verification failed
+        logger.info("JWT verification Failed: " + e.getMessage)
         false
     }
+  }
+
+
+  // This requires us to get the x and y values from the DID document
+  // published by GovUK wallet team
+  // this would happen behind a toggle, so we can switch between the two methods
+  def encryptJWT(signedJWT: String): String = {
+    val govUkWalletPublicKeyX = "DummyX"
+    val govUkWalletPublicKeyY = "DummyY"
+    val govUkPublicKey = generatePublicKey(govUkWalletPublicKeyX, govUkWalletPublicKeyY)
+    encryptBase64JWTWithGovWalletPublicKey(govUkPublicKey, signedJWT)
   }
 
 

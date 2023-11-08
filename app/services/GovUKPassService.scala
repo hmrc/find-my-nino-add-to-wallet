@@ -18,6 +18,7 @@ package services
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.sun.tools.javac.util.Convert
 import config.AppConfig
 import org.bouncycastle.crypto.util.PublicKeyFactory
 import play.api.Logging
@@ -40,52 +41,32 @@ class GovUKPassService @Inject()(val config: AppConfig,
 
   def createGovUKPass(givenName: List[String],
                       familyName: String,
-                      nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
+                      nino: String)(implicit ec: ExecutionContext): Either[Exception, (String, String)] = {
 
     val uuid = UUID.randomUUID().toString
-    val personalNumber = nino.trim.replace(" ", "")
+    val ninoStr = nino.trim.replace(" ", "")
+
+    //create a NINO which cannot exist, as we need to use these for testing with Gov Wallet team, this needs to be removed later
+    val fakeNino = "QQ" + ninoStr.substring(2)
+
     val giveNames = givenName.filterNot(_.isEmpty)
 
     // create a helper class to prepare VCDocument from input data
-    val vcDocument = govUKWalletHelper.createGovUKVCDocument(giveNames, familyName, personalNumber)
-    //val encodedVCDocument: String = Base64.getEncoder.encodeToString(vcDocument.toString.getBytes)
+    val vcDocument = govUKWalletHelper.createGovUKVCDocument(giveNames, familyName, fakeNino)
 
     //create and sign JWT here
     val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
 
-    //testing the verification of JWT, we can remove this code once we are happy with the JWT
-    if(govUKWalletHelper.verifyJwt(signedJWT))
-        println("****************JWT verified**************")
-    else
-        println("*****************JWT not verified***************")
+    val govUkWalletUrlWithJWT = s"${config.govukWalletUrl}/$signedJWT"
+    val govUkWalletUrlWithJWTQrCode = qrCodeService.createQRCode(govUkWalletUrlWithJWT).getOrElse(Array.emptyByteArray)
 
-
-    /*
-
-    // This generates a public key from the hard-coded keyX and keyY, this requires us to get
-    // the x and y values from the DID document published by GovUK wallet team
-    // this would happen behind a toggle, so we can switch between the two methods
-
-    val govUkPublicKey = govUKWalletHelper.generatePublicKey( govUkWalletPublicKeyX, govUkWalletPublicKeyX)
-
-    val encryptedSignedJWT = if (config.govukWalletJWTEncrypted) {
-      govUKWalletHelper.encryptBase64JWTWithGovWalletPublicKey(govUkPublicKey,signedJWT)
-    } else {
-      signedJWT
-    }
-
-    */
-
-
-    val govukWalletUrlWithJWT = s"${config.govukWalletUrl}/$signedJWT"
-
-
-    val qrCode = qrCodeService.createQRCode(govukWalletUrlWithJWT)
-      .getOrElse(Array.emptyByteArray)
+    val base64String = Base64.getEncoder.encodeToString(govUkWalletUrlWithJWTQrCode)
 
     //we probably dont need to save names and personal number, as the JWT containes all the data
-    govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, govukWalletUrlWithJWT, qrCode)
-    Right(uuid)
+    govUKPassRepository.insert(uuid, giveNames, familyName, ninoStr, govUkWalletUrlWithJWT, base64String)
+    //Right(uuid)
+
+    Right(govUkWalletUrlWithJWT, base64String)
   }
 
 }
