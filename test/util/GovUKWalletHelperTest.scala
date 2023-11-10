@@ -17,17 +17,9 @@
 package util
 
 import config.AppConfig
-import models.GovUKVCDocument
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-
-import java.security.{KeyFactory, PublicKey}
-import java.security.interfaces.ECPrivateKey
-import java.security.spec.PKCS8EncodedKeySpec
-import java.util.Base64
 
 class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
