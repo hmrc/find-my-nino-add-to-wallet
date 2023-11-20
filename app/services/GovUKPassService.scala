@@ -29,7 +29,7 @@ import java.time.{LocalDateTime, ZoneId}
 import java.util
 import java.util.{Base64, Collections, Date, UUID}
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class GovUKPassService @Inject()(val config: AppConfig,
                                  govUKPassRepository: GovUKPassRepository,
@@ -64,6 +64,13 @@ class GovUKPassService @Inject()(val config: AppConfig,
     //we probably dont need to save names and personal number, as the JWT containes all the data
     govUKPassRepository.insert(uuid, giveNames, familyName, personalNumber, govukWalletUrlWithJWT, qrCode)
     Right(uuid)
+  }
+
+  def  getGovUKWalletUrl(passId: String)(implicit ec: ExecutionContext): Future[Either[Exception, Option[String]]] = {
+    govUKPassRepository.getGovUKWalletUrl(passId) map {
+      case Some(govUKWalletUrl) => Right(Some(govUKWalletUrl))
+      case None => throw new Exception("Pass not found")
+    }
   }
 
 }

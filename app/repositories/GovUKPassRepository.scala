@@ -19,7 +19,7 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -83,6 +83,12 @@ class GovUKPassRepository @Inject()(mongoComponent: MongoComponent,
     logger.info(s"Inserted one in $collectionName table")
     collection.insertOne(GovUKPass(passId, givenName, familyName, nino, vcDocument, qrCode))
       .toFuture().map(_ => ())
+  }
+
+  def getGovUKWalletUrl(passId: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
+    logger.info(s"Getting one from $collectionName table")
+    collection.find(Filters.equal("passId", passId))
+      .headOption().map(_.map(_.vcDocument))
   }
 
 }

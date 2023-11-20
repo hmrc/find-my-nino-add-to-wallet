@@ -39,7 +39,6 @@ class GovUKPassController @Inject()(authConnector: AuthConnector,
     authorisedAsFMNUser { authContext => {
       if (appConfig.govukWalletEnabled) {
         val passRequest = request.body.asJson.get.as[GovUKPassDetails]
-
         Future(passService.createGovUKPass(passRequest.givenName, passRequest.familyName, passRequest.nino) match {
           case Right(value) => Ok(value)
           case Left(exp) => InternalServerError(Json.obj(
@@ -47,6 +46,28 @@ class GovUKPassController @Inject()(authConnector: AuthConnector,
             "message" -> exp.getMessage
           ))
         })
+      } else {
+        Future.successful(Unauthorized(Json.obj(
+          "status" -> "401",
+          "message" -> "You cannot access this service with this account"
+        )))
+      }
+    }}
+  }
+
+  def getGovUKWalletUrl(passId: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { authContext => {
+      if (appConfig.govukWalletEnabled) {
+        passService.getGovUKWalletUrl(passId) map {
+          case Right(Some(url)) => Ok(Json.obj(
+            "status" -> "200",
+            "message" -> url.toString
+          ))
+          case Left(exp) => InternalServerError(Json.obj(
+            "status" -> "500",
+            "message" -> exp.getMessage
+          ))
+        }
       } else {
         Future.successful(Unauthorized(Json.obj(
           "status" -> "401",
