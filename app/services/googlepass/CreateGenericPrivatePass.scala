@@ -34,7 +34,7 @@ import collection.mutable._
 // $COVERAGE-OFF$
 class CreateGenericPrivatePass{
 
-  val logoImageUrl = "https://raw.githubusercontent.com/hmrc/find-my-nino-add-to-wallet-frontend/main/public/images/hmrc-logo-google-pass.png"
+  val logoImageUrl = "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-google-pass.png"
   val logoImageDiscription = "HMRC"
 
   /**
