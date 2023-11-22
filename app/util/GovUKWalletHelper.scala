@@ -40,6 +40,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
     val credentialSubject = CredentialSubject(name, socialSecurityRecord)
     val vcDocument = VCDocument(List("VerifiableCredential", "SocialSecurityCredential"), credentialSubject)
     GovUKVCDocument(
+      config.govukPassContext,
       config.govukPassSub,
       config.govukPassNbf,
       config.govukPassIss,

@@ -28,17 +28,18 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
     "create GovUKVCDocument" in {
       // Mock the config dependency
       val mockConfig = mock[AppConfig]
+      when(mockConfig.govukPassContext).thenReturn(List("https://www.w3.org/2018/credentials/v1"))
       when(mockConfig.govukPassSub).thenReturn("sub")
       when(mockConfig.govukPassNbf).thenReturn(1670336441)
       when(mockConfig.govukPassIss).thenReturn("iss")
       when(mockConfig.govukPassExp).thenReturn(1670336441)
       when(mockConfig.govukPassIat).thenReturn(1670336441)
 
-
       val govUKWalletHelper = new GovUKWalletHelper(mockConfig)
 
       val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument(List("John"), "Doe", "123456789")
 
+      govUKVCDocument.`@context` shouldBe List("https://www.w3.org/2018/credentials/v1")
       govUKVCDocument.sub shouldBe "sub"
       govUKVCDocument.nbf shouldBe 1670336441
       govUKVCDocument.iss shouldBe "iss"
@@ -47,7 +48,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       govUKVCDocument.vc.`type` shouldBe List("VerifiableCredential", "SocialSecurityCredential")
 
-
+      verify(mockConfig, atLeastOnce).govukPassContext
       verify(mockConfig, atLeastOnce).govukPassSub
       verify(mockConfig, atLeastOnce).govukPassNbf
       verify(mockConfig, atLeastOnce).govukPassIss
@@ -60,6 +61,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
       val dummyKey = "MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCDQc+R+wHL04DWmQMeLaU4Tz/AuNJzaownauQlNbtawzw=="
 
       val mockConfig = mock[AppConfig]
+      when(mockConfig.govukPassContext).thenReturn(List("https://www.w3.org/2018/credentials/v1"))
       when(mockConfig.govukPassSub).thenReturn("sub")
       when(mockConfig.govukPassNbf).thenReturn(1670336441)
       when(mockConfig.govukPassIss).thenReturn("iss")
@@ -73,6 +75,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       val jwt = govUKWalletHelper.createAndSignJWT(govUKVCDocument)
 
+      verify(mockConfig, atLeastOnce).govukPassContext
       verify(mockConfig, atLeastOnce).govukPassSub
       verify(mockConfig, atLeastOnce).govukPassNbf
       verify(mockConfig, atLeastOnce).govukPassIss

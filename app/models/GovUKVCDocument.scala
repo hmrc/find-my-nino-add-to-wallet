@@ -24,7 +24,7 @@ case class SocialSecurityRecord(personalNumber : String)
 case class CredentialSubject(name: Name, socialSecurityNumber: SocialSecurityRecord)
 case class VCDocument(`type`: List[String], credentialSubject: CredentialSubject)
 
-case class GovUKVCDocument(sub: String, nbf: Int, iss: String, exp: Int, iat: Int, vc: VCDocument)
+case class GovUKVCDocument(`@context`: List[String], sub: String, nbf: Int, iss: String, exp: Int, iat: Int, vc: VCDocument)
 
 case object GovUKVCDocument {
   implicit val namePartsFormat: OFormat[NameParts] = Json.format[NameParts]
