@@ -16,21 +16,12 @@
 
 package services
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.sun.tools.javac.util.Convert
 import config.AppConfig
-import org.bouncycastle.crypto.util.PublicKeyFactory
 import play.api.Logging
 import repositories.GovUKPassRepository
-import services.googlepass.googleModels.GenericPrivatePass
 import util.GovUKWalletHelper
 
-import java.security.PublicKey
-import java.security.interfaces.RSAPrivateKey
-import java.time.{LocalDateTime, ZoneId}
-import java.util
-import java.util.{Base64, Collections, Date, UUID}
+import java.util.{Base64, UUID}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 

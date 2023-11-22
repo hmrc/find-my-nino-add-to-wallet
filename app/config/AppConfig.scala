@@ -33,6 +33,7 @@ class AppConfig @Inject()(config: Configuration) {
   val googleAddUrl: String = config.get[String]("googlePass.url")
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
 
+  val govukPassContext: List[String] = config.get[String]("govukpass.context").split(",").toList
   val govukPassSub: String = config.get[String]("govukpass.sub")
   val govukPassNbf: Int = config.get[Int]("govukpass.nbf")
   val govukPassIss: String = config.get[String]("govukpass.iss")
