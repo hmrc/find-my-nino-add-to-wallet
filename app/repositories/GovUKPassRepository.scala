@@ -34,11 +34,11 @@ case class GovUKPass(passId: String,
                      familyName: String,
                      nino: String,
                      vcDocument: String,
-                     qrCode: Array[Byte],
+                     qrCode: String,
                      lastUpdated: DateTime)
 
 object GovUKPass {
-  def apply(passId: String, givenName: List[String], familyName: String, nino: String, vcDocument: String, qrCode: Array[Byte]): GovUKPass = {
+  def apply(passId: String, givenName: List[String], familyName: String, nino: String, vcDocument: String, qrCode: String): GovUKPass = {
     GovUKPass(passId, givenName, familyName, nino, vcDocument, qrCode, DateTime.now(DateTimeZone.UTC))
   }
 
@@ -78,11 +78,13 @@ class GovUKPassRepository @Inject()(mongoComponent: MongoComponent,
              familyName: String,
              nino: String,
              vcDocument: String,
-             qrCode: Array[Byte])
+             qrCode: String)
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
     collection.insertOne(GovUKPass(passId, givenName, familyName, nino, vcDocument, qrCode))
       .toFuture().map(_ => ())
   }
+
+
 
 }
