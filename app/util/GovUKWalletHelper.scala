@@ -35,8 +35,8 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
 
   def createGovUKVCDocument(givenName: List[String], familyName: String, nino: String): GovUKVCDocument = {
     val nameParts = NameParts(givenName, familyName)
-    val name = Name(nameParts)
-    val socialSecurityRecord = SocialSecurityRecord(nino)
+    val name = List(Name(nameParts))
+    val socialSecurityRecord = List(SocialSecurityRecord(nino))
     val credentialSubject = CredentialSubject(name, socialSecurityRecord)
     val vcDocument = VCDocument(List("VerifiableCredential", "SocialSecurityCredential"), credentialSubject)
     GovUKVCDocument(
