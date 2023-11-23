@@ -33,7 +33,7 @@ class GovUKPassRepositorySpec extends AnyWordSpec with Matchers with MockitoSuga
   "GovUKPassRepository" must {
     "be able to create a new instance" ignore {
       val repository = new GovUKPassRepository(mongoComponent, appConfig)
-      val result = repository.insert("passId", List("TestGivenName1", "TestGivenName2"), "TestSurname", "AB 12 34 56 Q", "vcDocument", "qrCodeString")
+      val result = repository.insert("passId", "TestGivenName", "TestSurname", "AB 12 34 56 Q", "vcDocument", "qrCodeString")
 
       repository mustBe a[GovUKPassRepository]
       result mustBe a[scala.concurrent.Future[org.mongodb.scala.result.InsertOneResult]]

@@ -17,9 +17,11 @@
 package util
 
 import config.AppConfig
+import models.{Name, NameParts}
 import org.mockito.MockitoSugar._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.libs.json.Json
 
 class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
@@ -37,7 +39,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       val govUKWalletHelper = new GovUKWalletHelper(mockConfig)
 
-      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument(List("John"), "Doe", "123456789")
+      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument("John", "Doe", "123456789")
 
       govUKVCDocument.`@context` shouldBe List("https://www.w3.org/2018/credentials/v1")
       govUKVCDocument.sub shouldBe "sub"
@@ -71,7 +73,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       val govUKWalletHelper = new GovUKWalletHelper(mockConfig)
 
-      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument(List("John"), "Doe", "123456789")
+      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument("John", "Doe", "123456789")
 
       val jwt = govUKWalletHelper.createAndSignJWT(govUKVCDocument)
 
@@ -82,6 +84,8 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
       verify(mockConfig, atLeastOnce).govukPassExp
       verify(mockConfig, atLeastOnce).govukPassIat
       verify(mockConfig, atLeastOnce).govukVerificatonPrivateKey
+
+      govUKVCDocument.vc.credentialSubject.name shouldEqual (List(Name(List(NameParts("GivenName","John"), NameParts("FamilyName","Doe")))))
     }
   }
 }

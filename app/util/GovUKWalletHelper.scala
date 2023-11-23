@@ -33,8 +33,11 @@ import java.util.Base64
 
 class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
 
-  def createGovUKVCDocument(givenName: List[String], familyName: String, nino: String): GovUKVCDocument = {
-    val nameParts = NameParts(givenName, familyName)
+  def createGovUKVCDocument(givenName: String, familyName: String, nino: String): GovUKVCDocument = {
+    val nameParts = List(
+      NameParts("GivenName" , givenName),
+      NameParts("FamilyName" , familyName)
+    )
     val name = List(Name(nameParts))
     val socialSecurityRecord = List(SocialSecurityRecord(nino))
     val credentialSubject = CredentialSubject(name, socialSecurityRecord)
