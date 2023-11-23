@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 
 case class GovUKPass(passId: String,
-                     givenName: List[String],
+                     givenName: String,
                      familyName: String,
                      nino: String,
                      vcDocument: String,
@@ -38,7 +38,7 @@ case class GovUKPass(passId: String,
                      lastUpdated: DateTime)
 
 object GovUKPass {
-  def apply(passId: String, givenName: List[String], familyName: String, nino: String, vcDocument: String, qrCode: String): GovUKPass = {
+  def apply(passId: String, givenName: String, familyName: String, nino: String, vcDocument: String, qrCode: String): GovUKPass = {
     GovUKPass(passId, givenName, familyName, nino, vcDocument, qrCode, DateTime.now(DateTimeZone.UTC))
   }
 
@@ -74,7 +74,7 @@ class GovUKPassRepository @Inject()(mongoComponent: MongoComponent,
 ) with Logging {
 
   def insert(passId: String,
-             givenName: List[String],
+             givenName: String,
              familyName: String,
              nino: String,
              vcDocument: String,
@@ -84,7 +84,5 @@ class GovUKPassRepository @Inject()(mongoComponent: MongoComponent,
     collection.insertOne(GovUKPass(passId, givenName, familyName, nino, vcDocument, qrCode))
       .toFuture().map(_ => ())
   }
-
-
 
 }

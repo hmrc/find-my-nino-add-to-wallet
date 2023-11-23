@@ -18,8 +18,8 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class NameParts(givenName: List[String], familyName: String)
-case class Name(nameParts : NameParts)
+case class NameParts(`type`: String, value: String)
+case class Name(nameParts : List[NameParts])
 case class SocialSecurityRecord(personalNumber : String)
 case class CredentialSubject(name: List[Name], socialSecurityNumber: List[SocialSecurityRecord])
 case class VCDocument(`type`: List[String], credentialSubject: CredentialSubject)

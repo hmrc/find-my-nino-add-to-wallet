@@ -30,7 +30,7 @@ class GovUKPassService @Inject()(val config: AppConfig,
                                  val qrCodeService: QrCodeService,
                                  govUKWalletHelper: GovUKWalletHelper) extends Logging {
 
-  def createGovUKPass(givenName: List[String],
+  def createGovUKPass(givenName: String,
                       familyName: String,
                       nino: String)(implicit ec: ExecutionContext): Either[Exception, (String, String)] = {
 
@@ -40,10 +40,10 @@ class GovUKPassService @Inject()(val config: AppConfig,
     //create a NINO which cannot exist, as we need to use these for testing with Gov Wallet team, this needs to be removed later
     val fakeNino = "QQ" + ninoStr.substring(2)
 
-    val giveNames = givenName.filterNot(_.isEmpty)
+    //val giveNames = givenName.filterNot(_.isEmpty)
 
     // create a helper class to prepare VCDocument from input data
-    val vcDocument = govUKWalletHelper.createGovUKVCDocument(giveNames, familyName, fakeNino)
+    val vcDocument = govUKWalletHelper.createGovUKVCDocument(givenName, familyName, fakeNino)
 
     //create and sign JWT here
     val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
@@ -54,7 +54,7 @@ class GovUKPassService @Inject()(val config: AppConfig,
     val base64String = Base64.getEncoder.encodeToString(govUkWalletUrlWithJWTQrCode)
 
     //we probably dont need to save names and personal number, as the JWT containes all the data
-    govUKPassRepository.insert(uuid, giveNames, familyName, ninoStr, govUkWalletUrlWithJWT, base64String)
+    govUKPassRepository.insert(uuid, givenName, familyName, ninoStr, govUkWalletUrlWithJWT, base64String)
     //Right(uuid)
 
     Right(govUkWalletUrlWithJWT, base64String)

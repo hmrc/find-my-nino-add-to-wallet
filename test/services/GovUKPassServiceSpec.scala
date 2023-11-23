@@ -47,7 +47,7 @@ class GovUKPassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockQrCodeService.createQRCode(any(), any()))
         .thenReturn(Some("SomeQrCode".getBytes()))
       val nino = "AB 12 34 56 Q"
-      val givenNames = List("TestGivenName1", "TestGivenName2")
+      val givenNames = "TestGivenName"
       val familyName = "TestSurname"
 
       val eitherResult = govUKPassService.createGovUKPass(givenNames, familyName, nino)(global)

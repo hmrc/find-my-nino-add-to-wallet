@@ -45,7 +45,7 @@ class GovUKPassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   private val govUrl = "govUrl"
   private val qrCodeString = "qrCodeString"
   private val createPassRequest: JsObject = Json.obj(
-    "givenName" -> List("TestGivenName1", "TestGivenName2"),
+    "givenName" -> "TestGivenName",
     "familyName" -> "TestSurname",
     "nino" -> "AB 12 34 56 Q"
   )
