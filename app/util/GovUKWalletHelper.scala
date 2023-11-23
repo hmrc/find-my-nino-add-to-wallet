@@ -54,12 +54,8 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
     val algorithm: Algorithm = Algorithm.ECDSA256(null, pk)
     val now = LocalDateTime.now(ZoneId.of("UTC"))
     val expiresAt = now.plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant.toEpochMilli
-    val claims: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
-    val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
-    payload.put("govUkPasses", util.Arrays.asList(Json.toJson(govUKVCDocument).toString))
-    claims.put("payload", payload)
     val JWTExpiryDate = java.util.Date.from(LocalDateTime.now().plusMinutes(expiresAt).atZone(ZoneId.systemDefault()).toInstant)
-    JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
+    JWT.create.withKeyId(config.govukVerificatonPublicKeyID).withExpiresAt(JWTExpiryDate).withPayload(Json.toJson(govUKVCDocument).toString).sign(algorithm)
   }
 
   private def createECPrivateKeyFromBase64(base64PrivateKey: String): ECPrivateKey = {
