@@ -21,7 +21,7 @@ import play.api.libs.json.{Json, OFormat}
 case class NameParts(givenName: List[String], familyName: String)
 case class Name(nameParts : NameParts)
 case class SocialSecurityRecord(personalNumber : String)
-case class CredentialSubject(name: Name, socialSecurityNumber: SocialSecurityRecord)
+case class CredentialSubject(name: List[Name], socialSecurityNumber: List[SocialSecurityRecord])
 case class VCDocument(`type`: List[String], credentialSubject: CredentialSubject)
 
 case class GovUKVCDocument(`@context`: List[String], sub: String, nbf: Int, iss: String, exp: Int, iat: Int, vc: VCDocument)
