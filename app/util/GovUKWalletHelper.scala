@@ -24,19 +24,23 @@ import models._
 import play.api.Logging
 import play.api.libs.json.Json
 
+import java.math.BigInteger
 import java.security.KeyFactory
-import java.security.interfaces.ECPrivateKey
-import java.security.spec.PKCS8EncodedKeySpec
+import java.security.interfaces.{ECPrivateKey, ECPublicKey}
+import java.security.spec.{ECFieldFp, ECParameterSpec, ECPoint, ECPublicKeySpec, EllipticCurve, PKCS8EncodedKeySpec}
 import java.time.{LocalDateTime, ZoneId}
-import java.util
 import java.util.Base64
 
 class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
 
   def createGovUKVCDocument(givenName: String, familyName: String, nino: String): GovUKVCDocument = {
+
+    val expiresAt = (System.currentTimeMillis() + config.govukPassdefaultExpirationYears * 365 * 24 * 60 * 60 * 1000) / 1000
+    val issuedAt = (System.currentTimeMillis()) / 1000
+
     val nameParts = List(
-      NameParts("GivenName" , givenName),
-      NameParts("FamilyName" , familyName)
+      NameParts("GivenName", givenName),
+      NameParts("FamilyName", familyName)
     )
     val name = List(Name(nameParts))
     val socialSecurityRecord = List(SocialSecurityRecord(nino))
@@ -45,20 +49,20 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
     GovUKVCDocument(
       config.govukPassContext,
       config.govukPassSub,
-      config.govukPassNbf,
+      issuedAt.toInt,
       config.govukPassIss,
-      config.govukPassExp,
-      config.govukPassIat,
+      expiresAt.toInt,
+      issuedAt.toInt,
       vcDocument
     )
   }
   def createAndSignJWT(govUKVCDocument: GovUKVCDocument): String = {
-    val pk = createECPrivateKeyFromBase64(config.govukVerificatonPrivateKey)
-    val algorithm: Algorithm = Algorithm.ECDSA256(null, pk)
-    val now = LocalDateTime.now(ZoneId.of("UTC"))
-    val expiresAt = now.plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant.toEpochMilli
-    val JWTExpiryDate = java.util.Date.from(LocalDateTime.now().plusMinutes(expiresAt).atZone(ZoneId.systemDefault()).toInstant)
-    JWT.create.withKeyId(config.govukVerificatonPublicKeyID).withExpiresAt(JWTExpiryDate).withPayload(Json.toJson(govUKVCDocument).toString).sign(algorithm)
+    val privKey = createECPrivateKeyFromBase64(config.govukVerificatonPrivateKey)
+    val pubKey = createECPublicKeyFromBase64Components(config.govukVerificatonPublicKeyX, config.govukVerificatonPublicKeyY)
+    val algorithm: Algorithm = Algorithm.ECDSA256(pubKey, privKey)
+    val expiresAt = LocalDateTime.now(ZoneId.of("UTC")).plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant
+    JWT.create.withKeyId(config.govukVerificatonPublicKeyID)
+      .withExpiresAt(expiresAt).withPayload(Json.toJson(govUKVCDocument).toString).sign(algorithm)
   }
 
   private def createECPrivateKeyFromBase64(base64PrivateKey: String): ECPrivateKey = {
@@ -67,4 +71,40 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
     val keyFactory = KeyFactory.getInstance("EC")
     keyFactory.generatePrivate(keySpec).asInstanceOf[ECPrivateKey]
   }
+
+  def createECPublicKeyFromBase64Components(xComponentBase64: String, yComponentBase64: String): ECPublicKey = {
+    // Decode Base64-encoded x and y coordinates
+    val xBytes = Base64.getDecoder.decode(xComponentBase64)
+    val yBytes = Base64.getDecoder.decode(yComponentBase64)
+
+    // Parse x and y coordinates
+    val xCoord = new BigInteger(1, xBytes)
+    val yCoord = new BigInteger(1, yBytes)
+
+    // Curve parameters for P-256 (change as needed)
+    // Prime number p for the underlying finite field
+    val p = new BigInteger("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF", 16)
+
+    //Coefficient a for curve equation: y^2 = x^3 + ax + b
+    val a = new BigInteger("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC", 16)
+
+    //Coefficient b for curve equation: y^2 = x^3 + ax + b
+    val b = new BigInteger("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B", 16)
+
+    val curve = new ECParameterSpec(
+      new EllipticCurve(new ECFieldFp(p), a, b),
+      new ECPoint(
+        new BigInteger("6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296", 16),
+        new BigInteger("4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5", 16)
+      ),
+      new BigInteger("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551", 16),
+      1
+    )
+
+    // Create the ECPublicKey using the parsed coordinates and curve parameters
+    val pubKeySpec = new ECPublicKeySpec(new ECPoint(xCoord, yCoord), curve)
+    val keyFactory = KeyFactory.getInstance("EC")
+    keyFactory.generatePublic(pubKeySpec).asInstanceOf[ECPublicKey]
+  }
+
 }
