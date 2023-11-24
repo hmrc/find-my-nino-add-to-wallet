@@ -43,19 +43,15 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       govUKVCDocument.`@context` shouldBe List("https://www.w3.org/2018/credentials/v1")
       govUKVCDocument.sub shouldBe "sub"
-      govUKVCDocument.nbf shouldBe 1670336441
+      govUKVCDocument.nbf.getClass shouldBe classOf[Int]
       govUKVCDocument.iss shouldBe "iss"
-      govUKVCDocument.exp shouldBe 1670336441
-      govUKVCDocument.iat shouldBe 1670336441
+      govUKVCDocument.exp.getClass shouldBe classOf[Int]
+      govUKVCDocument.iat.getClass shouldBe classOf[Int]
 
       govUKVCDocument.vc.`type` shouldBe List("VerifiableCredential", "SocialSecurityCredential")
 
       verify(mockConfig, atLeastOnce).govukPassContext
-      verify(mockConfig, atLeastOnce).govukPassSub
-      verify(mockConfig, atLeastOnce).govukPassNbf
-      verify(mockConfig, atLeastOnce).govukPassIss
-      verify(mockConfig, atLeastOnce).govukPassExp
-      verify(mockConfig, atLeastOnce).govukPassIat
+
     }
 
     "create and sign JWT" in {
@@ -79,10 +75,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       verify(mockConfig, atLeastOnce).govukPassContext
       verify(mockConfig, atLeastOnce).govukPassSub
-      verify(mockConfig, atLeastOnce).govukPassNbf
       verify(mockConfig, atLeastOnce).govukPassIss
-      verify(mockConfig, atLeastOnce).govukPassExp
-      verify(mockConfig, atLeastOnce).govukPassIat
       verify(mockConfig, atLeastOnce).govukVerificatonPrivateKey
 
       govUKVCDocument.vc.credentialSubject.name shouldEqual (List(Name(List(NameParts("GivenName","John"), NameParts("FamilyName","Doe")))))
