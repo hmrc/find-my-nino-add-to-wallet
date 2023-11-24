@@ -17,16 +17,18 @@
 package controllers
 
 import com.google.auth.oauth2.GoogleCredentials
-import models.{GooglePassDetails, GooglePassDetailsWithCredentials}
+import config.AppConfig
+import models.GooglePassDetails
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
-import services.{DeSerializer, GooglePassService}
+import services.GooglePassService
 import uk.gov.hmrc.auth.core.AuthConnector
 
-import java.util.Base64
+import java.io.ByteArrayInputStream
+import java.util.{Base64, Collections}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,22 +39,24 @@ class GooglePassController @Inject()(
                                                                       config: Configuration,
                                                                       env: Environment,
                                                                       cc: MessagesControllerComponents,
+                                                                      appConfig: AppConfig,
                                                                       ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
 
   implicit val passRequestFormatter: OFormat[GooglePassDetails] = Json.format[GooglePassDetails]
-  implicit val passRequestFormatterWithCredentials: OFormat[GooglePassDetailsWithCredentials] = Json.format[GooglePassDetailsWithCredentials]
 
   implicit val writes: Writes[GooglePassDetails] = Json.writes[GooglePassDetails]
-  implicit val writesWithCredentials: Writes[GooglePassDetailsWithCredentials] = Json.writes[GooglePassDetailsWithCredentials]
 
   // shall we configure it in application.conf file
   private val DEFAULT_EXPIRATION_YEARS = 100
 
   def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      val passRequest = request.body.asJson.get.as[GooglePassDetailsWithCredentials]
+      val passRequest = request.body.asJson.get.as[GooglePassDetails]
       val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
-      val googleCredentials = DeSerializer.deserializeObjectFromBase64[GoogleCredentials](passRequest.credentials)
+
+      val scope = "https://www.googleapis.com/auth/wallet_object.issuer"
+      val keyAsStream = new ByteArrayInputStream(Base64.getDecoder.decode(appConfig.googleKey))
+      val googleCredentials: GoogleCredentials = GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
 
       Future(passService.createPassWithCredentials(passRequest.fullName, passRequest.nino, expirationDate.toString(), googleCredentials) match {
         case Right(value) => Ok(value)
