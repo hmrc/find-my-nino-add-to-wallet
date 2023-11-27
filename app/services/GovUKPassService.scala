@@ -18,7 +18,6 @@ package services
 
 import config.AppConfig
 import play.api.Logging
-import repositories.GovUKPassRepository
 import util.GovUKWalletHelper
 
 import java.util.{Base64, UUID}
@@ -26,7 +25,6 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class GovUKPassService @Inject()(val config: AppConfig,
-                                 govUKPassRepository: GovUKPassRepository,
                                  val qrCodeService: QrCodeService,
                                  govUKWalletHelper: GovUKWalletHelper) extends Logging {
 

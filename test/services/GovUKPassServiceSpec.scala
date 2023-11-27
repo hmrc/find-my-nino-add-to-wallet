@@ -22,7 +22,6 @@ import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import repositories.GovUKPassRepository
 import util.GovUKWalletHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,7 +29,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class GovUKPassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
   val passId: String = "test-pass-id-001"
 
-  private val mockGovUKPassRepository = mock[GovUKPassRepository]
   private val mockQrCodeService = mock[QrCodeService]
   private val mockAppConfig = mock[AppConfig]
   private val mockGovUKWalletHelper = mock[GovUKWalletHelper]
@@ -38,7 +36,6 @@ class GovUKPassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
   private val govUKPassService = new GovUKPassService(
     mockAppConfig,
-    mockGovUKPassRepository,
     mockQrCodeService,
     mockGovUKWalletHelper)
 
