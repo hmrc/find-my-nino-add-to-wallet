@@ -48,8 +48,8 @@ class GovUKPassService @Inject()(val config: AppConfig,
     val govUkWalletUrlWithJWTQrCode = qrCodeService.createQRCode(govUkWalletUrlWithJWT).getOrElse(Array.emptyByteArray)
     val govUkWalletUrlWithJWTQrCodeBase64String = Base64.getEncoder.encodeToString(govUkWalletUrlWithJWTQrCode)
 
-    //we probably dont need to save names and personal number, as the JWT containes all the data
-    govUKPassRepository.insert(uuid, givenName, familyName, ninoStr, govUkWalletUrlWithJWT, govUkWalletUrlWithJWTQrCodeBase64String)
+    //removing data persistance as we are not using it.
+    //govUKPassRepository.insert(uuid, givenName, familyName, ninoStr, govUkWalletUrlWithJWT, govUkWalletUrlWithJWTQrCodeBase64String)
 
     Right(govUkWalletUrlWithJWT, govUkWalletUrlWithJWTQrCodeBase64String)
   }
