@@ -49,4 +49,6 @@ class AppConfig @Inject()(config: Configuration) {
   lazy val govukWalletEnabled = config.getOptional[Boolean]("features.govuk-wallet-enabled").getOrElse(false)
 
   val govukWalletUrl: String = config.get[String]("govukpass.govUkWalletUrl")
+
+  val encryptionKey: String = config.get[String]("mongodb.encryption.key")
 }

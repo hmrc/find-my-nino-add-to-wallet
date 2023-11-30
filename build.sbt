@@ -15,6 +15,10 @@ lazy val microservice = Project(appName, file("."))
     majorVersion                     := 0,
     scalaVersion                     := "2.13.8",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+    resolvers ++= Seq(
+      Resolver.jcenterRepo,
+      "HMRC-open-artefacts-maven".at("https://open.artefacts.tax.service.gov.uk/maven2")
+    ),
     PlayKeys.playDefaultPort := 14005,
     // ***************
     // Use the silencer plugin to suppress warnings
