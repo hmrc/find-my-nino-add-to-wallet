@@ -28,6 +28,8 @@ import uk.gov.hmrc.crypto.EncryptedValue
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
+import encryption.EncryptedApplePass
+import encryption.EncryptedApplePass._
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,13 +42,6 @@ case class ApplePass(passId: String,
                      qrCode: Array[Byte],
                      lastUpdated: DateTime)
 
-case class EncryptedApplePass(passId: String,
-                     fullName: EncryptedValue,
-                     nino: EncryptedValue,
-                     applePassCard: EncryptedValue,
-                     qrCode: EncryptedValue,
-                     lastUpdated: EncryptedValue)
-
 object ApplePass {
   def apply(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
     ApplePass(passId, fullName, nino, applePassCard, qrCode, DateTime.now(DateTimeZone.UTC))
@@ -55,25 +50,6 @@ object ApplePass {
   implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
   implicit val arrayFormat: Format[Array[Byte]] = MongoBinaryFormats.byteArrayFormat
   implicit val mongoFormat: Format[ApplePass] = Json.format[ApplePass]
-}
-
-object EncryptedValueFormat {
-  implicit lazy val encryptedValueOFormat: OFormat[EncryptedValue] = Json.format[EncryptedValue]
-  implicit lazy val encryptedValueFormat: Format[EncryptedValue]   = Json.format[EncryptedValue]
-}
-
-object EncryptedApplePass {
-  import EncryptedValueFormat._
-
-  val encryptedFormat: OFormat[EncryptedApplePass] = {
-    ((__ \ "passId").format[String]
-      ~ (__ \ "fullName").format[EncryptedValue]
-      ~ (__ \ "nino").format[EncryptedValue]
-      ~ (__ \ "applePassCard").format[EncryptedValue]
-      ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[EncryptedValue]
-      )(EncryptedApplePass.apply, unlift(EncryptedApplePass.unapply))
-  }
 }
 
 @Singleton
@@ -102,37 +78,6 @@ class ApplePassRepository @Inject()(
   ),
   replaceIndexes = true
 ) with Logging {
-
-
-  def encrypt(applePass: ApplePass, key: String): EncryptedApplePass = {
-    def e(field: String): EncryptedValue = {
-      SymmetricCryptoFactory.aesGcmAdCrypto(key).encrypt(field, applePass.passId)
-    }
-
-    EncryptedApplePass(
-      passId = applePass.passId,
-      fullName = e(applePass.fullName),
-      nino = e(applePass.nino),
-      applePassCard = e(applePass.applePassCard.mkString(",")),
-      qrCode = e(applePass.qrCode.mkString(",")),
-      lastUpdated = e(applePass.lastUpdated.toString)
-    )
-  }
-
-  def decrypt(encryptedApplePass: EncryptedApplePass, key: String): ApplePass = {
-    def d(field: EncryptedValue): String = {
-      SymmetricCryptoFactory.aesGcmAdCrypto(key).decrypt(field, encryptedApplePass.passId)
-    }
-
-    ApplePass(
-      passId = encryptedApplePass.passId,
-      fullName = d(encryptedApplePass.fullName),
-      nino = d(encryptedApplePass.nino),
-      applePassCard = d(encryptedApplePass.applePassCard).split(",").map(_.toByte),
-      qrCode = d(encryptedApplePass.qrCode).split(",").map(_.toByte),
-      lastUpdated = DateTime.parse(d(encryptedApplePass.lastUpdated))
-    )
-  }
 
   def insert(passId: String,
              fullName: String,
