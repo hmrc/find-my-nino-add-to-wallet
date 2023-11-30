@@ -28,7 +28,8 @@ class GovUKPassService @Inject()(val config: AppConfig,
                                  val qrCodeService: QrCodeService,
                                  govUKWalletHelper: GovUKWalletHelper) extends Logging {
 
-  def createGovUKPass(givenName: String,
+  def createGovUKPass(title: String,
+                      givenName: String,
                       familyName: String,
                       nino: String)(implicit ec: ExecutionContext): Either[Exception, (String, String)] = {
 
@@ -40,9 +41,9 @@ class GovUKPassService @Inject()(val config: AppConfig,
     val fakeNino = "QQ" + ninoStr.substring(2)
 
     //val giveNames = givenName.filterNot(_.isEmpty)
-    val vcDocument = govUKWalletHelper.createGovUKVCDocument(givenName, familyName, fakeNino)
+    val vcDocument = govUKWalletHelper.createGovUKVCDocument(title, givenName, familyName, fakeNino)
     val signedJWT = govUKWalletHelper.createAndSignJWT(vcDocument)
-    val govUkWalletUrlWithJWT = s"${config.govukWalletUrl}/$signedJWT"
+    val govUkWalletUrlWithJWT = s"${config.govukWalletUrl}$signedJWT"
     val govUkWalletUrlWithJWTQrCode = qrCodeService.createQRCode(govUkWalletUrlWithJWT).getOrElse(Array.emptyByteArray)
     val govUkWalletUrlWithJWTQrCodeBase64String = Base64.getEncoder.encodeToString(govUkWalletUrlWithJWTQrCode)
 

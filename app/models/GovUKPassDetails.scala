@@ -20,6 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class GovUKPassDetails
 (
+  title: String,
   givenName: String,
   familyName: String,
   nino: String
