@@ -43,15 +43,15 @@ class GooglePassUtil @Inject()(config: AppConfig, createGenericPrivatePass: Crea
   private def createGooglePassCardContent(name: String, nino: String): GooglePassCard = {
     val pass: GooglePassCard = GooglePassCard(
       header = "HM Revenue & Customs",
-      title = "National Insurance Number",
+      title = "National Insurance number",
       rows = Some(Array(
         GooglePassTextRow(
           id = Some("row2left"),
-          header = Some("Name"),
+          header = Some("NAME"),
           body = Some(name)),
         GooglePassTextRow(
           id = Some("row3left"),
-          header = Some("National Insurance Number"),
+          header = Some("NATIONAL INSURANCE NUMBER"),
           body = Some(nino)),
         GooglePassTextRow(
           id = Some("row4left"),
