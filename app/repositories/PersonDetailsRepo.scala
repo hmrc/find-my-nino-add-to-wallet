@@ -17,10 +17,13 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
+import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import play.api.libs.json.{Format, Json}
+import repositories.encryption.EncryptedRowPersonDetails
+import repositories.encryption.EncryptedRowPersonDetails.{decrypt, encrypt}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
@@ -51,12 +54,13 @@ object RowPersonDetails {
 }
 
 @Singleton
-class PersonDetailsRepo @Inject()(mongoComponent: MongoComponent)
+class PersonDetailsRepo @Inject()(mongoComponent: MongoComponent,
+                                  appConfig: AppConfig)
                                  (implicit ec: ExecutionContext)
-  extends PlayMongoRepository[RowPersonDetails](
+  extends PlayMongoRepository[EncryptedRowPersonDetails](
     collectionName = "person-details",
     mongoComponent = mongoComponent,
-    domainFormat = RowPersonDetails.mongoFormat,
+    domainFormat = EncryptedRowPersonDetails.encryptedFormat,
     indexes = Seq(
       IndexModel(
         Indexes.ascending("detailsId"),
@@ -75,13 +79,21 @@ class PersonDetailsRepo @Inject()(mongoComponent: MongoComponent)
              dateCreated: String)
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(RowPersonDetails(detailsId, fullName, nino, personDetails, dateCreated, DateTime.now(DateTimeZone.UTC).toLocalDateTime.toString() ))
-      .toFuture().map(_ => ())
+    collection.insertOne(encrypt(RowPersonDetails(detailsId, fullName, nino, personDetails, dateCreated), appConfig.encryptionKey))
+      .head()
+      .map(_ => ())
+      .recoverWith {
+        case e => Future.successful(logger.info(s"failed to insert person details row into $collectionName table with ${e.getMessage}"))
+      }
 
   }
 
   def findById(pdId: String)(implicit ec: ExecutionContext): Future[Option[RowPersonDetails]] =
     collection.find(Filters.equal("detailsId", pdId))
-      .headOption()
+      .first()
+      .toFutureOption()
+      .map(optEncryptedRowPersonDetails =>
+        optEncryptedRowPersonDetails.map(encryptedRowPersonDetails  => decrypt(encryptedRowPersonDetails , appConfig.encryptionKey))
+      )
 }
 
