@@ -45,6 +45,7 @@ class GovUKPassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   private val govUrl = "govUrl"
   private val qrCodeString = "qrCodeString"
   private val createPassRequest: JsObject = Json.obj(
+    "title" -> "Mr",
     "givenName" -> "TestGivenName",
     "familyName" -> "TestSurname",
     "nino" -> "AB 12 34 56 Q"
@@ -80,7 +81,7 @@ class GovUKPassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
   "createGovUKPass" must {
     "should return OK with the details of pass" in {
-      when(mockGovUKPassService.createGovUKPass(any(), any(), any())(any())).thenReturn(Right(govUrl, qrCodeString))
+      when(mockGovUKPassService.createGovUKPass(any(), any(), any(), any())(any())).thenReturn(Right(govUrl, qrCodeString))
 
       val result = controller.createGovUKPass()(fakeRequestWithAuth.withJsonBody(createPassRequest))
 

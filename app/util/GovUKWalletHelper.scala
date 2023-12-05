@@ -33,14 +33,14 @@ import java.util.Base64
 
 class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
 
-  def createGovUKVCDocument(givenName: String, familyName: String, nino: String): GovUKVCDocument = {
+  def createGovUKVCDocument(title: String, givenName: String, familyName: String, nino: String): GovUKVCDocument = {
 
-    val expiresAt = (System.currentTimeMillis() + config.govukPassdefaultExpirationYears * 365 * 24 * 60 * 60 * 1000) / 1000
     val issuedAt = (System.currentTimeMillis()) / 1000
 
     val nameParts = List(
-      NameParts("GivenName", givenName),
-      NameParts("FamilyName", familyName)
+      NameParts("Title", title.toLowerCase.capitalize),
+      NameParts("GivenName", givenName.toLowerCase.capitalize),
+      NameParts("FamilyName", familyName.toLowerCase.capitalize)
     )
     val name = List(Name(nameParts))
     val socialSecurityRecord = List(SocialSecurityRecord(nino))
@@ -51,7 +51,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
       config.govukPassSub,
       issuedAt.toInt,
       config.govukPassIss,
-      expiresAt.toInt,
+      config.govukPassExp,
       issuedAt.toInt,
       vcDocument
     )
@@ -61,7 +61,7 @@ class GovUKWalletHelper @Inject()(val config: AppConfig) extends Logging {
     val pubKey = createECPublicKeyFromBase64Components(config.govukVerificatonPublicKeyX, config.govukVerificatonPublicKeyY)
     val algorithm: Algorithm = Algorithm.ECDSA256(pubKey, privKey)
     val expiresAt = LocalDateTime.now(ZoneId.of("UTC")).plusYears(config.govukPassdefaultExpirationYears).atZone(ZoneId.of("UTC")).toInstant
-    JWT.create.withKeyId(config.govukVerificatonPublicKeyID)
+    JWT.create.withKeyId(config.govukVerificatonPublicKeyIDPrefix + config.govukVerificatonPublicKeyID)
       .withExpiresAt(expiresAt).withPayload(Json.toJson(govUKVCDocument).toString).sign(algorithm)
   }
 

@@ -45,6 +45,7 @@ class AppConfig @Inject()(config: Configuration) {
   val govukVerificatonPublicKeyY = config.get[String]("govukpass.govukVerificatonPublicKeyY")
   val govukWalletJWTEncrypted = config.get[Boolean]("govukpass.govUkWalletJWTEncrypted")
   val govukVerificatonPublicKeyID = config.get[String]("govukpass.govukVerificatonPublicKeyID")
+  val govukVerificatonPublicKeyIDPrefix = config.get[String]("govukpass.govukVerificatonPublicKeyIDPrefix")
 
   lazy val govukWalletEnabled = config.getOptional[Boolean]("features.govuk-wallet-enabled").getOrElse(false)
 

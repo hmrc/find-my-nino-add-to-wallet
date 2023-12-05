@@ -39,7 +39,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       val govUKWalletHelper = new GovUKWalletHelper(mockConfig)
 
-      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument("John", "Doe", "123456789")
+      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument("Mr", "John", "Doe", "123456789")
 
       govUKVCDocument.`@context` shouldBe List("https://www.w3.org/2018/credentials/v1")
       govUKVCDocument.sub shouldBe "sub"
@@ -69,7 +69,7 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
 
       val govUKWalletHelper = new GovUKWalletHelper(mockConfig)
 
-      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument("John", "Doe", "123456789")
+      val govUKVCDocument = govUKWalletHelper.createGovUKVCDocument("Mr","John", "Doe", "123456789")
 
       val jwt = govUKWalletHelper.createAndSignJWT(govUKVCDocument)
 
@@ -78,7 +78,13 @@ class GovUKWalletHelperSpec extends AnyWordSpec with Matchers {
       verify(mockConfig, atLeastOnce).govukPassIss
       verify(mockConfig, atLeastOnce).govukVerificatonPrivateKey
 
-      govUKVCDocument.vc.credentialSubject.name shouldEqual (List(Name(List(NameParts("GivenName","John"), NameParts("FamilyName","Doe")))))
+      govUKVCDocument.vc.credentialSubject.name shouldEqual (List(
+        Name(List(
+          NameParts("Title","Mr"),
+          NameParts("GivenName","John"),
+          NameParts("FamilyName","Doe")
+        ))
+      ))
     }
   }
 }

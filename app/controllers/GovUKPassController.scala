@@ -42,7 +42,7 @@ class GovUKPassController @Inject()(authConnector: AuthConnector,
         //get the pass details from the request body
         val passDetails = request.body.asJson.get.as[GovUKPassDetails]
 
-        Future(passService.createGovUKPass(passDetails.givenName, passDetails.familyName, passDetails.nino) match {
+        Future(passService.createGovUKPass(passDetails.title, passDetails.givenName, passDetails.familyName, passDetails.nino) match {
           case Right(value) => Ok(Json.obj(
               "url" -> value._1,
               "bytes" -> value._2
