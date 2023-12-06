@@ -130,7 +130,7 @@ class CreateGenericPrivatePass{
 
     claims.put("iss", googleCredentials.asInstanceOf[ServiceAccountCredentials].getClientEmail())
     claims.put("aud", "google")
-    claims.put("origins", Collections.singletonList("www.example.com"))
+    claims.put("origins", Collections.singletonList("www.gov.uk"))
     claims.put("typ", "savetowallet")
     // Create the Google Wallet payload and add to the JWT
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
