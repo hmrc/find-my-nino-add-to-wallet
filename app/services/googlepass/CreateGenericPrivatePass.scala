@@ -20,6 +20,7 @@ package services.googlepass
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+import config.AppConfig
 import models.{GooglePassCard, GooglePassTextRow}
 import googleModels.{GenericPrivatePass, Image, ImageUri, LocalizedString, TextModuleData, TranslatedString}
 
@@ -28,11 +29,12 @@ import java.security.interfaces.RSAPrivateKey
 import java.time.{LocalDateTime, ZoneId}
 import java.util
 import java.util._
+import javax.inject.Inject
 import scala.jdk.CollectionConverters._
 import collection.mutable._
 
 // $COVERAGE-OFF$
-class CreateGenericPrivatePass{
+class CreateGenericPrivatePass @Inject()(config: AppConfig) {
 
   val logoImageUrl = "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-google-pass.png"
   val logoImageDiscription = "HMRC"
@@ -130,7 +132,7 @@ class CreateGenericPrivatePass{
 
     claims.put("iss", googleCredentials.asInstanceOf[ServiceAccountCredentials].getClientEmail())
     claims.put("aud", "google")
-    claims.put("origins", Collections.singletonList("www.example.com"))
+    claims.put("origins", Collections.singletonList(config.googleOrigins))
     claims.put("typ", "savetowallet")
     // Create the Google Wallet payload and add to the JWT
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
