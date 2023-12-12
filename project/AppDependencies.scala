@@ -18,6 +18,7 @@ object AppDependencies {
     "com.google.auth"         % "google-auth-library-oauth2-http" % "1.16.0",
     "com.auth0"               % "java-jwt"                        % "4.4.0",
     "com.fasterxml.jackson.module"  %% "jackson-module-scala"                 %   "2.14.2",
+    "uk.gov.hmrc"                   %% "crypto-json-play-28"                  % "7.6.0",
   )
 
   val test = Seq(

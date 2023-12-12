@@ -25,6 +25,8 @@ import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
+import encryption.EncryptedApplePass
+import encryption.EncryptedApplePass._
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
@@ -51,10 +53,10 @@ object ApplePass {
 class ApplePassRepository @Inject()(
                                      mongoComponent: MongoComponent,
                                      appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[ApplePass](
+                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedApplePass](
   collectionName = "apple-pass",
   mongoComponent = mongoComponent,
-  domainFormat = ApplePass.mongoFormat,
+  domainFormat = EncryptedApplePass.encryptedFormat,
   indexes = Seq(
     IndexModel(
       Indexes.ascending("passId"),
@@ -73,6 +75,7 @@ class ApplePassRepository @Inject()(
   ),
   replaceIndexes = true
 ) with Logging {
+
   def insert(passId: String,
              fullName: String,
              nino: String,
@@ -80,19 +83,34 @@ class ApplePassRepository @Inject()(
              qrCode: Array[Byte])
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(ApplePass(passId, fullName, nino, applePassCard, qrCode))
-      .toFuture().map(_ => ())
+    collection.insertOne(encrypt(ApplePass(passId, fullName, nino, applePassCard, qrCode), appConfig.encryptionKey))
+      .head()
+      .map(_ => ())
+      .recoverWith {
+        case e => Future.successful(logger.info(s"failed to insert apple pass card into $collectionName table with ${e.getMessage}"))
+      }
   }
 
-  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
+  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] = {
     collection.find(Filters.equal("passId", passId))
-      .headOption()
+      .first()
+      .toFutureOption()
+      .map(optEncryptedApplePass =>
+        optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
+      )
+  }
 
-  def findByNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
+  def findByNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] = {
     collection.find(
       Filters.and(
         Filters.equal("fullName", fullName),
         Filters.equal("nino", nino)
-      )).headOption()
+      ))
+      .first()
+      .toFutureOption()
+      .map(optEncryptedApplePass =>
+        optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
+      )
+  }
 
 }

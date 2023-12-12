@@ -113,6 +113,7 @@ class ApplePassService @Inject()(val config: AppConfig,
       logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")
       fileService.deleteDirectory(path)
       passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
+      logger.info(s"[Creating Apple Pass] Insert Apple pass to DB Completed")
       Right(uuid)
     } else {
       logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +

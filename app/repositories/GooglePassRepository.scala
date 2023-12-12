@@ -25,9 +25,12 @@ import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
+import repositories.encryption.EncryptedGooglePass
+import repositories.encryption.EncryptedGooglePass._
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 case class GooglePass(passId: String,
                      fullName: String,
@@ -51,10 +54,10 @@ object GooglePass {
 class GooglePassRepository @Inject()(
                                      mongoComponent: MongoComponent,
                                      appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[GooglePass](
+                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedGooglePass](
   collectionName = "google-pass",
   mongoComponent = mongoComponent,
-  domainFormat = GooglePass.mongoFormat,
+  domainFormat = EncryptedGooglePass.encryptedFormat,
   indexes = Seq(
     IndexModel(
       Indexes.ascending("passId"),
@@ -81,19 +84,32 @@ class GooglePassRepository @Inject()(
              qrCode: Array[Byte])
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(GooglePass(passId, fullName, nino, expirationDate, googlePassUrl, qrCode))
-      .toFuture().map(_ => ())
+    collection.insertOne(encrypt(GooglePass(passId, fullName, nino, expirationDate, googlePassUrl, qrCode), appConfig.encryptionKey))
+      .head()
+      .map(_ => ())
+      .recoverWith {
+        case e => Future.successful(logger.info(s"failed to insert google pass card into $collectionName table with ${e.getMessage}"))
+      }
   }
 
   def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]] =
     collection.find(Filters.equal("passId", passId))
-      .headOption()
+      .first()
+      .toFutureOption()
+      .map(optEncryptedGooglePass =>
+        optEncryptedGooglePass.map(encryptedGooglePass => decrypt(encryptedGooglePass, appConfig.encryptionKey))
+      )
 
   def findByNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]] =
     collection.find(
       Filters.and(
         Filters.equal("fullName", fullName),
         Filters.equal("nino", nino)
-      )).headOption()
+      ))
+      .first()
+      .toFutureOption()
+      .map(optEncryptedGooglePass =>
+        optEncryptedGooglePass.map(encryptedGooglePass => decrypt(encryptedGooglePass, appConfig.encryptionKey))
+      )
 
 }
