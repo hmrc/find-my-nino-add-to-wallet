@@ -16,10 +16,9 @@
 
 package repositories.encryption
 
-import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{OFormat, __}
-import repositories.{ApplePass, RowPersonDetails}
+import repositories.RowPersonDetails
 import repositories.encryption.EncryptedValueFormat._
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 
@@ -28,7 +27,7 @@ case class EncryptedRowPersonDetails(detailsId: String,
                             nino: EncryptedValue,
                             personDetails: EncryptedValue,
                             dateCreated: EncryptedValue,
-                            lastUpdated: EncryptedValue)
+                            lastUpdated: String)
 
 object EncryptedRowPersonDetails {
 
@@ -38,7 +37,7 @@ object EncryptedRowPersonDetails {
       ~ (__ \ "nino").format[EncryptedValue]
       ~ (__ \ "personDetails").format[EncryptedValue]
       ~ (__ \ "dateCreated").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[EncryptedValue]
+      ~ (__ \ "lastUpdated").format[String]
       )(EncryptedRowPersonDetails.apply, unlift(EncryptedRowPersonDetails.unapply))
   }
 
@@ -53,7 +52,7 @@ object EncryptedRowPersonDetails {
       nino = e(rowPersonDetails.nino),
       personDetails = e(rowPersonDetails.personDetails),
       dateCreated = e(rowPersonDetails.dateCreated),
-      lastUpdated = e(rowPersonDetails.lastUpdated)
+      lastUpdated = rowPersonDetails.lastUpdated
     )
   }
 
@@ -68,7 +67,7 @@ object EncryptedRowPersonDetails {
       nino = d(encryptedRowPersonDetails.nino),
       personDetails = d(encryptedRowPersonDetails.personDetails),
       dateCreated = d(encryptedRowPersonDetails.dateCreated),
-      lastUpdated = d(encryptedRowPersonDetails.lastUpdated)
+      lastUpdated = encryptedRowPersonDetails.lastUpdated
     )
   }
 }

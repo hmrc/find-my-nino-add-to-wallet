@@ -18,10 +18,11 @@ package repositories.encryption
 
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{OFormat, __}
+import play.api.libs.json.{Format, OFormat, __}
 import repositories.GooglePass
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import repositories.encryption.EncryptedValueFormat._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class EncryptedGooglePass(passId: String,
                                fullName: EncryptedValue,
@@ -29,9 +30,11 @@ case class EncryptedGooglePass(passId: String,
                                expirationDate: EncryptedValue,
                                googlePassUrl: EncryptedValue,
                                qrCode: EncryptedValue,
-                               lastUpdated: EncryptedValue)
+                               lastUpdated: DateTime)
 
 object EncryptedGooglePass {
+
+  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
 
   val encryptedFormat: OFormat[EncryptedGooglePass] = {
     ((__ \ "passId").format[String]
@@ -40,7 +43,7 @@ object EncryptedGooglePass {
       ~ (__ \ "expirationDate").format[EncryptedValue]
       ~ (__ \ "googlePassUrl").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[EncryptedValue]
+      ~ (__ \ "lastUpdated").format[DateTime]
       )(EncryptedGooglePass.apply, unlift(EncryptedGooglePass.unapply))
   }
 
@@ -56,7 +59,7 @@ object EncryptedGooglePass {
       expirationDate = e(googlePass.expirationDate),
       googlePassUrl = e(googlePass.googlePassUrl),
       qrCode = e(googlePass.qrCode.mkString(",")),
-      lastUpdated = e(googlePass.lastUpdated.toString)
+      lastUpdated = googlePass.lastUpdated
     )
   }
 
@@ -72,7 +75,7 @@ object EncryptedGooglePass {
       expirationDate = d(encryptedGooglePass.expirationDate),
       googlePassUrl = d(encryptedGooglePass.googlePassUrl),
       qrCode = d(encryptedGooglePass.qrCode).split(",").map(_.toByte),
-      lastUpdated = DateTime.parse(d(encryptedGooglePass.lastUpdated))
+      lastUpdated = encryptedGooglePass.lastUpdated
     )
   }
 }

@@ -18,19 +18,22 @@ package repositories.encryption
 
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{OFormat, __}
+import play.api.libs.json.{Format, OFormat, __}
 import repositories.ApplePass
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import repositories.encryption.EncryptedValueFormat._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class EncryptedApplePass(passId: String,
                               fullName: EncryptedValue,
                               nino: EncryptedValue,
                               applePassCard: EncryptedValue,
                               qrCode: EncryptedValue,
-                              lastUpdated: EncryptedValue)
+                              lastUpdated: DateTime)
 
 object EncryptedApplePass {
+
+  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
 
   val encryptedFormat: OFormat[EncryptedApplePass] = {
     ((__ \ "passId").format[String]
@@ -38,7 +41,7 @@ object EncryptedApplePass {
       ~ (__ \ "nino").format[EncryptedValue]
       ~ (__ \ "applePassCard").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[EncryptedValue]
+      ~ (__ \ "lastUpdated").format[DateTime]
       )(EncryptedApplePass.apply, unlift(EncryptedApplePass.unapply))
   }
 
@@ -53,7 +56,7 @@ object EncryptedApplePass {
       nino = e(applePass.nino),
       applePassCard = e(applePass.applePassCard.mkString(",")),
       qrCode = e(applePass.qrCode.mkString(",")),
-      lastUpdated = e(applePass.lastUpdated.toString)
+      lastUpdated = applePass.lastUpdated
     )
   }
 
@@ -68,7 +71,7 @@ object EncryptedApplePass {
       nino = d(encryptedApplePass.nino),
       applePassCard = d(encryptedApplePass.applePassCard).split(",").map(_.toByte),
       qrCode = d(encryptedApplePass.qrCode).split(",").map(_.toByte),
-      lastUpdated = DateTime.parse(d(encryptedApplePass.lastUpdated))
+      lastUpdated = encryptedApplePass.lastUpdated
     )
   }
 }
