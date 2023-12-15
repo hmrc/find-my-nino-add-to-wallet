@@ -60,7 +60,6 @@ class SignatureService @Inject()() extends Logging {
         false
     }
   }
-  // $COVERAGE-OFF$
   private def signManifestUsingContent(content: CMSTypedData, signInfo: ApplePassSignInformation): Try[Array[Byte]] = {
     Try {
       val signedDataGenerator = new CMSSignedDataGenerator
@@ -94,7 +93,6 @@ class SignatureService @Inject()() extends Logging {
       signedDataGenerator.generate(content, false).getEncoded
     }
   }
-  // $COVERAGE-ON$
 
   private def loadSigningInformation(privateCertificate: String,
                                      privateCertificatePassword: String,
