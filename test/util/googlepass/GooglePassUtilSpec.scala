@@ -16,7 +16,7 @@
 
 package util.googlepass
 
-import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
+import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
