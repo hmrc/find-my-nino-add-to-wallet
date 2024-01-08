@@ -36,11 +36,12 @@ class FileService @Inject()() extends Logging {
 
   import FileService._
 
-  def createDirectoryForPass(path: Path, pass: ApplePassCard, enPath: Path): Boolean = {
+  def createDirectoryForPass(path: Path, pass: ApplePassCard, enPath: Path, cyPath: Path): Boolean = {
     // Create Pass Directory:
     val isDirectoryCreated = createDirectory(path)
 
     val isENDirectoryCreated = createDirectory(enPath)
+    val isCYDirectoryCreated = createDirectory(cyPath)
 
     // Write pass.json, icon and thumbnail to that directory
     val isFilePassCreated = writeToAFile(path.resolve(PASS_FILE_NAME), Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
@@ -70,7 +71,7 @@ class FileService @Inject()() extends Logging {
     Files.list(path).forEach(println)
     Files.list(enPath).forEach(println)
 
-    isDirectoryCreated && isENDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated && enIsPassFileCreated// && isThumbnailCreated
+    isDirectoryCreated && isENDirectoryCreated && isCYDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated && enIsPassFileCreated// && isThumbnailCreated
   }
 
 //  def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {

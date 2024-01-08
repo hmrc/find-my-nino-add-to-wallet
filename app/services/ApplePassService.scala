@@ -99,13 +99,14 @@ class ApplePassService @Inject()(val config: AppConfig,
     val uuid = UUID.randomUUID().toString
     val path = Files.createTempDirectory(s"$uuid.pass").toAbsolutePath
     val enPath = Path.of(s"$path", "en.lproj")
+    val cyPath = Path.of(s"$path", "cy.lproj")
 
     logger.info(s"This is the en path ${enPath.toString}")
     logger.info(s"This is the path ${path.toString}")
 
     val pass = ApplePassCard(name, nino, uuid)
     logger.info(s"[Creating Apple Pass] creating dir")
-    val isDirectoryCreated = fileService.createDirectoryForPass(path, pass, enPath)
+    val isDirectoryCreated = fileService.createDirectoryForPass(path, pass, enPath, cyPath)
     logger.info(s"[Creating Apple Pass] isDirectoryCreated: $isDirectoryCreated")
 
     val isPassSigned = signatureService.createSignatureForPass(path, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
