@@ -73,6 +73,31 @@ class FileService @Inject()() extends Logging {
     isDirectoryCreated && isENDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated && enIsPassFileCreated// && isThumbnailCreated
   }
 
+//  def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
+//    Try {
+//      val files = path.toFile.listFiles(f => f.getName != ".DS_Store")
+//      val byteArrayOStream = new ByteArrayOutputStream();
+//      val zip = new ZipOutputStream(byteArrayOStream)
+//
+//      files.foreach { file =>
+//        zip.putNextEntry(new ZipEntry(file.getName))
+//        val in = new BufferedInputStream(new FileInputStream(file))
+//        var byteRead = in.read()
+//        while (byteRead > -1) {
+//          zip.write(byteRead)
+//          byteRead = in.read()
+//        }
+//        in.close()
+//        zip.closeEntry()
+//      }
+//      zip.close()
+//      byteArrayOStream
+//    } match {
+//      case Success(value) => Some(value.toByteArray)
+//      case _ => None
+//    }
+//  }
+
   def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
     def addFileToZip(file: Path, zip: ZipOutputStream, parentDir: String): Unit = {
       val filePath = if (parentDir.isEmpty) file.getFileName.toString else s"$parentDir/${file.getFileName}"
