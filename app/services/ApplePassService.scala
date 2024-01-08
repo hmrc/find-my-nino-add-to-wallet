@@ -17,7 +17,7 @@
 package services
 
 import config.AppConfig
-import models.{ApplePassCard, ApplePassDetails}
+import models.ApplePassCard
 import play.api.Logging
 import repositories.ApplePassRepository
 
@@ -68,28 +68,6 @@ class ApplePassService @Inject()(val config: AppConfig,
         case _ => None
       }
     }
-  }
-
-  def getPassDetails(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {
-    for {
-      ap <- applePassRepository.findByPassId(passId)
-    } yield {
-      ap match {
-        case Some(applePass) => {
-          if (applePass.nino.replace(" ","").equals(nino)) {
-            Some(ApplePassDetails(applePass.fullName, applePass.nino))
-          } else {
-            logger.warn("Pass NINO does not match session NINO")
-            None
-          }
-        }
-        case _ => None
-      }
-    }
-  }
-
-  def getPassDetailsWithNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePassDetails]] = {
-    applePassRepository.findByNameAndNino(fullName, nino).map(_.map(r => ApplePassDetails(r.fullName, r.nino)))
   }
 
   def createPass(name: String, nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {

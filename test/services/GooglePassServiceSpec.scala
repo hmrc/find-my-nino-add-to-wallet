@@ -39,36 +39,6 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
     reset(mockGooglePassRepository, mockGooglePassUtil, mockQrCodeService, mockAppConfig)
   }
 
-  "getPassDetails" must {
-    "return the details when pass id exist" in {
-      val qrCode = "QRCodeData".getBytes()
-      val googlePassUrl = "https://pay.google.com/gp/v/save/test"
-      val pass = new GooglePass(passId,
-        "Test Name",
-        "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
-        googlePassUrl,
-        qrCode,
-        DateTime.now()
-      )
-      when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
-        .thenReturn(Future.successful(Option(pass)))
-
-      googlePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
-        result mustBe Some(GooglePassDetails(pass.fullName, pass.nino))
-      }
-    }
-
-    "return None when pass id NOT exist" in {
-      when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
-        .thenReturn(Future.successful(None))
-
-      googlePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
-        result mustBe None
-      }
-    }
-  }
-
   "findQrCodeByPassId" must {
     "return the QR Code when pass id exist" in {
       val qrCode = "QRCodeData".getBytes()

@@ -16,7 +16,6 @@
 
 package controllers
 
-import models.ApplePassDetails
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar
@@ -73,81 +72,6 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
   }
-
-  "getPassDetailsByPassId" must {
-    "should return OK with the details of pass" in {
-      when(mockApplePassService.getPassDetails(eqTo(passId),eqTo("AB123456Q"))(any()))
-        .thenReturn(Future.successful(Some(ApplePassDetails("TestName TestSurname", "AB 12 34 56 Q"))))
-
-      val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
-
-      whenReady(result) { _ =>
-        status(result) mustBe OK
-        contentAsJson(result).toString() mustBe createPassRequest.toString()
-      }
-    }
-
-    "should return Unauthorised session NINO does not match pass NINO" in {
-
-      val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-        Future.successful(new~(new~(Some("AB123456N"), Some(User)), Some("id")))
-
-      when(
-        mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
-          any[Predicate],
-          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
-        .thenReturn(retrievalResult)
-
-      when(mockApplePassService.getPassDetails(eqTo(passId), eqTo("AB123456Q"))(any()))
-        .thenReturn(Future.successful(Some(ApplePassDetails("TestName TestSurname", "AB 12 34 56 Q"))))
-
-      val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
-
-      whenReady(result) { _ =>
-        status(result) mustBe UNAUTHORIZED
-      }
-    }
-
-
-
-    "should return NotFound when there is no record for given passId" in {
-      when(mockApplePassService.getPassDetails(eqTo(passId),eqTo("AB123456Q"))(any()))
-        .thenReturn(Future.successful(None))
-
-      val result = controller.getPassDetails(passId)(fakeRequestWithAuth)
-
-      whenReady(result) { _ =>
-        status(result) mustBe NOT_FOUND
-      }
-    }
-  }
-
-
-  "getPassDetailsWithNameAndNino" must {
-    "should return OK with the details of name and nino pass" in {
-      when(mockApplePassService.getPassDetailsWithNameAndNino(eqTo("somename"), eqTo("somenino"))(any()))
-        .thenReturn(Future.successful(Some(ApplePassDetails("TestName TestSurname", "AB 12 34 56 Q"))))
-
-      val result = controller.getPassDetailsWithNameAndNino("somename", "somenino")(fakeRequestWithAuth)
-
-      whenReady(result) { _ =>
-        status(result) mustBe OK
-        contentAsJson(result).toString() mustBe createPassRequest.toString()
-      }
-    }
-
-    "should return NotFound when there name and nino is no record for given passId" in {
-      when(mockApplePassService.getPassDetailsWithNameAndNino(eqTo("somename"), eqTo("somenino"))(any()))
-        .thenReturn(Future.successful(None))
-
-      val result = controller.getPassDetailsWithNameAndNino("somename", "somenino")(fakeRequestWithAuth)
-
-      whenReady(result) { _ =>
-        status(result) mustBe NOT_FOUND
-      }
-    }
-  }
-
 
   "getPassCardByPassId" must {
     "should return OK with the byte data of pass" in {

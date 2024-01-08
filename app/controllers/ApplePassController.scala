@@ -56,28 +56,6 @@ class ApplePassController @Inject()(
     }
   }
 
-  def getPassDetails(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get Pass Details] $passId")
-      passService.getPassDetails(passId,authContext.nino.value).map {
-        case Some(data) => Ok(Json.toJson(data))
-        case _ => NotFound
-      }
-    }
-    }
-  }
-
-  def getPassDetailsWithNameAndNino(fullName: String, nino: String): Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get Pass Details] fullName=$fullName, nino=$nino")
-      passService.getPassDetailsWithNameAndNino(fullName, nino).map {
-        case Some(data) => Ok(Json.toJson(data))
-        case _ => NotFound
-      }
-    }
-    }
-  }
-
   def getPassCardByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       logger.debug(message = s"[Get Pass Card] $passId")
