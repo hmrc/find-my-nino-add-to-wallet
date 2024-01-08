@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package services
 
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.{BarcodeFormat, EncodeHintType}
+import play.api.Logging
 
 import java.awt.image.BufferedImage
 import java.awt.{Color, Graphics2D}
@@ -27,7 +28,7 @@ import javax.imageio.ImageIO
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
-class QrCodeService @Inject()() {
+class QrCodeService @Inject()() extends Logging {
 
   import QrCodeService._
 
@@ -58,7 +59,9 @@ class QrCodeService @Inject()() {
       byteArrayOStream.toByteArray
     } match {
       case Success(value) => Some(value)
-      case _ => None
+      case _ =>
+        logger.info(s"createQRCode failed")
+        None
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,11 @@ class ApplePassController @Inject()(
     authorisedAsFMNUser { authContext => {
       val passRequest = request.body.asJson.get.as[ApplePassDetails]
 
-      logger.debug(message = s"[Create Pass Event]$passRequest")
+      logger.info(message = s"[Create Pass Event]$passRequest")
       Future(passService.createPass(passRequest.fullName, passRequest.nino) match {
-        case Right(value) => Ok(value)
+        case Right(value) =>
+          logger.info(message = s"[Create Pass Event] CREATED with val $value")
+          Ok(value)
         case Left(exp) => InternalServerError(Json.obj(
           "status" -> "500",
           "message" -> exp.getMessage
@@ -91,7 +93,7 @@ class ApplePassController @Inject()(
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      logger.debug(message = s"[Get QR Code] $passId")
+      logger.info(message = s"[Get QR Code] $passId")
       passService.getQrCodeByPassIdAndNINO(passId,authContext.nino.value).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
         case _ => NotFound

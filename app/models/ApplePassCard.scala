@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ object ApplePassCard {
     val generic = ApplePassGeneric(
       Array(ApplePassField(KEY_NINO, Some(LABEL_NINO), nino)),
       Array(ApplePassField(KEY_NAME, Some(LABEL_NAME), fullName)),
-      Array(ApplePassField(KEY_WARNING, None, TEXT_WARNING)),
+      Array(ApplePassField(KEY_WARNING, Some(LABEL_WARNING), TEXT_WARNING)),
       Array(
         ApplePassField("downloadpasspdf", Some("Your National Insurance number on a letter"), "You can get a letter confirming your National Insurance number from your personal tax account.\n" +
           "To sign in, you’ll need to create or use an existing Government Gateway user ID and password.\n" +

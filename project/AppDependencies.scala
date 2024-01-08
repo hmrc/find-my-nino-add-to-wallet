@@ -19,6 +19,7 @@ object AppDependencies {
     "com.auth0"               % "java-jwt"                        % "4.4.0",
     "com.fasterxml.jackson.module"  %% "jackson-module-scala"                 %   "2.14.2",
     "uk.gov.hmrc"                   %% "crypto-json-play-28"                  % "7.6.0",
+    "org.typelevel"     %% "cats-core"                 % "2.6.1",
   )
 
   val test = Seq(

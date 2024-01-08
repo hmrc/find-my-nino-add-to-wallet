@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import config.AppConfig
 import models.{ApplePassCard, ApplePassDetails}
 import play.api.Logging
 import repositories.ApplePassRepository
+import cats.syntax.all._
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class ApplePassService @Inject()(val config: AppConfig,
                                  val applePassRepository: ApplePassRepository,
@@ -61,7 +63,7 @@ class ApplePassService @Inject()(val config: AppConfig,
           if (applePass.nino.replace(" ","").equals(nino)) {
             Some(applePass.qrCode)
           } else {
-            logger.warn("Pass NINO does not match session NINO")
+            logger.info("Pass NINO does not match session NINO")
             None
           }
         }
@@ -96,9 +98,14 @@ class ApplePassService @Inject()(val config: AppConfig,
 
     val uuid = UUID.randomUUID().toString
     val path = Files.createTempDirectory(s"$uuid.pass").toAbsolutePath
+    val enPath = Path.of(s"$path", "en.lproj")
+
+    logger.info(s"This is the en path ${enPath.toString}")
+    logger.info(s"This is the path ${path.toString}")
 
     val pass = ApplePassCard(name, nino, uuid)
-    val isDirectoryCreated = fileService.createDirectoryForPass(path, pass)
+    logger.info(s"[Creating Apple Pass] creating dir")
+    val isDirectoryCreated = fileService.createDirectoryForPass(path, pass, enPath)
     logger.info(s"[Creating Apple Pass] isDirectoryCreated: $isDirectoryCreated")
 
     val isPassSigned = signatureService.createSignatureForPass(path, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
@@ -111,8 +118,13 @@ class ApplePassService @Inject()(val config: AppConfig,
       } yield (pkPassByteArray, qrCodeByteArray)
 
       logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")
-      fileService.deleteDirectory(path)
-      passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
+      val deleteDir = fileService.deleteDirectory(path)
+      logger.info(s"Was directory deleted: $deleteDir")
+      passDataTuple match {
+        case Some(tuple) =>
+          applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2)
+        case None => Future.successful(logger.info("No pk pass or qr code data"))
+      }
       logger.info(s"[Creating Apple Pass] Insert Apple pass to DB Completed")
       Right(uuid)
     } else {
@@ -129,11 +141,12 @@ class ApplePassService @Inject()(val config: AppConfig,
 
 object ApplePassService {
   val KEY_NINO = "nino"
-  val LABEL_NINO = "NATIONAL INSURANCE NUMBER"
+  val LABEL_NINO = "NationalInsuranceNumber"
 
   val KEY_NAME = "name"
   val LABEL_NAME = "NAME"
 
   val KEY_WARNING = "warning"
-  val TEXT_WARNING = "This is not proof of your identity or your right to work in the UK."
+  val LABEL_WARNING = "WarningLabel"
+  val TEXT_WARNING = "WarningText"
 }
