@@ -1,0 +1,4 @@
+/* Welsh Localization */
+/* Warning strings */
+"WarningText" = "This is not proof of your identity or your right to work in the UK. WELSH.";
+"WarningLabel" = "Warning";

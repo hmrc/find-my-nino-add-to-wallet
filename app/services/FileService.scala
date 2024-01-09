@@ -60,7 +60,9 @@ class FileService @Inject()() extends Logging {
     //Write pass.strings to en and cy
     val enSource = getClass.getResourceAsStream(EN_PASS_STRINGS_PATH).readAllBytes()
     val enIsPassFileCreated = writeToAFile(enPath.resolve(s"$PASS_STRINGS_NAME"), enSource)
-    logger.info(s"[Creating Directory For Pass] enIsPassFileCreated: $enIsPassFileCreated")
+    val cySource = getClass.getResourceAsStream(CY_PASS_STRINGS_PATH).readAllBytes()
+    val cyIsPassFileCreated = writeToAFile(cyPath.resolve(s"$PASS_STRINGS_NAME"), cySource)
+    logger.info(s"[Creating Directory For Pass] enIsPassFileCreated: $enIsPassFileCreated | cyIsPassFileCreated: $cyIsPassFileCreated")
 
     // Create Manifest File:
     val isManifestCreated = createManifestFile(path)
@@ -70,8 +72,9 @@ class FileService @Inject()() extends Logging {
 
     Files.list(path).forEach(println)
     Files.list(enPath).forEach(println)
+    Files.list(cyPath).forEach(println)
 
-    isDirectoryCreated && isENDirectoryCreated && isCYDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated && enIsPassFileCreated// && isThumbnailCreated
+    isDirectoryCreated && isENDirectoryCreated && isCYDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated && enIsPassFileCreated && cyIsPassFileCreated// && isThumbnailCreated
   }
 
 //  def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
@@ -227,5 +230,6 @@ object FileService {
   val ICON_RESOURCE_PATH = s"/resources/pass/$ICON_FILE_NAME"
   val LOGO_RESOURCE_PATH = s"/resources/pass/$LOGO_FILE_NAME"
   val EN_PASS_STRINGS_PATH = s"/resources/pass/en/$PASS_STRINGS_NAME"
+  val CY_PASS_STRINGS_PATH = s"/resources/pass/cy/$PASS_STRINGS_NAME"
   val THUMBNAIL_RESOURCE_PATH = s"/resources/pass/$THUMBNAIL_FILE_NAME"
 }
