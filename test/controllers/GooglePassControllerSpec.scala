@@ -60,7 +60,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   }
 
   "getPassCardByPassId" must {
-    "should return OK with the byte data of pass" in {
+    "return OK with the byte data of pass" in {
       when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomePassCodeData")))
 
@@ -72,7 +72,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
 
-    "should return NotFound when there is no record for given passId" in {
+    "return NotFound when there is no record for given passId" in {
       when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
@@ -85,7 +85,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   }
 
   "getQrCodeByPassId" must {
-    "should return OK with the byte data of qr code" in {
+    "return OK with the byte data of qr code" in {
       when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomeQrCodeData".getBytes())))
 
@@ -98,7 +98,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
 
-    "should return Unauthorised with when the session NINO does not match Pass NINO" in {
+    "return Unauthorised with when the session NINO does not match Pass NINO" in {
 
       val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
         Future.successful(new~(new~(Some("AB123456N"), Some(User)), Some("id")))
@@ -119,7 +119,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
 
-    "should return NotFound when there is no record for given passId" in {
+    "return NotFound when there is no record for given passId" in {
       when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
@@ -132,7 +132,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   }
 
   "createPassWithCredentials" must {
-    "should return OK with the uuid of the pass" in {
+    "return OK with the uuid of the pass" in {
       when(mockGooglePassService.createPassWithCredentials(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any()))
         .thenReturn(Right(passId))
 
