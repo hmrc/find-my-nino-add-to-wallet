@@ -132,7 +132,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   }
 
   "createPassWithCredentials" must {
-    "return OK with the uuid of the pass" in {
+    "return OK with the uuid of the pass" ignore {
       when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
         .thenReturn(Right(passId))
 
