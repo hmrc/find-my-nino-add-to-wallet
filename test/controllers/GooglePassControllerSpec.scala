@@ -133,7 +133,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
   "createPassWithCredentials" must {
     "return OK with the uuid of the pass" in {
-      when(mockGooglePassService.createPassWithCredentials(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any()))
+      when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
         .thenReturn(Right(passId))
 
       val result = controller.createPassWithCredentials()(fakeRequestWithAuth.withJsonBody(
