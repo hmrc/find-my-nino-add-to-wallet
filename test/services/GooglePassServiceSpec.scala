@@ -18,7 +18,6 @@ package services
 
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
-import models.GooglePassDetails
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar

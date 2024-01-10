@@ -17,7 +17,6 @@
 package services
 
 import config.AppConfig
-import models.ApplePassDetails
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar

@@ -45,23 +45,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
   import GooglePassControllerSpec._
 
-  /*"createPass" must {
-    "should return OK with the uuid of the pass" in {
-      when(mockGooglePassService.createPassWithCredentials(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any()))
-        .thenReturn(Right(passId))
-
-      val result = controller.createPassWithCredentials()(fakeRequestWithAuth.withJsonBody(
-        Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
-      ))
-
-      whenReady(result) { _ =>
-        status(result) mustBe OK
-        contentAsString(result) mustBe passId
-      }
-    }
-  }*/
-
-//setup before each test
+  //setup before each test
   before {
     MockitoSugar.reset(mockAuthConnector)
 
@@ -99,7 +83,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
   }
-
 
   "getQrCodeByPassId" must {
     "should return OK with the byte data of qr code" in {
@@ -147,6 +130,23 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
   }
+
+  "createPassWithCredentials" must {
+    "should return OK with the uuid of the pass" in {
+      when(mockGooglePassService.createPassWithCredentials(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any()))
+        .thenReturn(Right(passId))
+
+      val result = controller.createPassWithCredentials()(fakeRequestWithAuth.withJsonBody(
+        Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
+      ))
+
+      whenReady(result) { _ =>
+        status(result) mustBe OK
+        contentAsString(result) mustBe passId
+      }
+    }
+  }
+
 }
 
 object GooglePassControllerSpec {
@@ -181,5 +181,6 @@ object GooglePassControllerSpec {
     .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
     overrides(modules: _*).build()
   private val controller = application.injector.instanceOf[GooglePassController]
+
 }
 
