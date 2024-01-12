@@ -99,18 +99,4 @@ class ApplePassRepository @Inject()(
         optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
       )
   }
-
-  def findByNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] = {
-    collection.find(
-      Filters.and(
-        Filters.equal("fullName", fullName),
-        Filters.equal("nino", nino)
-      ))
-      .first()
-      .toFutureOption()
-      .map(optEncryptedApplePass =>
-        optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
-      )
-  }
-
 }

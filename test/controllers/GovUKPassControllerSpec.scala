@@ -34,14 +34,12 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 
-import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class GovUKPassControllerSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfter {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  //private val passId = UUID.randomUUID().toString
   private val govUrl = "govUrl"
   private val qrCodeString = "qrCodeString"
   private val createPassRequest: JsObject = Json.obj(
@@ -74,13 +72,18 @@ class GovUKPassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     )
 
   val application: Application = new GuiceApplicationBuilder()
-    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
+    .configure(conf =
+      "auditing.enabled" -> false,
+      "metrics.enabled" -> false,
+      "metrics.jvm" -> false
+    ).
     overrides(modules: _*).build()
 
   private val controller = application.injector.instanceOf[GovUKPassController]
 
   "createGovUKPass" must {
-    "should return OK with the details of pass" in {
+
+    "return OK with the details of pass" in {
       when(mockGovUKPassService.createGovUKPass(any(), any(), any(), any())(any())).thenReturn(Right(govUrl, qrCodeString))
 
       val result = controller.createGovUKPass()(fakeRequestWithAuth.withJsonBody(createPassRequest))
@@ -89,6 +92,43 @@ class GovUKPassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
         status(result) mustBe OK
       }
     }
+
+    "return BAD_REQUEST when the request is invalid" in {
+      val result = controller.createGovUKPass()(fakeRequestWithAuth.withJsonBody(Json.obj()))
+
+      whenReady(result) { _ =>
+        status(result) mustBe UNAUTHORIZED
+      }
+    }
+
+    "return INTERNAL_SERVER_ERROR when the service returns an error" in {
+      when(mockGovUKPassService.createGovUKPass(any(), any(), any(), any())(any())).thenReturn(Left(new Exception("error")))
+
+      val result = controller.createGovUKPass()(fakeRequestWithAuth.withJsonBody(createPassRequest))
+
+      whenReady(result) { _ =>
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "return UNAUTHORISED when the request is invalid" in {
+      val application: Application = new GuiceApplicationBuilder()
+        .configure(conf =
+          "auditing.enabled" -> false,
+          "metrics.enabled" -> false,
+          "metrics.jvm" -> false,
+          "features.govuk-wallet-enabled" -> false
+        ).
+        overrides(modules: _*).build()
+
+      val controller = application.injector.instanceOf[GovUKPassController]
+      val result = controller.createGovUKPass()(fakeRequestWithAuth.withJsonBody(Json.obj()))
+
+      whenReady(result) { _ =>
+        status(result) mustBe UNAUTHORIZED
+      }
+    }
+
   }
 
 }

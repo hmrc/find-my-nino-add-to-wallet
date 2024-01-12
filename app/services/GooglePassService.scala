@@ -18,7 +18,6 @@ package services
 
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
-import models.GooglePassDetails
 import play.api.Logging
 import repositories.GooglePassRepository
 import googlepass.GooglePassUtil
@@ -69,28 +68,6 @@ class GooglePassService @Inject()(val config: AppConfig,
         case _ => None
       }
     }
-  }
-
-  def getPassDetails(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[GooglePassDetails]] = {
-    for {
-      gpDetails <- googlePassRepository.findByPassId(passId)
-    } yield {
-      gpDetails match {
-        case Some(googlePass) => {
-          if (googlePass.nino.replace(" ","").equals(nino)) {
-            Some(GooglePassDetails(googlePass.fullName, googlePass.nino))
-          } else {
-            logger.warn("Pass NINO does not match session NINO")
-            None
-          }
-        }
-        case _ => None
-      }
-    }
-  }
-
-  def getPassDetailsWithNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[GooglePassDetails]] = {
-    googlePassRepository.findByNameAndNino(fullName, nino).map(_.map(r => GooglePassDetails(r.fullName, r.nino)))
   }
 
   def createPassWithCredentials(name: String,

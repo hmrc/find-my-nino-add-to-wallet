@@ -44,13 +44,9 @@ class FileService @Inject()() extends Logging {
     val isIconFileCreated = writeToAFile(path.resolve(ICON_FILE_NAME), iconSource)
     val logoSource = getClass.getResourceAsStream(LOGO_RESOURCE_PATH).readAllBytes()
     val isLogoFileCreated = writeToAFile(path.resolve(LOGO_FILE_NAME), logoSource)
-//    val thumbnailSource = getClass.getResourceAsStream(THUMBNAIL_RESOURCE_PATH).readAllBytes()
-//    val isThumbnailCreated = writeToAFile(path.resolve(THUMBNAIL_FILE_NAME), thumbnailSource)
     logger.info(s"[Creating Directory For Pass] isFilePassCreated: $isFilePassCreated || " +
       s"isIconFileCreated: $isIconFileCreated || " +
-      s"isLogoCreated: $isLogoFileCreated" // +
-//    s"isThumbnailCreated: $isThumbnailCreated || "
-    )
+      s"isLogoCreated: $isLogoFileCreated")
 
     // Create Manifest File:
     val isManifestCreated = createManifestFile(path)
@@ -128,9 +124,7 @@ object FileService {
   val PASS_FILE_NAME = "pass.json"
   val ICON_FILE_NAME = "icon.png"
   val LOGO_FILE_NAME = "logo.png" //top of the card logo
-  val THUMBNAIL_FILE_NAME = "thumbnail.png"
   val MANIFEST_JSON_FILE_NAME = "manifest.json"
   val ICON_RESOURCE_PATH = s"/resources/pass/$ICON_FILE_NAME"
   val LOGO_RESOURCE_PATH = s"/resources/pass/$LOGO_FILE_NAME"
-  val THUMBNAIL_RESOURCE_PATH = s"/resources/pass/$THUMBNAIL_FILE_NAME"
 }

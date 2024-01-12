@@ -17,7 +17,6 @@
 package services
 
 import models.ApplePassCard
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper

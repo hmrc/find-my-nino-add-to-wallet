@@ -39,31 +39,6 @@ class CreateGenericPrivatePass @Inject()(config: AppConfig) {
   val logoImageUrl = "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-google-pass.png"
   val logoImageDiscription = "HMRC"
 
-  /**
-   * Creates a JWT with the generic private pass encoded as JSON
-   *
-   * @param id              A unique identifier for the generic private pass
-   * @param issuerId        A unique ID identifying your issuer account
-   * @param key             The private key credentials
-   * @param googlePassCard  The google pass card model containing the data to display on the card
-   * @return The generated JWT string
-   */
-
-  /*def createJwt(id: String, issuerId: String, key: String, googlePassCard: GooglePassCard): String = try {
-    createAndSignJWT(createGoogleCredentials(key), createGenericPrivatePassObject(id, issuerId, googlePassCard))
-  } catch {
-    case e: IOException =>
-      throw new RuntimeException("Error saving JWT: " + e)
-  }
-
-  def createGoogleCredentials(key:String): GoogleCredentials = {
-    val scope = "https://www.googleapis.com/auth/wallet_object.issuer"
-    val keyAsStream = new ByteArrayInputStream(Base64.getDecoder.decode(key))
-    val credentials: GoogleCredentials = GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
-    credentials.refresh()
-    credentials
-  }*/
-
   def createJwtWithCredentials(id: String, issuerId: String, googlePassCard: GooglePassCard, googleCredentials: GoogleCredentials, expiry: Int): String = try {
     createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard), expiry)
   } catch {

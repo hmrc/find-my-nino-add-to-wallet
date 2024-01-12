@@ -17,8 +17,7 @@
 package services
 
 import config.AppConfig
-import models.ApplePassDetails
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.mock
@@ -35,35 +34,6 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
   override def beforeEach(): Unit = {
     reset(mockApplePassRepository, mockFileService, mockSignatureService, mockQrCodeService, mockAppConfig)
-  }
-
-  "getPassDetails" must {
-    "return the details when pass id exist" in {
-      val qrCode = "QRCodeData".getBytes()
-      val applePassCard = "ApplePassCard".getBytes()
-      val pass = new ApplePass(passId,
-        "Test Name",
-        "AB 12 34 56 Q",
-        applePassCard,
-        qrCode,
-        DateTime.now()
-      )
-      when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
-        .thenReturn(Future.successful(Option(pass)))
-
-      applePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
-        result mustBe Some(ApplePassDetails(pass.fullName, pass.nino))
-      }
-    }
-
-    "return None when pass id NOT exist" in {
-      when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
-        .thenReturn(Future.successful(None))
-
-      applePassService.getPassDetails(passId,"AB123456Q")(implicitly).map { result =>
-        result mustBe None
-      }
-    }
   }
 
   "findQrCodeByPassId" must {

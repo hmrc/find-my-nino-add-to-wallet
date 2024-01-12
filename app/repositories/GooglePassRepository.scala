@@ -99,17 +99,4 @@ class GooglePassRepository @Inject()(
       .map(optEncryptedGooglePass =>
         optEncryptedGooglePass.map(encryptedGooglePass => decrypt(encryptedGooglePass, appConfig.encryptionKey))
       )
-
-  def findByNameAndNino(fullName: String, nino: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]] =
-    collection.find(
-      Filters.and(
-        Filters.equal("fullName", fullName),
-        Filters.equal("nino", nino)
-      ))
-      .first()
-      .toFutureOption()
-      .map(optEncryptedGooglePass =>
-        optEncryptedGooglePass.map(encryptedGooglePass => decrypt(encryptedGooglePass, appConfig.encryptionKey))
-      )
-
 }
