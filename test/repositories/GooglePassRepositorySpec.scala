@@ -18,19 +18,25 @@ package repositories
 
 import com.github.simplyscala.MongoEmbedDatabase
 import config.AppConfig
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
+import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import repositories.ApplePassRepositorySpec.mock
 import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matchers with MongoEmbedDatabase
   with BeforeAndAfterAll { // scalastyle:off magic.number
-/*
+
   import GooglePassRepositorySpec._
 
   override def beforeAll(): Unit = {
@@ -47,7 +53,7 @@ class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matche
         "Name Surname",
         "AB 12 34 56 Q",
         DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
-        Array[Byte](10),
+        "http://test.com/test",
         Array[Byte](10)
       )
       val filters = Filters.eq("passId", passId)
@@ -68,7 +74,7 @@ class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matche
       mongoCollectionDrop()
 
       val passId = "test-pass-id-002"
-      val record = (passId, "Name Surname", "AB 12 34 56 Q", DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), Array[Byte](10), Array[Byte](10))
+      val record = (passId, "Name Surname", "AB 12 34 56 Q", DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), "http://test.com/test", Array[Byte](10))
 
       val documentsInDB = for {
         _ <- googlePassRepository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
@@ -79,7 +85,7 @@ class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matche
         documentsInDB.isDefined mustBe true
       }
     }
-  }*/
+  }
 }
 
 object GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar {
@@ -88,7 +94,7 @@ object GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar {
 
   private val databaseName = "find-my-nino-add-to-wallet"
   private val databasePort = 12345
-  private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000&rm.failover=default"
+  private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000"
   private val mongoComponent = MongoComponent(mongoUri)
   private val DEFAULT_EXPIRATION_YEARS = 100
   private val appConfig = mock[AppConfig]
