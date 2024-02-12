@@ -16,36 +16,38 @@
 
 package repositories
 
-import com.github.simplyscala.MongoEmbedDatabase
 import config.AppConfig
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.OptionValues
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.concurrent.ScalaFutures.whenReady
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.mongo.MongoComponent
+import repositories.encryption.EncryptedApplePass
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
 
-class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matchers with MongoEmbedDatabase
-  with BeforeAndAfterAll { // scalastyle:off magic.number
+class ApplePassRepositorySpec extends AnyWordSpec
+  with MockitoSugar
+  with Matchers
+  with DefaultPlayMongoRepositorySupport[EncryptedApplePass]
+  with ScalaFutures
+  with IntegrationPatience
+  with OptionValues
+  { // scalastyle:off magic.number
 
-  import ApplePassRepositorySpec._
+  private val mockAppConfig = mock[AppConfig]
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-    mongoStart(port = databasePort)
-  }
+  when(mockAppConfig.cacheTtl) thenReturn 1
+  when(mockAppConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
+
+  override protected val repository = new ApplePassRepository(mongoComponent, mockAppConfig)
 
   "insert" must {
     "save a new Apple Pass in Mongo collection when collection is empty" in {
-      mongoCollectionDrop()
 
       val passId = "test-pass-id-001"
       val record = (passId,
@@ -57,8 +59,8 @@ class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matcher
       val filters = Filters.eq("passId", passId)
 
       val documentsInDB = for {
-        _ <- applePassRepository.insert(record._1, record._2, record._3, record._4, record._5)
-        documentsInDB <- applePassRepository.collection.find[ApplePass](filters).toFuture()
+        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5)
+        documentsInDB <- repository.collection.find[EncryptedApplePass](filters).toFuture()
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>
@@ -69,14 +71,13 @@ class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matcher
 
   "findByPassId" must {
     "retrieve existing Apple Pass in Mongo collection" in {
-      mongoCollectionDrop()
 
       val passId = "test-pass-id-002"
       val record = (passId, "Name Surname", "AB 12 34 56 Q", Array[Byte](10), Array[Byte](10))
 
       val documentsInDB = for {
-        _ <- applePassRepository.insert(record._1, record._2, record._3, record._4, record._5)
-        documentsInDB <- applePassRepository.findByPassId(passId)
+        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5)
+        documentsInDB <- repository.findByPassId(passId)
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>
@@ -84,19 +85,4 @@ class ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matcher
       }
     }
   }
-}
-
-object ApplePassRepositorySpec extends AnyWordSpec with MockitoSugar {
-
-  import scala.concurrent.ExecutionContext.Implicits._
-
-  private val databaseName = "find-my-nino-add-to-wallet"
-  private val databasePort = 12345
-  private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000"
-  private val mongoComponent = MongoComponent(mongoUri)
-  private val appCofnig = mock[AppConfig]
-  private def mongoCollectionDrop(): Void =
-    Await.result(applePassRepository.collection.drop().toFuture(), Duration.Inf)
-
-  def applePassRepository: ApplePassRepository = new ApplePassRepository(mongoComponent, appCofnig)
 }

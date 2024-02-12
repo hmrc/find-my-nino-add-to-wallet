@@ -16,37 +16,39 @@
 
 package repositories
 
-import com.github.simplyscala.MongoEmbedDatabase
 import config.AppConfig
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.OptionValues
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.concurrent.ScalaFutures.whenReady
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import repositories.ApplePassRepositorySpec.mock
-import uk.gov.hmrc.mongo.MongoComponent
+import repositories.encryption.EncryptedGooglePass
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matchers with MongoEmbedDatabase
-  with BeforeAndAfterAll { // scalastyle:off magic.number
+class GooglePassRepositorySpec extends AnyWordSpec
+  with MockitoSugar
+  with Matchers
+  with DefaultPlayMongoRepositorySupport[EncryptedGooglePass]
+  with ScalaFutures
+  with IntegrationPatience
+  with OptionValues { // scalastyle:off magic.number
 
-  import GooglePassRepositorySpec._
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-    mongoStart(port = databasePort)
-  }
+  private val appConfig = mock[AppConfig]
+  when(appConfig.cacheTtl) thenReturn 1
+  when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
+  private val DEFAULT_EXPIRATION_YEARS = 100
+
+  override protected val repository = new GooglePassRepository(mongoComponent, appConfig)
 
   "insert" must {
     "save a new Google Pass in Mongo collection when collection is empty" in {
-      mongoCollectionDrop()
 
       val passId = "test-pass-id-001"
       val record = (passId,
@@ -59,8 +61,8 @@ class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matche
       val filters = Filters.eq("passId", passId)
 
       val documentsInDB = for {
-        _ <- googlePassRepository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
-        documentsInDB <- googlePassRepository.collection.find[GooglePass](filters).toFuture()
+        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
+        documentsInDB <- repository.collection.find[EncryptedGooglePass](filters).toFuture()
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>
@@ -71,14 +73,13 @@ class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matche
 
   "findByPassId" must {
     "retrieve existing Google Pass in Mongo collection" in {
-      mongoCollectionDrop()
 
       val passId = "test-pass-id-002"
       val record = (passId, "Name Surname", "AB 12 34 56 Q", DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), "http://test.com/test", Array[Byte](10))
 
       val documentsInDB = for {
-        _ <- googlePassRepository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
-        documentsInDB <- googlePassRepository.findByPassId(passId)
+        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
+        documentsInDB <- repository.findByPassId(passId)
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>
@@ -86,21 +87,4 @@ class GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar with Matche
       }
     }
   }
-}
-
-object GooglePassRepositorySpec extends AnyWordSpec with MockitoSugar {
-
-  import scala.concurrent.ExecutionContext.Implicits._
-
-  private val databaseName = "find-my-nino-add-to-wallet"
-  private val databasePort = 12345
-  private val mongoUri = s"mongodb://127.0.0.1:$databasePort/$databaseName?heartbeatFrequencyMS=1000"
-  private val mongoComponent = MongoComponent(mongoUri)
-  private val DEFAULT_EXPIRATION_YEARS = 100
-  private val appConfig = mock[AppConfig]
-
-  private def mongoCollectionDrop(): Void =
-    Await.result(googlePassRepository.collection.drop().toFuture(), Duration.Inf)
-
-  def googlePassRepository: GooglePassRepository = new GooglePassRepository(mongoComponent, appConfig)
 }
