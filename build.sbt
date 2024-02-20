@@ -22,7 +22,7 @@ lazy val microservice = Project(appName, file("."))
     PlayKeys.playDefaultPort := 14005,
     // ***************
     // Use the silencer plugin to suppress warnings
-    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;.*repositories.*;" +
+    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;" +
       ".*models.*;.*BuildInfo.*;.*Routes.*;.*javascript.*;.*GuiceInjector;.*AppConfig;.*Module;" +
       ".*ControllerConfiguration;",
     ScoverageKeys.coverageExcludedPackages := "<empty>;target.*",
