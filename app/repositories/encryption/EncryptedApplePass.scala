@@ -19,7 +19,7 @@ package repositories.encryption
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Format, OFormat, __}
-import repositories.ApplePass
+import models.ApplePass
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import repositories.encryption.EncryptedValueFormat._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats

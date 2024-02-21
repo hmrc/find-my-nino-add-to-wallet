@@ -18,24 +18,26 @@ package repositories
 
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
-import models.ApplePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import encryption.EncryptedApplePass
+import encryption.EncryptedApplePass._
+import models.ApplePass
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class ApplePassRepository @Inject()(
+class EncryptedApplePassRepository @Inject()(
                                      mongoComponent: MongoComponent,
                                      appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[ApplePass](
+                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedApplePass](
   collectionName = "apple-pass",
   mongoComponent = mongoComponent,
-  domainFormat = ApplePass.mongoFormat,
+  domainFormat = EncryptedApplePass.encryptedFormat,
   indexes = Seq(
     IndexModel(
       Indexes.ascending("passId"),
@@ -62,7 +64,7 @@ class ApplePassRepository @Inject()(
              qrCode: Array[Byte])
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(ApplePass(passId, fullName, nino, applePassCard, qrCode))
+    collection.insertOne(encrypt(ApplePass(passId, fullName, nino, applePassCard, qrCode), appConfig.encryptionKey))
       .head()
       .map(_ => ())
       .recoverWith {
@@ -70,8 +72,12 @@ class ApplePassRepository @Inject()(
       }
   }
 
-  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
+  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] = {
     collection.find(Filters.equal("passId", passId))
-      .headOption()
-
+      .first()
+      .toFutureOption()
+      .map(optEncryptedApplePass =>
+        optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
+      )
+  }
 }

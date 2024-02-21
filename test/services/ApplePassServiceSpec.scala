@@ -17,6 +17,7 @@
 package services
 
 import config.AppConfig
+import models.ApplePass
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
@@ -24,7 +25,7 @@ import org.mockito.MockitoSugar.mock
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import repositories.{ApplePass, ApplePassRepository}
+import repositories.ApplePassRepository
 
 import scala.concurrent.Future
 

@@ -25,7 +25,7 @@ import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.Application
+import play.api.{Application, Configuration}
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -186,7 +186,6 @@ object ApplePassControllerSpec {
       any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
     .thenReturn(retrievalResult)
 
-
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[ApplePassService].toInstance(mockApplePassService),
@@ -197,5 +196,6 @@ object ApplePassControllerSpec {
     .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
     overrides(modules: _*).build()
   private val controller = application.injector.instanceOf[ApplePassController]
+
 }
 
