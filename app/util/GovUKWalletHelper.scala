@@ -21,6 +21,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.google.inject.Inject
 import config.AppConfig
 import models._
+import models.govuk.{CredentialSubject, GovUKVCDocument, Name, NameParts, SocialSecurityRecord, VCDocument}
 import play.api.Logging
 import play.api.libs.json.Json
 

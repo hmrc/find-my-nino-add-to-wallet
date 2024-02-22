@@ -17,7 +17,7 @@
 package services
 
 import config.AppConfig
-import models.ApplePassCard
+import models.apple.ApplePassCard
 import play.api.Logging
 import repositories.ApplePassRepoTrait
 

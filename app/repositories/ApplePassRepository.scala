@@ -18,7 +18,7 @@ package repositories
 
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
-import models.ApplePass
+import models.apple.ApplePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
 import uk.gov.hmrc.mongo.MongoComponent

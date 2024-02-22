@@ -25,7 +25,7 @@ import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.{Application, Configuration}
+import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}

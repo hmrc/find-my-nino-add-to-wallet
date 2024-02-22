@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-package models
+package models.google
 
-case class ApplePassGeneric(primaryFields: Array[ApplePassField], secondaryFields: Array[ApplePassField],
-                            auxiliaryFields: Array[ApplePassField], backFields: Array[ApplePassField])
+case class GooglePassTextRow(id: Option[String], header: Option[String], body: Option[String])

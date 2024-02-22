@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.ApplePassDetails
+import models.apple.ApplePassDetails
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}

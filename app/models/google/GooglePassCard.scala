@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package models.google
 
-case class GooglePassTextRow(id: Option[String], header: Option[String], body: Option[String])
+case class GooglePassCard
+(
+  header: String,
+  title: String,
+  rows: Option[Array[GooglePassTextRow]],
+  hexBackgroundColour: String,
+  language: String
+)

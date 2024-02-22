@@ -18,7 +18,8 @@ package config
 
 import com.google.inject.AbstractModule
 import play.api.{Configuration, Environment}
-import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository}
+import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository,
+  EncryptedGooglePassRepository, GooglePassRepoTrait, GooglePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
@@ -32,11 +33,12 @@ class Module(env: Environment, config: Configuration) extends AbstractModule {
     bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]).asEagerSingleton()
 
     if (encryptionEnabled) {
-      bind(classOf[ApplePassRepoTrait])
-        .to(classOf[EncryptedApplePassRepository]).asEagerSingleton()
+      bind(classOf[ApplePassRepoTrait]).to(classOf[EncryptedApplePassRepository]).asEagerSingleton()
+      bind(classOf[GooglePassRepoTrait]).to(classOf[EncryptedGooglePassRepository]).asEagerSingleton()
     } else {
-      bind(classOf[ApplePassRepoTrait])
-        .to(classOf[ApplePassRepository]).asEagerSingleton()
+      bind(classOf[ApplePassRepoTrait]).to(classOf[ApplePassRepository]).asEagerSingleton()
+      bind(classOf[GooglePassRepoTrait]).to(classOf[GooglePassRepository]).asEagerSingleton()
     }
+
   }
 }

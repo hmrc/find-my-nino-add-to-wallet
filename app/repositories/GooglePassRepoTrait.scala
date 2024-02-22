@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package models
+package repositories
 
-case class GooglePassDetails
-(
-  fullName: String,
-  nino: String
-)
+import models.google.GooglePass
+import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
+trait GooglePassRepoTrait {
+  def insert(passId: String,
+             fullName: String,
+             nino: String,
+             expirationDate: String,
+             googlePassUrl: String,
+             qrCode: Array[Byte])
+            (implicit ec: ExecutionContext): Future[Unit]
 
+  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]]
+
+}

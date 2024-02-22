@@ -18,7 +18,7 @@ package services.googlepass
 
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
-import models.{GooglePassCard, GooglePassTextRow}
+import models.google.{GooglePassCard, GooglePassTextRow}
 
 import java.util.UUID
 import javax.inject.Inject

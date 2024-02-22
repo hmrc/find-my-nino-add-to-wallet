@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package repositories.encryption
+package models.encryption
 
+import models.google.GooglePass
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Format, OFormat, __}
-import repositories.GooglePass
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
-import repositories.encryption.EncryptedValueFormat._
+import EncryptedValueFormat._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class EncryptedGooglePass(passId: String,

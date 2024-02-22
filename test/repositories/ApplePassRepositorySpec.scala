@@ -17,7 +17,7 @@
 package repositories
 
 import config.AppConfig
-import models.ApplePass
+import models.apple.ApplePass
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues

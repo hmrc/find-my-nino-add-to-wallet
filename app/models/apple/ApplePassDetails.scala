@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package repositories
+package models.apple
 
-import models.apple.ApplePass
-import scala.concurrent.{ExecutionContext, Future}
+case class ApplePassDetails
+(
+  fullName: String,
+  nino: String
+)
 
-trait ApplePassRepoTrait {
-  def insert(passId: String,
-             fullName: String,
-             nino: String,
-             applePassCard: Array[Byte],
-             qrCode: Array[Byte])
-            (implicit ec: ExecutionContext): Future[Unit]
 
-  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]]
-}

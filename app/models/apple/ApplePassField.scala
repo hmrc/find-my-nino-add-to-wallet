@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-package models
+package models.apple
 
-case class GooglePassCard
-(
-  header: String,
-  title: String,
-  rows: Option[Array[GooglePassTextRow]],
-  hexBackgroundColour: String,
-  language: String
-)
+case class ApplePassField(key: String, label: Option[String], value: String, textAlignment: String = "PKTextAlignmentLeft")

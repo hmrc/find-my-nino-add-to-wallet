@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.apple
 
-import play.api.libs.json.{Json, OFormat}
-
-case class GovUKPassDetails
-(
-  title: String,
-  givenName: String,
-  familyName: String,
-  nino: String
-)
-
-case object GovUKPassDetails {
-
-  implicit val format: OFormat[GovUKPassDetails] = Json.format[GovUKPassDetails]
-
-}
-
+case class ApplePassGeneric(primaryFields: Array[ApplePassField], secondaryFields: Array[ApplePassField],
+                            auxiliaryFields: Array[ApplePassField], backFields: Array[ApplePassField])

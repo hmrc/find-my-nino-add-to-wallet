@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories.encryption
+package models.encryption
 
 import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.crypto.EncryptedValue

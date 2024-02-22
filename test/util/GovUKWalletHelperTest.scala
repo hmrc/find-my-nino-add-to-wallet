@@ -17,7 +17,7 @@
 package util
 
 import config.AppConfig
-import models.{Name, NameParts}
+import models.govuk.{Name, NameParts}
 import org.mockito.MockitoSugar._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

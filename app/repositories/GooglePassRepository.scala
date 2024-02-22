@@ -53,7 +53,7 @@ class GooglePassRepository @Inject()(
     )
   ),
   replaceIndexes = true
-) with Logging {
+) with Logging with GooglePassRepoTrait {
   def insert(passId: String,
              fullName: String,
              nino: String,

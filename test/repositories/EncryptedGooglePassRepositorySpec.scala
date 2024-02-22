@@ -17,7 +17,7 @@
 package repositories
 
 import config.AppConfig
-import models.google.GooglePass
+import models.encryption.EncryptedGooglePass
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
@@ -31,10 +31,10 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class GooglePassRepositorySpec extends AnyWordSpec
+class EncryptedGooglePassRepositorySpec extends AnyWordSpec
   with MockitoSugar
   with Matchers
-  with DefaultPlayMongoRepositorySupport[GooglePass]
+  with DefaultPlayMongoRepositorySupport[EncryptedGooglePass]
   with ScalaFutures
   with IntegrationPatience
   with OptionValues { // scalastyle:off magic.number
@@ -45,7 +45,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
   when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
   private val DEFAULT_EXPIRATION_YEARS = 100
 
-  override protected val repository = new GooglePassRepository(mongoComponent, appConfig)
+  override protected val repository = new EncryptedGooglePassRepository(mongoComponent, appConfig)
 
   "insert" must {
     "save a new Google Pass in Mongo collection when collection is empty" in {
@@ -62,7 +62,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
 
       val documentsInDB = for {
         _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
-        documentsInDB <- repository.collection.find[GooglePass](filters).toFuture()
+        documentsInDB <- repository.collection.find[EncryptedGooglePass](filters).toFuture()
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>
@@ -75,14 +75,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
     "retrieve existing Google Pass in Mongo collection" in {
 
       val passId = "test-pass-id-002"
-      val record = (
-        passId,
-        "Name Surname",
-        "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
-        "http://test.com/test",
-        Array[Byte](10)
-      )
+      val record = (passId, "Name Surname", "AB 12 34 56 Q", DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), "http://test.com/test", Array[Byte](10))
 
       val documentsInDB = for {
         _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)

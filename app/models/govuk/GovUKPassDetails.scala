@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package models
+package models.govuk
 
-case class ApplePassDetails
+import play.api.libs.json.{Json, OFormat}
+
+case class GovUKPassDetails
 (
-  fullName: String,
+  title: String,
+  givenName: String,
+  familyName: String,
   nino: String
 )
 
+case object GovUKPassDetails {
+
+  implicit val format: OFormat[GovUKPassDetails] = Json.format[GovUKPassDetails]
+
+}
 

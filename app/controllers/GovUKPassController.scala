@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import models.GovUKPassDetails
+import models.govuk.GovUKPassDetails
 import play.api.libs.json.Json
 import play.api.{Configuration, Environment, Logging}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

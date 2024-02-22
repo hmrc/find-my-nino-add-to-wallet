@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.apple
 
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.{Format, Json}

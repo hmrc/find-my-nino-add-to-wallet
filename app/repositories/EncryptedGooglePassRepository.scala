@@ -18,11 +18,11 @@ package repositories
 
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
+import models.encryption.EncryptedGooglePass
 import models.google.GooglePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
-import repositories.encryption.EncryptedGooglePass
-import repositories.encryption.EncryptedGooglePass._
+import EncryptedGooglePass._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -55,7 +55,7 @@ class EncryptedGooglePassRepository @Inject()(
     )
   ),
   replaceIndexes = true
-) with Logging {
+) with Logging with GooglePassRepoTrait {
   def insert(passId: String,
              fullName: String,
              nino: String,

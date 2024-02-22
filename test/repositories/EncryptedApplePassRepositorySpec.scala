@@ -17,6 +17,7 @@
 package repositories
 
 import config.AppConfig
+import models.encryption.EncryptedApplePass
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
@@ -25,7 +26,6 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import repositories.encryption.EncryptedApplePass
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
