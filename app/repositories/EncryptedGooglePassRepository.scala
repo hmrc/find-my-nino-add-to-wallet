@@ -21,6 +21,8 @@ import config.AppConfig
 import models.google.GooglePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
+import repositories.encryption.EncryptedGooglePass
+import repositories.encryption.EncryptedGooglePass._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -29,13 +31,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class GooglePassRepository @Inject()(
+class EncryptedGooglePassRepository @Inject()(
                                      mongoComponent: MongoComponent,
                                      appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[GooglePass](
+                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedGooglePass](
   collectionName = "google-pass",
   mongoComponent = mongoComponent,
-  domainFormat = GooglePass.mongoFormat,
+  domainFormat = EncryptedGooglePass.encryptedFormat,
   indexes = Seq(
     IndexModel(
       Indexes.ascending("passId"),
@@ -62,7 +64,7 @@ class GooglePassRepository @Inject()(
              qrCode: Array[Byte])
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(GooglePass(passId, fullName, nino, expirationDate, googlePassUrl, qrCode))
+    collection.insertOne(encrypt(GooglePass(passId, fullName, nino, expirationDate, googlePassUrl, qrCode), appConfig.encryptionKey))
       .head()
       .map(_ => ())
       .recoverWith {
@@ -72,5 +74,9 @@ class GooglePassRepository @Inject()(
 
   def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]] =
     collection.find(Filters.equal("passId", passId))
-      .headOption()
+      .first()
+      .toFutureOption()
+      .map(optEncryptedGooglePass =>
+        optEncryptedGooglePass.map(encryptedGooglePass => decrypt(encryptedGooglePass, appConfig.encryptionKey))
+      )
 }

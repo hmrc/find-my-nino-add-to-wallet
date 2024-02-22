@@ -17,7 +17,6 @@
 package repositories
 
 import config.AppConfig
-import models.ApplePass
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
@@ -26,14 +25,15 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import repositories.encryption.EncryptedApplePass
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ApplePassRepositorySpec extends AnyWordSpec
+class EncryptedApplePassRepositorySpec extends AnyWordSpec
   with MockitoSugar
   with Matchers
-  with DefaultPlayMongoRepositorySupport[ApplePass]
+  with DefaultPlayMongoRepositorySupport[EncryptedApplePass]
   with ScalaFutures
   with IntegrationPatience
   with OptionValues
@@ -44,7 +44,7 @@ class ApplePassRepositorySpec extends AnyWordSpec
   when(mockAppConfig.cacheTtl) thenReturn 1
   when(mockAppConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
 
-  override protected val repository = new ApplePassRepository(mongoComponent, mockAppConfig)
+  override protected val repository = new EncryptedApplePassRepository(mongoComponent, mockAppConfig)
 
   "insert" must {
     "save a new Apple Pass in Mongo collection when collection is empty" in {
@@ -60,7 +60,7 @@ class ApplePassRepositorySpec extends AnyWordSpec
 
       val documentsInDB = for {
         _ <- repository.insert(record._1, record._2, record._3, record._4, record._5)
-        documentsInDB <- repository.collection.find[ApplePass](filters).toFuture()
+        documentsInDB <- repository.collection.find[EncryptedApplePass](filters).toFuture()
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>

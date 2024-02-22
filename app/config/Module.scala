@@ -17,12 +17,12 @@
 package config
 
 import com.google.inject.AbstractModule
-import play.api.Configuration
+import play.api.{Configuration, Environment}
 import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
-class Module(config: Configuration) extends AbstractModule {
+class Module(env: Environment, config: Configuration) extends AbstractModule {
 
   private val encryptionEnabled = config.get[Boolean]("mongodb.encryption.enabled")
 
