@@ -38,7 +38,6 @@ class ApplePassController @Inject()(
 
   implicit val passRequestFormatter: OFormat[ApplePassDetails] = Json.format[ApplePassDetails]
   implicit val writes: Writes[ApplePassDetails] = Json.writes[ApplePassDetails]
-  private val DEFAULT_EXPIRATION_YEARS = 100
 
   def createPass: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
