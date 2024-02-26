@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.apple
 
 import services.ApplePassService._
 

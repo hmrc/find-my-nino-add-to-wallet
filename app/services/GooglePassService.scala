@@ -19,7 +19,7 @@ package services
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import play.api.Logging
-import repositories.GooglePassRepository
+import repositories.GooglePassRepoTrait
 import googlepass.GooglePassUtil
 
 import java.util.UUID
@@ -28,10 +28,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GooglePassService @Inject()(val config: AppConfig,
                                   val googlePassUtil: GooglePassUtil,
-                                  val googlePassRepository: GooglePassRepository,
+                                  val googlePassRepository: GooglePassRepoTrait,
                                   val qrCodeService: QrCodeService) extends Logging {
-
-
 
   def getPassUrlByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
     for {
@@ -50,7 +48,6 @@ class GooglePassService @Inject()(val config: AppConfig,
       }
     }
   }
-
 
   def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
     for {

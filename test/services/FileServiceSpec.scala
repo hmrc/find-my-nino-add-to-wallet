@@ -16,7 +16,7 @@
 
 package services
 
-import models.ApplePassCard
+import models.apple.ApplePassCard
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper

@@ -18,45 +18,24 @@ package repositories
 
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
-import org.joda.time.{DateTime, DateTimeZone}
+import models.apple.ApplePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.Logging
-import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
-import encryption.EncryptedApplePass
-import encryption.EncryptedApplePass._
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
-case class ApplePass(passId: String,
-                     fullName: String,
-                     nino: String,
-                     applePassCard: Array[Byte],
-                     qrCode: Array[Byte],
-                     lastUpdated: DateTime)
-
-object ApplePass {
-  def apply(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
-    ApplePass(passId, fullName, nino, applePassCard, qrCode, DateTime.now(DateTimeZone.UTC))
-  }
-
-  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
-  implicit val arrayFormat: Format[Array[Byte]] = MongoBinaryFormats.byteArrayFormat
-  implicit val mongoFormat: Format[ApplePass] = Json.format[ApplePass]
-}
-
 @Singleton
 class ApplePassRepository @Inject()(
                                      mongoComponent: MongoComponent,
                                      appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedApplePass](
+                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[ApplePass](
   collectionName = "apple-pass",
   mongoComponent = mongoComponent,
-  domainFormat = EncryptedApplePass.encryptedFormat,
+  domainFormat = ApplePass.mongoFormat,
   indexes = Seq(
     IndexModel(
       Indexes.ascending("passId"),
@@ -74,7 +53,7 @@ class ApplePassRepository @Inject()(
     )
   ),
   replaceIndexes = true
-) with Logging {
+) with Logging with ApplePassRepoTrait {
 
   def insert(passId: String,
              fullName: String,
@@ -83,7 +62,7 @@ class ApplePassRepository @Inject()(
              qrCode: Array[Byte])
             (implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(encrypt(ApplePass(passId, fullName, nino, applePassCard, qrCode), appConfig.encryptionKey))
+    collection.insertOne(ApplePass(passId, fullName, nino, applePassCard, qrCode))
       .head()
       .map(_ => ())
       .recoverWith {
@@ -91,12 +70,8 @@ class ApplePassRepository @Inject()(
       }
   }
 
-  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] = {
+  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
     collection.find(Filters.equal("passId", passId))
-      .first()
-      .toFutureOption()
-      .map(optEncryptedApplePass =>
-        optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
-      )
-  }
+      .headOption()
+
 }

@@ -21,8 +21,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import config.AppConfig
-import models.{GooglePassCard, GooglePassTextRow}
 import googleModels.{GenericPrivatePass, Image, ImageUri, LocalizedString, TextModuleData, TranslatedString}
+import models.google.{GooglePassCard, GooglePassTextRow}
 
 import java.io._
 import java.security.interfaces.RSAPrivateKey

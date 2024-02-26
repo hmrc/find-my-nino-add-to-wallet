@@ -20,7 +20,6 @@ import play.api.libs.json.{JsPath, Reads, Writes}
 
 import scala.util.matching.Regex
 
-
 sealed trait FMNIdentifier {
   val value: String
 }

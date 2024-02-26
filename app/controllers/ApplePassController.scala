@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.ApplePassDetails
+import models.apple.ApplePassDetails
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
@@ -38,7 +38,6 @@ class ApplePassController @Inject()(
 
   implicit val passRequestFormatter: OFormat[ApplePassDetails] = Json.format[ApplePassDetails]
   implicit val writes: Writes[ApplePassDetails] = Json.writes[ApplePassDetails]
-  private val DEFAULT_EXPIRATION_YEARS = 100
 
   def createPass: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {

@@ -186,7 +186,6 @@ object ApplePassControllerSpec {
       any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
     .thenReturn(retrievalResult)
 
-
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[ApplePassService].toInstance(mockApplePassService),
@@ -197,5 +196,6 @@ object ApplePassControllerSpec {
     .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
     overrides(modules: _*).build()
   private val controller = application.injector.instanceOf[ApplePassController]
+
 }
 

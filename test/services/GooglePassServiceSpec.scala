@@ -18,6 +18,7 @@ package services
 
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
+import models.google.GooglePass
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
@@ -25,7 +26,7 @@ import org.mockito.MockitoSugar.mock
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import repositories.{GooglePass, GooglePassRepository}
+import repositories.GooglePassRepository
 import services.googlepass.GooglePassUtil
 
 import scala.concurrent.Future

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package repositories.encryption
+package models.encryption
 
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Format, OFormat, __}
-import repositories.ApplePass
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
-import repositories.encryption.EncryptedValueFormat._
+import EncryptedValueFormat._
+import models.apple.ApplePass
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class EncryptedApplePass(passId: String,

@@ -17,6 +17,7 @@
 package repositories
 
 import config.AppConfig
+import models.apple.ApplePass
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
@@ -25,7 +26,6 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import repositories.encryption.EncryptedApplePass
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ApplePassRepositorySpec extends AnyWordSpec
   with MockitoSugar
   with Matchers
-  with DefaultPlayMongoRepositorySupport[EncryptedApplePass]
+  with DefaultPlayMongoRepositorySupport[ApplePass]
   with ScalaFutures
   with IntegrationPatience
   with OptionValues
@@ -60,7 +60,7 @@ class ApplePassRepositorySpec extends AnyWordSpec
 
       val documentsInDB = for {
         _ <- repository.insert(record._1, record._2, record._3, record._4, record._5)
-        documentsInDB <- repository.collection.find[EncryptedApplePass](filters).toFuture()
+        documentsInDB <- repository.collection.find[ApplePass](filters).toFuture()
       } yield documentsInDB
 
       whenReady(documentsInDB, timeout = Timeout(Span(500L, Milliseconds))) { documentsInDB =>

@@ -17,9 +17,9 @@
 package services
 
 import config.AppConfig
-import models.ApplePassCard
+import models.apple.ApplePassCard
 import play.api.Logging
-import repositories.ApplePassRepository
+import repositories.ApplePassRepoTrait
 
 import java.nio.file.Files
 import java.util.UUID
@@ -27,11 +27,10 @@ import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ApplePassService @Inject()(val config: AppConfig,
-                                 val applePassRepository: ApplePassRepository,
+                                 val applePassRepository: ApplePassRepoTrait,
                                  val fileService: FileService,
                                  val signatureService: SignatureService,
                                  val qrCodeService: QrCodeService) extends Logging {
-
 
   def getPassCardByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
     for {

@@ -17,14 +17,28 @@
 package config
 
 import com.google.inject.AbstractModule
+import play.api.{Configuration, Environment}
+import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository,
+  EncryptedGooglePassRepository, GooglePassRepoTrait, GooglePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
-class Module extends AbstractModule {
+class Module(env: Environment, config: Configuration) extends AbstractModule {
+
+  private val encryptionEnabled = config.get[Boolean]("mongodb.encryption.enabled")
 
   override def configure(): Unit = {
 
     bind(classOf[AppConfig]).asEagerSingleton()
     bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]).asEagerSingleton()
+
+    if (encryptionEnabled) {
+      bind(classOf[ApplePassRepoTrait]).to(classOf[EncryptedApplePassRepository]).asEagerSingleton()
+      bind(classOf[GooglePassRepoTrait]).to(classOf[EncryptedGooglePassRepository]).asEagerSingleton()
+    } else {
+      bind(classOf[ApplePassRepoTrait]).to(classOf[ApplePassRepository]).asEagerSingleton()
+      bind(classOf[GooglePassRepoTrait]).to(classOf[GooglePassRepository]).asEagerSingleton()
+    }
+
   }
 }

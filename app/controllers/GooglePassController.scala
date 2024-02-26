@@ -18,7 +18,7 @@ package controllers
 
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
-import models.GooglePassDetails
+import models.google.GooglePassDetails
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, OFormat, Writes}

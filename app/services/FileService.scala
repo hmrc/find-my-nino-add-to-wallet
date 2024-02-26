@@ -18,7 +18,7 @@ package services
 
 import com.google.common.hash.Hashing
 import com.google.common.io.{Files => ioFiles}
-import models.{ApplePassCard, ApplePassField, ApplePassGeneric}
+import models.apple.{ApplePassCard, ApplePassField, ApplePassGeneric}
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 
