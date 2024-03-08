@@ -36,7 +36,7 @@ import collection.mutable._
 // $COVERAGE-OFF$
 class CreateGenericPrivatePass @Inject()(config: AppConfig) {
 
-  val logoImageUrl = "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-google-pass.png"
+  val logoImageUrl = "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-tudor-google-pass.png"
   val logoImageDiscription = "HMRC"
 
   def createJwtWithCredentials(id: String, issuerId: String, googlePassCard: GooglePassCard, googleCredentials: GoogleCredentials, expiry: Int): String = try {
