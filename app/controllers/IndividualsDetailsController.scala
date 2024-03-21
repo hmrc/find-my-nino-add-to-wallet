@@ -28,7 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class IndividualsDetailsController  @Inject()(authConnector: AuthConnector,
-                                              individualDetailsService: IndividualDetailsService,
+                                              individualDetailsService: IndividualDetailsService
                                              )(implicit
                                                config: Configuration,
                                                env: Environment,
