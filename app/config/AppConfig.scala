@@ -53,4 +53,13 @@ class AppConfig @Inject()(config: Configuration) {
   val govukWalletUrl: String = config.get[String]("govukpass.govUkWalletUrl")
 
   val encryptionKey: String = config.get[String]("mongodb.encryption.key")
+
+  lazy val individualDetailsToken: String = config.get[String]("external-url.individual-details.auth-token")
+  lazy val individualDetailsEnvironment: String = config.get[String]("external-url.individual-details.environment")
+  lazy val individualDetailsOriginatorId: String = config.get[String]("external-url.individual-details.originator-id")
+  lazy val individualDetailsProtocol: String = config.get[String]("external-url.individual-details.protocol")
+  lazy val individualDetailsHost: String = config.get[String]("external-url.individual-details.host")
+  lazy val individualDetailsPort: String = config.get[String]("external-url.individual-details.port")
+  val individualDetailsServiceUrl: String = s"$individualDetailsProtocol://$individualDetailsHost:$individualDetailsPort"
+
 }
