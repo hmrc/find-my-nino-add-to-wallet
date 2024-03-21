@@ -9,3 +9,5 @@ GET         /get-google-qr-code                             controllers.GooglePa
 POST        /create-google-pass-with-credentials            controllers.GooglePassController.createPassWithCredentials
 
 POST        /create-govuk-pass                              controllers.GovUKPassController.createGovUKPass
+
+GET         /individuals/details/NINO/:nino/:resolveMerge       controllers.IndividualsDetailsController.getIndividualDetails(nino: String, resolveMerge: String)
