@@ -26,7 +26,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class IndividualDetailsService @Inject()(appConfig: AppConfig,
-                                         individualDetailsConnector: IndividualDetailsConnector,
+                                         individualDetailsConnector: IndividualDetailsConnector
                                         )(
   implicit val ec:ExecutionContext) {
 
