@@ -25,7 +25,6 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, internalId,
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisationException, AuthorisedFunctions, User}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +37,7 @@ final case class AuthContext[A](
                                )
 
 
-trait FMNAuth extends AuthorisedFunctions with AuthRedirects with Logging{
+trait FMNAuth extends AuthorisedFunctions with Logging{
   protected type FMNAction[A] = AuthContext[A] => Future[Result]
   val AuthPredicate = AuthProviders(GovernmentGateway)
   val FMNRetrievals = nino and credentialRole and internalId

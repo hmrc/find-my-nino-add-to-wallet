@@ -19,7 +19,6 @@ package controllers
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import models.google.GooglePassDetails
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -28,6 +27,7 @@ import services.GooglePassService
 import uk.gov.hmrc.auth.core.AuthConnector
 
 import java.io.ByteArrayInputStream
+import java.time.{ZoneId, ZonedDateTime}
 import java.util.{Base64, Collections}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -52,7 +52,7 @@ class GooglePassController @Inject()(
   def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       val passRequest = request.body.asJson.get.as[GooglePassDetails]
-      val expirationDate = DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS)
+      val expirationDate = ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS)
 
       val scope = "https://www.googleapis.com/auth/wallet_object.issuer"
       val keyAsStream = new ByteArrayInputStream(Base64.getDecoder.decode(appConfig.googleKey))

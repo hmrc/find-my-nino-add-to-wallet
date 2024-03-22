@@ -17,12 +17,13 @@
 package models.encryption
 
 import models.google.GooglePass
-import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Format, OFormat, __}
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import EncryptedValueFormat._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+
+import java.time.Instant
 
 case class EncryptedGooglePass(passId: String,
                                fullName: EncryptedValue,
@@ -30,11 +31,11 @@ case class EncryptedGooglePass(passId: String,
                                expirationDate: EncryptedValue,
                                googlePassUrl: EncryptedValue,
                                qrCode: EncryptedValue,
-                               lastUpdated: DateTime)
+                               lastUpdated: Instant)
 
 object EncryptedGooglePass {
 
-  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   val encryptedFormat: OFormat[EncryptedGooglePass] = {
     ((__ \ "passId").format[String]
@@ -43,7 +44,7 @@ object EncryptedGooglePass {
       ~ (__ \ "expirationDate").format[EncryptedValue]
       ~ (__ \ "googlePassUrl").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[DateTime]
+      ~ (__ \ "lastUpdated").format[Instant]
       )(EncryptedGooglePass.apply, unlift(EncryptedGooglePass.unapply))
   }
 

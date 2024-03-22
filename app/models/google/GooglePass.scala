@@ -16,9 +16,10 @@
 
 package models.google
 
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJodaFormats}
+import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJavatimeFormats}
+
+import java.time.Instant
 
 case class GooglePass(passId: String,
                       fullName: String,
@@ -26,14 +27,14 @@ case class GooglePass(passId: String,
                       expirationDate: String,
                       googlePassUrl: String,
                       qrCode: Array[Byte],
-                      lastUpdated: DateTime)
+                      lastUpdated: Instant)
 
 object GooglePass {
   def apply(passId: String, fullName: String, nino: String, expirationDate: String, googlePassUrl: String, qrCode: Array[Byte]): GooglePass = {
-    GooglePass(passId, fullName, nino, expirationDate: String, googlePassUrl, qrCode, DateTime.now(DateTimeZone.UTC))
+    GooglePass(passId, fullName, nino, expirationDate: String, googlePassUrl, qrCode, Instant.now)
   }
 
-  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
   implicit val arrayFormat: Format[Array[Byte]] = MongoBinaryFormats.byteArrayFormat
   implicit val mongoFormat: Format[GooglePass] = Json.format[GooglePass]
 }
