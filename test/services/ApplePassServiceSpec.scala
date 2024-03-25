@@ -18,7 +18,6 @@ package services
 
 import config.AppConfig
 import models.apple.ApplePass
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.mock
@@ -27,6 +26,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import repositories.ApplePassRepository
 
+import java.time.Instant
 import scala.concurrent.Future
 
 class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -46,7 +46,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         "AB 12 34 56 Q",
         applePassCard,
         qrCode,
-        DateTime.now()
+        Instant.now()
       )
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
@@ -76,7 +76,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         "AB 12 34 56 Q",
         applePassCard,
         qrCode,
-        DateTime.now()
+        Instant.now()
       )
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))

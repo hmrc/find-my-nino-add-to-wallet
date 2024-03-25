@@ -18,7 +18,7 @@ package repositories
 
 import config.AppConfig
 import models.google.GooglePass
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.{ZonedDateTime, ZoneId}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
@@ -54,7 +54,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
       val record = (passId,
         "Name Surname",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString,
         "http://test.com/test",
         Array[Byte](10)
       )
@@ -79,7 +79,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
         passId,
         "Name Surname",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString,
         "http://test.com/test",
         Array[Byte](10)
       )

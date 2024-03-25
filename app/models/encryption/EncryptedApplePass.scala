@@ -16,24 +16,25 @@
 
 package models.encryption
 
-import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Format, OFormat, __}
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import EncryptedValueFormat._
 import models.apple.ApplePass
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+import uk.gov.hmrc.mongo.play.json.formats.{MongoJavatimeFormats}
+
+import java.time.Instant
 
 case class EncryptedApplePass(passId: String,
                               fullName: EncryptedValue,
                               nino: EncryptedValue,
                               applePassCard: EncryptedValue,
                               qrCode: EncryptedValue,
-                              lastUpdated: DateTime)
+                              lastUpdated: Instant)
 
 object EncryptedApplePass {
 
-  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   val encryptedFormat: OFormat[EncryptedApplePass] = {
     ((__ \ "passId").format[String]
@@ -41,7 +42,7 @@ object EncryptedApplePass {
       ~ (__ \ "nino").format[EncryptedValue]
       ~ (__ \ "applePassCard").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[DateTime]
+      ~ (__ \ "lastUpdated").format[Instant]
       )(EncryptedApplePass.apply, unlift(EncryptedApplePass.unapply))
   }
 

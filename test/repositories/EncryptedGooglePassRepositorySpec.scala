@@ -18,7 +18,6 @@ package repositories
 
 import config.AppConfig
 import models.encryption.EncryptedGooglePass
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
@@ -29,6 +28,7 @@ import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
+import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EncryptedGooglePassRepositorySpec extends AnyWordSpec
@@ -54,7 +54,7 @@ class EncryptedGooglePassRepositorySpec extends AnyWordSpec
       val record = (passId,
         "Name Surname",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
         "http://test.com/test",
         Array[Byte](10)
       )
@@ -75,7 +75,7 @@ class EncryptedGooglePassRepositorySpec extends AnyWordSpec
     "retrieve existing Google Pass in Mongo collection" in {
 
       val passId = "test-pass-id-002"
-      val record = (passId, "Name Surname", "AB 12 34 56 Q", DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), "http://test.com/test", Array[Byte](10))
+      val record = (passId, "Name Surname", "AB 12 34 56 Q", ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), "http://test.com/test", Array[Byte](10))
 
       val documentsInDB = for {
         _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)

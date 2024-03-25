@@ -19,7 +19,6 @@ package services
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import models.google.GooglePass
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.mock
@@ -29,6 +28,7 @@ import org.scalatest.wordspec.AsyncWordSpec
 import repositories.GooglePassRepository
 import services.googlepass.GooglePassUtil
 
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import scala.concurrent.Future
 
 class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -46,10 +46,10 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       val pass = new GooglePass(passId,
         "Test Name",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
         googlePassUrl,
         qrCode,
-        DateTime.now()
+        Instant.now()
       )
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
@@ -77,10 +77,10 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
         passId,
         "Test Name",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
         googlePassUrl,
         qrCode,
-        DateTime.now()
+        Instant.now()
       )
       when(mockGooglePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(Option(pass)))
@@ -111,7 +111,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       val eitherResult = googlePassService.createPassWithCredentials(
         "TestName TestSurname",
         "AB 12 34 56 Q",
-        DateTime.now(DateTimeZone.UTC).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),mockGoogleCredentials
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),mockGoogleCredentials
       )
 
       eitherResult.isLeft mustBe false
