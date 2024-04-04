@@ -22,13 +22,12 @@ import org.bouncycastle.asn1.x509.Attribute
 import org.bouncycastle.asn1.{ASN1EncodableVector, DERSet, DERUTCTime}
 import org.bouncycastle.cert.jcajce.JcaCertStore
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder
-import org.bouncycastle.cms.{CMSProcessableFile, CMSSignedDataGenerator, CMSTypedData, DefaultSignedAttributeTableGenerator}
+import org.bouncycastle.cms.{CMSProcessableByteArray, CMSSignedDataGenerator, CMSTypedData, DefaultSignedAttributeTableGenerator}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
 import play.api.Logging
 
 import java.io.ByteArrayInputStream
-import java.nio.file.{Files, Path}
 import java.security.cert.X509Certificate
 import java.security.{KeyStore, PrivateKey, Security}
 import java.util
@@ -42,17 +41,17 @@ class SignatureService @Inject()() extends Logging {
 
   Security.addProvider(new BouncyCastleProvider)
 
-  def createSignatureForPass(passPath: Path,
+  def createSignatureForPass(passContent: Array[Byte],
                              privateCertificate: String,
                              privateCertificatePassword: String,
                              appleWWDRCACertificate: String
                             ): Boolean = {
     val resultForCreateSignature = for {
       signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
-      processableFile <- Try(new CMSProcessableFile(passPath.resolve(FileService.MANIFEST_JSON_FILE_NAME).toFile))
+      processableFile <- Try(new CMSProcessableByteArray(passContent))
       signContent <- signManifestUsingContent(processableFile, signInfo)
-      result <- Try(Files.write(passPath.resolve(SIGNATURE_FILE_NAME), signContent))
-    } yield result
+//      result <- Try(Files.write(passPath.resolve(SIGNATURE_FILE_NAME), signContent))
+    } yield signContent
 
     resultForCreateSignature match {
       case Success(_) => true

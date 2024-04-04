@@ -22,7 +22,7 @@ import models.apple.{ApplePassCard, ApplePassField, ApplePassGeneric}
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 
-import java.io.{BufferedInputStream, ByteArrayOutputStream, File, FileInputStream}
+import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipOutputStream}
@@ -45,7 +45,7 @@ class FileService @Inject()() extends Logging {
 
     val manifestInput = List(filePass, iconFile, logoFile)
 
-    val createdManifest = createManifest(manifestInput)
+    val createdManifest = createManifest(manifestInput).getOrElse(("", Array.emptyByteArray))
 
     logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: $createdManifest")
 
@@ -53,21 +53,15 @@ class FileService @Inject()() extends Logging {
 
   }
 
-  def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
+  def createPkPassZipForPass(passContent:  List[(String, Array[Byte])]): Option[Array[Byte]] = {
     Try {
-      val files = path.toFile.listFiles(f => f.getName != ".DS_Store")
+
       val byteArrayOStream = new ByteArrayOutputStream()
       val zip = new ZipOutputStream(byteArrayOStream)
 
-      files.foreach { file =>
-        zip.putNextEntry(new ZipEntry(file.getName))
-        val in = new BufferedInputStream(new FileInputStream(file))
-        var byteRead = in.read()
-        while (byteRead > -1) {
-          zip.write(byteRead)
-          byteRead = in.read()
-        }
-        in.close()
+      passContent.foreach { case (filename, content) =>
+        zip.putNextEntry(new ZipEntry(filename))
+        zip.write(content)
         zip.closeEntry()
       }
       zip.close()
@@ -88,11 +82,14 @@ class FileService @Inject()() extends Logging {
     }
   }
 
-  private def createManifest(files: List[(String, Array[Byte])]): (String, Array[Byte]) = {
+  private def createManifest(files: List[(String, Array[Byte])]): Option[(String, Array[Byte])] = {
     try {
       logger.info("[CREATE MANIFEST] Creating manifest")
-      val map = files.map { case (filename, content) => (filename, Hashing.sha1().hashBytes(content).toString) }.toMap
+      val map: Map[String, String] = files.map { case (filename, content) => (filename, Hashing.sha1().hashBytes(content).toString) }.toMap
       (MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
+    } match {
+      case (filename, content) => Some(filename, content)
+      case _ => None
     }
   }
 }
