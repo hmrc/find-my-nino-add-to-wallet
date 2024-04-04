@@ -24,7 +24,7 @@ import play.api.libs.json.{Json, OFormat}
 
 import java.io.{BufferedInputStream, ByteArrayOutputStream, File, FileInputStream}
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import javax.inject.Inject
 import scala.reflect.io.Directory
@@ -34,31 +34,29 @@ class FileService @Inject()() extends Logging {
 
   import FileService._
 
-  def createDirectoryForPass(path: Path, pass: ApplePassCard): Boolean = {
-    // Create Pass Directory:
-    val isDirectoryCreated = createDirectory(path)
+  def createFileBytesForPass(pass: ApplePassCard): List[(String, Array[Byte])] = {
 
-    // Write pass.json, icon and thumbnail to that directory
-    val isFilePassCreated = writeToAFile(path.resolve(PASS_FILE_NAME), Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
     val iconSource = getClass.getResourceAsStream(ICON_RESOURCE_PATH).readAllBytes()
-    val isIconFileCreated = writeToAFile(path.resolve(ICON_FILE_NAME), iconSource)
     val logoSource = getClass.getResourceAsStream(LOGO_RESOURCE_PATH).readAllBytes()
-    val isLogoFileCreated = writeToAFile(path.resolve(LOGO_FILE_NAME), logoSource)
-    logger.info(s"[Creating Directory For Pass] isFilePassCreated: $isFilePassCreated || " +
-      s"isIconFileCreated: $isIconFileCreated || " +
-      s"isLogoCreated: $isLogoFileCreated")
 
-    // Create Manifest File:
-    val isManifestCreated = createManifestFile(path)
-    logger.info(s"[Creating Directory For Pass] isManifestCreated: $isManifestCreated")
+    val filePass = (PASS_FILE_NAME, Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
+    val iconFile = (ICON_FILE_NAME, iconSource)
+    val logoFile = (LOGO_FILE_NAME, logoSource)
 
-    isDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated // && isThumbnailCreated
+    val manifestInput = List(filePass, iconFile, logoFile)
+
+    val createdManifest = createManifest(manifestInput)
+
+    logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: $createdManifest")
+
+    List(filePass, iconFile, logoFile, createdManifest)
+
   }
 
   def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
     Try {
       val files = path.toFile.listFiles(f => f.getName != ".DS_Store")
-      val byteArrayOStream = new ByteArrayOutputStream();
+      val byteArrayOStream = new ByteArrayOutputStream()
       val zip = new ZipOutputStream(byteArrayOStream)
 
       files.foreach { file =>
@@ -90,28 +88,11 @@ class FileService @Inject()() extends Logging {
     }
   }
 
-  private def createDirectory(path: Path): Boolean = {
-    Try(Files.createDirectories(path)) match {
-      case Success(_) => true
-      case _ => false
-    }
-  }
-
-  private def writeToAFile(path: Path, bytes: Array[Byte]): Boolean = {
-    Try(Files.write(path, bytes)) match {
-      case Success(_) => true
-      case _ => false
-    }
-  }
-
-  private def createManifestFile(path: Path): Boolean = {
-    logger.info(s"[CREATE MANIFEST FILE] Path: $path")
-    val files = path.toFile.listFiles(f => f.getName != ".DS_STORE")
-    logger.info(s"[CREATE MANIFEST FILE] File count: ${files.length}")
-    val map = files.map(f => (f.getName, ioFiles.asByteSource(f).hash(Hashing.sha1()).toString)).toMap
-    Try(Files.write(path.resolve(MANIFEST_JSON_FILE_NAME), Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))) match {
-      case Success(_) => true
-      case _ => false
+  private def createManifest(files: List[(String, Array[Byte])]): (String, Array[Byte]) = {
+    try {
+      logger.info("[CREATE MANIFEST] Creating manifest")
+      val map = files.map { case (filename, content) => (filename, Hashing.sha1().hashBytes(content).toString) }.toMap
+      (MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     }
   }
 }

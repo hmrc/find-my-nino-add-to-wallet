@@ -98,8 +98,8 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
   "createPass" must {
     "should not return an uuid when 'Create Directory' failed" in {
-      when(mockFileService.createDirectoryForPass(any(), any()))
-        .thenReturn(false)
+      when(mockFileService.createFileBytesForPass(any()))
+        .thenReturn(any())
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(true)
@@ -118,8 +118,8 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
     }
 
     "should not return an uuid when 'Create Signature' failed" in {
-      when(mockFileService.createDirectoryForPass(any(), any()))
-        .thenReturn(true)
+//      when(mockFileService.createFileBytesForPass(any()))
+//        .thenReturn()
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(false)
@@ -139,8 +139,8 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
     }
 
     "return an uuid when success" in {
-      when(mockFileService.createDirectoryForPass(any(), any()))
-        .thenReturn(true)
+      when(mockFileService.createFileBytesForPass(any()))
+        .thenReturn(any())
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(true)

@@ -36,7 +36,7 @@ class FileServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val applePass = ApplePassCard(
         "Test Pass", "AB 12 34 56 Q",
         uuid)
-      val passDirectoryCreated = fileService.createDirectoryForPass(Paths.get("./test.pass"), applePass)
+      val passDirectoryCreated = fileService.createFileBytesForPass(applePass)
       passDirectoryCreated mustBe true
       File("./test.pass").exists mustBe true
       File("./test.pass/icon.png").exists mustBe true
