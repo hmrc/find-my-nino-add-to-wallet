@@ -22,48 +22,56 @@ import models.apple.{ApplePassCard, ApplePassField, ApplePassGeneric}
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 
-import java.io.{ByteArrayOutputStream, File}
+import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import javax.inject.Inject
-import scala.reflect.io.Directory
 import scala.util.{Success, Try}
+
+case class FileAsBytes(filename: String, content: Array[Byte])
 
 class FileService @Inject()() extends Logging {
 
   import FileService._
 
-  def createFileBytesForPass(pass: ApplePassCard): List[(String, Array[Byte])] = {
+  def createFileBytesForPass(pass: ApplePassCard): List[FileAsBytes] = {
 
     val iconSource = getClass.getResourceAsStream(ICON_RESOURCE_PATH).readAllBytes()
     val logoSource = getClass.getResourceAsStream(LOGO_RESOURCE_PATH).readAllBytes()
 
-    val filePass = (PASS_FILE_NAME, Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
-    val iconFile = (ICON_FILE_NAME, iconSource)
-    val logoFile = (LOGO_FILE_NAME, logoSource)
+    val filePass = FileAsBytes(PASS_FILE_NAME, Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
+    val iconFile = FileAsBytes(ICON_FILE_NAME, iconSource)
+    val logoFile = FileAsBytes(LOGO_FILE_NAME, logoSource)
+
 
     val manifestInput = List(filePass, iconFile, logoFile)
 
-    val createdManifest = createManifest(manifestInput).getOrElse(("", Array.emptyByteArray))
+    logger.info(s"[Creating Files in Memory For Pass] isPassGenerated: ${manifestInput.nonEmpty}")
 
-    logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: $createdManifest")
+
+    val createdManifest : FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
+
+    logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: ${createdManifest.content.nonEmpty}")
 
     List(filePass, iconFile, logoFile, createdManifest)
 
   }
 
-  def createPkPassZipForPass(passContent:  List[(String, Array[Byte])]): Option[Array[Byte]] = {
+  def createPkPassZipForPass(passContent: List[FileAsBytes], signatureContent: FileAsBytes): Option[Array[Byte]] = {
     Try {
 
       val byteArrayOStream = new ByteArrayOutputStream()
       val zip = new ZipOutputStream(byteArrayOStream)
 
-      passContent.foreach { case (filename, content) =>
-        zip.putNextEntry(new ZipEntry(filename))
-        zip.write(content)
+      passContent.foreach { file =>
+        zip.putNextEntry(new ZipEntry(file.filename))
+        zip.write(file.content)
         zip.closeEntry()
       }
+      //add signature file to zip file
+      zip.putNextEntry(new ZipEntry(signatureContent.filename))
+      zip.write(signatureContent.content)
+      zip.closeEntry()
       zip.close()
       byteArrayOStream
     } match {
@@ -72,23 +80,14 @@ class FileService @Inject()() extends Logging {
     }
   }
 
-  def deleteDirectory(path: Path): Boolean = {
-    Try {
-      val directory = new Directory(new File(path.toString))
-      directory.deleteRecursively()
-    } match {
-      case Success(_) => true
-      case _ => false
-    }
-  }
-
-  private def createManifest(files: List[(String, Array[Byte])]): Option[(String, Array[Byte])] = {
+  private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] = {
     try {
       logger.info("[CREATE MANIFEST] Creating manifest")
-      val map: Map[String, String] = files.map { case (filename, content) => (filename, Hashing.sha1().hashBytes(content).toString) }.toMap
-      (MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
+      val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha1().hashBytes(p.content).toString) }.toMap
+      logger.info(s"[CREATE MANIFEST] File count: ${map.size}")
+      FileAsBytes(MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     } match {
-      case (filename, content) => Some(filename, content)
+      case FileAsBytes(filename, content) => Some(FileAsBytes(filename, content))
       case _ => None
     }
   }
@@ -106,3 +105,4 @@ object FileService {
   val ICON_RESOURCE_PATH = s"/resources/pass/$ICON_FILE_NAME"
   val LOGO_RESOURCE_PATH = s"/resources/pass/$LOGO_FILE_NAME"
 }
+

@@ -35,29 +35,28 @@ import java.util.{Base64, Date}
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
+case class SignatureContent(filename: String, content: Array[Byte])
+
 class SignatureService @Inject()() extends Logging {
 
   import SignatureService._
 
   Security.addProvider(new BouncyCastleProvider)
 
-  def createSignatureForPass(passContent: Array[Byte],
+
+  def createSignatureForPass(passContent: List[FileAsBytes],
                              privateCertificate: String,
                              privateCertificatePassword: String,
                              appleWWDRCACertificate: String
-                            ): Boolean = {
+                            ): FileAsBytes = {
     val resultForCreateSignature = for {
       signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
-      processableFile <- Try(new CMSProcessableByteArray(passContent))
-      signContent <- signManifestUsingContent(processableFile, signInfo)
-//      result <- Try(Files.write(passPath.resolve(SIGNATURE_FILE_NAME), signContent))
+      processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content))
+      signContent <- signManifestUsingContent(processableFileBytes, signInfo)
     } yield signContent
 
-    resultForCreateSignature match {
-      case Success(_) => true
-      case _ =>
-        false
-    }
+    FileAsBytes(SIGNATURE_FILE_NAME, resultForCreateSignature.getOrElse(Array.emptyByteArray))
+
   }
   private def signManifestUsingContent(content: CMSTypedData, signInfo: ApplePassSignInformation): Try[Array[Byte]] = {
     Try {
