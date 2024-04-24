@@ -28,7 +28,11 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
-case class FileAsBytes(filename: String, content: Array[Byte])
+case class FileAsBytes(filename: String, content: Array[Byte]) {
+  def this() {
+    this("",Array.emptyByteArray)
+  }
+}
 
 class FileService @Inject()() extends Logging {
 
@@ -43,23 +47,20 @@ class FileService @Inject()() extends Logging {
     val iconFile = FileAsBytes(ICON_FILE_NAME, iconSource)
     val logoFile = FileAsBytes(LOGO_FILE_NAME, logoSource)
 
-
     val manifestInput = List(filePass, iconFile, logoFile)
-
     logger.info(s"[Creating Files in Memory For Pass] isPassGenerated: ${manifestInput.nonEmpty}")
-
-
-    val createdManifest : FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
-
+    val createdManifest: FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
     logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: ${createdManifest.content.nonEmpty}")
 
-    List(filePass, iconFile, logoFile, createdManifest)
-
+    if (filePass.content.nonEmpty && iconFile.content.nonEmpty && logoFile.content.nonEmpty && createdManifest.content.nonEmpty) {
+      List(filePass, iconFile, logoFile, createdManifest)
+    } else {
+      List.empty
+    }
   }
 
   def createPkPassZipForPass(passContent: List[FileAsBytes], signatureContent: FileAsBytes): Option[Array[Byte]] = {
     Try {
-
       val byteArrayOStream = new ByteArrayOutputStream()
       val zip = new ZipOutputStream(byteArrayOStream)
 

@@ -49,15 +49,19 @@ class SignatureService @Inject()() extends Logging {
                              privateCertificatePassword: String,
                              appleWWDRCACertificate: String
                             ): FileAsBytes = {
-    val resultForCreateSignature = for {
-      signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
-      processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content))
-      signContent <- signManifestUsingContent(processableFileBytes, signInfo)
-    } yield signContent
 
-    FileAsBytes(SIGNATURE_FILE_NAME, resultForCreateSignature.getOrElse(Array.emptyByteArray))
-
+    if (passContent.nonEmpty) {
+      val resultForCreateSignature = for {
+        signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
+        processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content))
+        signContent <- signManifestUsingContent(processableFileBytes, signInfo)
+      } yield signContent
+      FileAsBytes(SIGNATURE_FILE_NAME, resultForCreateSignature.getOrElse(Array.emptyByteArray))
+    } else {
+      FileAsBytes(SIGNATURE_FILE_NAME, Array.emptyByteArray)
+    }
   }
+
   private def signManifestUsingContent(content: CMSTypedData, signInfo: ApplePassSignInformation): Try[Array[Byte]] = {
     Try {
       val signedDataGenerator = new CMSSignedDataGenerator

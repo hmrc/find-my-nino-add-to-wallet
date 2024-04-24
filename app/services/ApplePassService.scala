@@ -80,7 +80,7 @@ class ApplePassService @Inject()(val config: AppConfig,
       passFilesInBytes, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
     logger.info(s"[Creating Apple Pass] isPassFilesSigned: ${signaturePassInBytes.content.nonEmpty}")
 
-    if (signaturePassInBytes.content.nonEmpty) {
+    if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
       val passDataTuple = for {
         pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
         qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")

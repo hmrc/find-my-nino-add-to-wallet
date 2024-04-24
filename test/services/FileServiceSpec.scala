@@ -67,6 +67,8 @@ class FileServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val signatureContent = signatureService.createSignatureForPass(
         passDirectoryCreated, privateKey, "test", publicKey)
 
+      signatureContent.content.length should be > 1
+
       val passDirectoryZipped = fileService.createPkPassZipForPass(passDirectoryCreated, signatureContent)
       passDirectoryZipped.get.nonEmpty mustBe true
       passDirectoryZipped.get.length should be > 1
