@@ -17,7 +17,7 @@
 package services
 
 import config.AppConfig
-import models.apple.{ApplePass, ApplePassCard}
+import models.apple.ApplePass
 import org.mockito.ArgumentMatchers.{any, anyByte, anyList, anyMap, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.mock
@@ -27,7 +27,6 @@ import org.scalatest.wordspec.AsyncWordSpec
 import repositories.ApplePassRepository
 
 import java.time.Instant
-import java.util.UUID
 import scala.concurrent.Future
 
 class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -99,19 +98,15 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
   "createPass" must {
 
-    val uuid = UUID.randomUUID().toString
-    val applePass = ApplePassCard(
-      "Test Pass", "AB 12 34 56 Q",
-      uuid)
-
-    val passFilesGenerated = mockFileService.createFileBytesForPass(applePass)
+    val passFilesGenerated = List(FileAsBytes("", Array.emptyByteArray))
+    val blankFileAsBytes = FileAsBytes("", Array.emptyByteArray)
 
     "should not return an uuid when 'Create File in Bytes for Pass' has failed" in {
       when(mockFileService.createFileBytesForPass(any()))
         .thenReturn(List.empty)
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(new FileAsBytes())
+        .thenReturn(blankFileAsBytes)
 
       val eitherResult = applePassService.createPass("TestName TestSurname",
         "AB 12 34 56 Q")
@@ -130,7 +125,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         .thenReturn(passFilesGenerated)
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(new FileAsBytes())
+        .thenReturn(blankFileAsBytes)
 
       val eitherResult = applePassService.createPass("TestName TestSurname",
         "AB 12 34 56 Q"
@@ -150,7 +145,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         .thenReturn(passFilesGenerated)
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(FileAsBytes(any(), any()))
+        .thenReturn(FileAsBytes("test", "test".getBytes()))
 
       when(mockQrCodeService.createQRCode(any(), any()))
         .thenReturn(Some("SomeQrCode".getBytes()))
@@ -184,8 +179,6 @@ object ApplePassServiceSpec {
   private val mockSignatureService = mock[SignatureService]
   private val mockQrCodeService = mock[QrCodeService]
   private val mockAppConfig = mock[AppConfig]
-
-  val fileService = new FileService()
 
   val applePassService = new ApplePassService(mockAppConfig, mockApplePassRepository, mockFileService, mockSignatureService, mockQrCodeService)
 }

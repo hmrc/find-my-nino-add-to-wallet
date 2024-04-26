@@ -56,7 +56,7 @@ class ApplePassService @Inject()(val config: AppConfig,
     } yield {
       aQrCode match {
         case Some(applePass) => {
-          if (applePass.nino.replace(" ","").equals(nino)) {
+          if (applePass.nino.replace(" ", "").equals(nino)) {
             Some(applePass.qrCode)
           } else {
             logger.warn("Pass NINO does not match session NINO")
@@ -69,10 +69,9 @@ class ApplePassService @Inject()(val config: AppConfig,
   }
 
   def createPass(name: String, nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
-
     val uuid = UUID.randomUUID().toString
-
     val pass = ApplePassCard(name, nino, uuid)
+
     val passFilesInBytes = fileService.createFileBytesForPass(pass)
     logger.info(s"[Creating Apple Pass] isPassFilesGenerated: ${passFilesInBytes.nonEmpty}")
 
@@ -91,7 +90,7 @@ class ApplePassService @Inject()(val config: AppConfig,
       logger.info(s"[Creating Apple Pass] Insert Apple pass to DB Completed")
       Right(uuid)
     } else {
-      logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
+      logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " + s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} " +
         s"|| isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
       )
       Left(new Exception(s"Problem occurred while creating Apple Pass. "

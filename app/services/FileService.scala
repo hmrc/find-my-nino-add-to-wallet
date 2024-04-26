@@ -28,11 +28,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
-case class FileAsBytes(filename: String, content: Array[Byte]) {
-  def this() {
-    this("",Array.emptyByteArray)
-  }
-}
+case class FileAsBytes(filename: String, content: Array[Byte])
 
 class FileService @Inject()() extends Logging {
 
