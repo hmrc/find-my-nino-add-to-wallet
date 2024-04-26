@@ -17,8 +17,8 @@
 package services
 
 import config.AppConfig
-import models.apple.ApplePass
-import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
+import models.apple.{ApplePass, ApplePassCard}
+import org.mockito.ArgumentMatchers.{any, anyByte, anyList, anyMap, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.mock
 import org.scalatest.BeforeAndAfterEach
@@ -27,6 +27,7 @@ import org.scalatest.wordspec.AsyncWordSpec
 import repositories.ApplePassRepository
 
 import java.time.Instant
+import java.util.UUID
 import scala.concurrent.Future
 
 class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -97,32 +98,39 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
   }
 
   "createPass" must {
-    "should not return an uuid when 'Create Directory' failed" in {
+
+    val uuid = UUID.randomUUID().toString
+    val applePass = ApplePassCard(
+      "Test Pass", "AB 12 34 56 Q",
+      uuid)
+
+    val passFilesGenerated = mockFileService.createFileBytesForPass(applePass)
+
+    "should not return an uuid when 'Create File in Bytes for Pass' has failed" in {
       when(mockFileService.createFileBytesForPass(any()))
-        .thenReturn(any())
+        .thenReturn(List.empty)
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(true)
+        .thenReturn(new FileAsBytes())
 
       val eitherResult = applePassService.createPass("TestName TestSurname",
         "AB 12 34 56 Q")
       eitherResult.isRight mustBe false
       eitherResult match {
         case Left(exception: Exception) =>
-          verify(mockFileService, times(1)).deleteDirectory(any())
-          verify(mockFileService, never).createPkPassZipForPass(any())
+          verify(mockFileService, never).createPkPassZipForPass(any(), any())
           verify(mockQrCodeService, never).createQRCode(any(), any())
-          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
-          exception.getMessage mustBe "Problem occurred while creating Apple Pass. Directory created: false, pass signed: true"
+          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any()) (any())
+          exception.getMessage mustBe "Problem occurred while creating Apple Pass. Pass files generated: false, Pass files signed: false"
       }
     }
 
     "should not return an uuid when 'Create Signature' failed" in {
-//      when(mockFileService.createFileBytesForPass(any()))
-//        .thenReturn()
+      when(mockFileService.createFileBytesForPass(any()))
+        .thenReturn(passFilesGenerated)
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(false)
+        .thenReturn(new FileAsBytes())
 
       val eitherResult = applePassService.createPass("TestName TestSurname",
         "AB 12 34 56 Q"
@@ -130,25 +138,24 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       eitherResult.isRight mustBe false
       eitherResult match {
         case Left(exception: Exception) =>
-          verify(mockFileService, times(1)).deleteDirectory(any())
-          verify(mockFileService, never).createPkPassZipForPass(any())
+          verify(mockFileService, never).createPkPassZipForPass(any(), any())
           verify(mockQrCodeService, never).createQRCode(any(), any())
-          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
-          exception.getMessage mustBe "Problem occurred while creating Apple Pass. Directory created: true, pass signed: false"
+          verify(mockApplePassRepository, never).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any()) (any())
+          exception.getMessage mustBe "Problem occurred while creating Apple Pass. Pass files generated: true, Pass files signed: false"
       }
     }
 
     "return an uuid when success" in {
       when(mockFileService.createFileBytesForPass(any()))
-        .thenReturn(any())
+        .thenReturn(passFilesGenerated)
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(true)
+        .thenReturn(FileAsBytes(any(), any()))
 
       when(mockQrCodeService.createQRCode(any(), any()))
         .thenReturn(Some("SomeQrCode".getBytes()))
 
-      when(mockFileService.createPkPassZipForPass(any()))
+      when(mockFileService.createPkPassZipForPass(any(), any()))
         .thenReturn(Some("SomeZipFile".getBytes()))
 
       val eitherResult = applePassService.createPass(
@@ -159,8 +166,7 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       eitherResult.isLeft mustBe false
       eitherResult match {
         case Right(uuid) =>
-          verify(mockFileService, times(1)).deleteDirectory(any())
-          verify(mockFileService, times(1)).createPkPassZipForPass(any())
+          verify(mockFileService, times(1)).createPkPassZipForPass(any(), any())
           verify(mockQrCodeService, times(1)).createQRCode(any(), any())
           verify(mockApplePassRepository, times(1)).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
           uuid.length mustBe 36
@@ -171,13 +177,15 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
 object ApplePassServiceSpec {
   val passId: String = "test-pass-id-001"
+  val SIGNATURE_FILE_NAME = "signature"
 
   private val mockApplePassRepository = mock[ApplePassRepository]
   private val mockFileService = mock[FileService]
   private val mockSignatureService = mock[SignatureService]
   private val mockQrCodeService = mock[QrCodeService]
   private val mockAppConfig = mock[AppConfig]
-  private val DEFAULT_EXPIRATION_YEARS = 100
+
+  val fileService = new FileService()
 
   val applePassService = new ApplePassService(mockAppConfig, mockApplePassRepository, mockFileService, mockSignatureService, mockQrCodeService)
 }
