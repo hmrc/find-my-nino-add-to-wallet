@@ -42,13 +42,14 @@ class FileService @Inject()() extends Logging {
     val iconFile = FileAsBytes(ICON_FILE_NAME, iconSource)
     val logoFile = FileAsBytes(LOGO_FILE_NAME, logoSource)
 
-    val manifestInput = List(filePass, iconFile, logoFile)
+    val manifestInput : List[FileAsBytes] = List(filePass, iconFile, logoFile)
     logger.info(s"[Creating Files in Memory For Pass] isPassGenerated: ${manifestInput.nonEmpty}")
     val createdManifest: FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
     logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: ${createdManifest.content.nonEmpty}")
 
     if (filePass.content.nonEmpty && iconFile.content.nonEmpty && logoFile.content.nonEmpty && createdManifest.content.nonEmpty) {
-      List(filePass, iconFile, logoFile, createdManifest)
+      val createdFiles: List[FileAsBytes] = List(filePass, iconFile, logoFile, createdManifest)
+      createdFiles
     } else {
       List.empty
     }
@@ -77,13 +78,13 @@ class FileService @Inject()() extends Logging {
   }
 
   private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] = {
-    try {
+    Try {
       logger.info("[CREATE MANIFEST] Creating manifest")
       val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha1().hashBytes(p.content).toString) }.toMap
       logger.info(s"[CREATE MANIFEST] File count: ${map.size}")
       FileAsBytes(MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     } match {
-      case FileAsBytes(filename, content) => Some(FileAsBytes(filename, content))
+      case Success(value) => Some(value)
       case _ => None
     }
   }
