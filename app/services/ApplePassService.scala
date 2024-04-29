@@ -90,8 +90,8 @@ class ApplePassService @Inject()(val config: AppConfig,
       logger.info(s"[Creating Apple Pass] Insert Apple pass to DB Completed")
       Right(uuid)
     } else {
-      logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " + s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} " +
-        s"|| isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
+      logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
+        s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
       )
       Left(new Exception(s"Problem occurred while creating Apple Pass. "
         + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"))

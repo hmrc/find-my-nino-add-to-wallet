@@ -35,8 +35,6 @@ import java.util.{Base64, Date}
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
-case class SignatureContent(filename: String, content: Array[Byte])
-
 class SignatureService @Inject()() extends Logging {
 
   import SignatureService._
