@@ -18,7 +18,7 @@ package services
 
 import config.AppConfig
 import models.apple.ApplePass
-import org.mockito.ArgumentMatchers.{any, anyByte, anyList, anyMap, anyString, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.mock
 import org.scalatest.BeforeAndAfterEach
@@ -172,7 +172,6 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
 
 object ApplePassServiceSpec {
   val passId: String = "test-pass-id-001"
-  val SIGNATURE_FILE_NAME = "signature"
 
   private val mockApplePassRepository = mock[ApplePassRepository]
   private val mockFileService = mock[FileService]

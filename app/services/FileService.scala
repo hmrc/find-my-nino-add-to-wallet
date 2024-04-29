@@ -42,14 +42,13 @@ class FileService @Inject()() extends Logging {
     val iconFile = FileAsBytes(ICON_FILE_NAME, iconSource)
     val logoFile = FileAsBytes(LOGO_FILE_NAME, logoSource)
 
-    val manifestInput : List[FileAsBytes] = List(filePass, iconFile, logoFile)
+    val manifestInput: List[FileAsBytes] = List(filePass, iconFile, logoFile)
     logger.info(s"[Creating Files in Memory For Pass] isPassGenerated: ${manifestInput.nonEmpty}")
     val createdManifest: FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
     logger.info(s"[Creating Files in Memory For Pass] isManifestCreated: ${createdManifest.content.nonEmpty}")
 
     if (filePass.content.nonEmpty && iconFile.content.nonEmpty && logoFile.content.nonEmpty && createdManifest.content.nonEmpty) {
-      val createdFiles: List[FileAsBytes] = List(filePass, iconFile, logoFile, createdManifest)
-      createdFiles
+      List(filePass, iconFile, logoFile, createdManifest)
     } else {
       List.empty
     }
@@ -65,10 +64,8 @@ class FileService @Inject()() extends Logging {
         zip.write(file.content)
         zip.closeEntry()
       }
-      //add signature file to zip file
-      zip.putNextEntry(new ZipEntry(signatureContent.filename))
+      zip.putNextEntry(new ZipEntry(signatureContent.filename)) //add signature file to zip file
       zip.write(signatureContent.content)
-      zip.closeEntry()
       zip.close()
       byteArrayOStream
     } match {
