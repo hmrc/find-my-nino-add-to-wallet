@@ -73,22 +73,18 @@ class ApplePassService @Inject()(val config: AppConfig,
     val pass = ApplePassCard(name, nino, uuid)
 
     val passFilesInBytes = fileService.createFileBytesForPass(pass)
-    logger.info(s"[Creating Apple Pass] isPassFilesGenerated: ${passFilesInBytes.nonEmpty}")
 
     val signaturePassInBytes = signatureService.createSignatureForPass(
       passFilesInBytes, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
-    logger.info(s"[Creating Apple Pass] isPassFilesSigned: ${signaturePassInBytes.content.nonEmpty}")
 
     if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
       val passDataTuple = for {
         pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
         qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
       } yield (pkPassByteArray, qrCodeByteArray)
-
-      logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")
       passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
-      logger.info(s"[Creating Apple Pass] Insert Apple pass to DB Completed")
       Right(uuid)
+
     } else {
       logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
         s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
