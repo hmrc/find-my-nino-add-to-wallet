@@ -26,7 +26,7 @@ class SignatureServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
   import SignatureServiceSpec._
 
   "createSignatureForPass" must {
-    "return false when a signatureFile as bytes is created but invalid pass content was provided" in {
+    "return false when a signatureFile as bytes is created but empty pass content was provided" in {
       val pass = signatureService.createSignatureForPass(List.empty, privateKey, "test123", publicKey)
       pass.filename mustBe SIGNATURE_FILE_NAME
       pass.content.nonEmpty mustBe false

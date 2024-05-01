@@ -48,15 +48,16 @@ class SignatureService @Inject()() extends Logging {
                              appleWWDRCACertificate: String
                             ): FileAsBytes = {
 
-    if (passContent.nonEmpty) {
+    if (passContent.isEmpty) {
+      FileAsBytes(SIGNATURE_FILE_NAME, Array.emptyByteArray)
+    } else {
       val resultForCreateSignature = for {
         signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
         processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content))
         signContent <- signManifestUsingContent(processableFileBytes, signInfo)
       } yield signContent
+
       FileAsBytes(SIGNATURE_FILE_NAME, resultForCreateSignature.getOrElse(Array.emptyByteArray))
-    } else {
-      FileAsBytes(SIGNATURE_FILE_NAME, Array.emptyByteArray)
     }
   }
 
@@ -133,6 +134,8 @@ class SignatureService @Inject()() extends Logging {
 
 object SignatureService {
   val SIGNATURE_FILE_NAME = "signature"
+  val MANIFEST_JSON_FILE_NAME = "manifest.json"
+
 }
 
 private case class ApplePassSignInformation(privateCertificate: X509Certificate, privateKey: PrivateKey, appleWWDRCACert: X509Certificate)

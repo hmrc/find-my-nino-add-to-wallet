@@ -43,28 +43,28 @@ class FileServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       uuid)
 
     "create test.pass with icon, thumbnail, pass.json, manifest files as bytes" in {
-      val passDirectoryCreated = fileService.createFileBytesForPass(applePass)
-      passDirectoryCreated.nonEmpty mustBe true
-      passDirectoryCreated.size mustBe 4
+      val passFileAsBytes = fileService.createFileBytesForPass(applePass)
+      passFileAsBytes.nonEmpty mustBe true
+      passFileAsBytes.size mustBe 4
 
-      passDirectoryCreated.head.filename mustBe PASS_FILE_NAME
-      passDirectoryCreated.head.content.length should be > 1
+      passFileAsBytes.head.filename mustBe PASS_FILE_NAME
+      passFileAsBytes.head.content.length should be > 1
 
-      passDirectoryCreated.lift(1).get.filename mustBe ICON_FILE_NAME
-      passDirectoryCreated.last.content.length should be > 1
+      passFileAsBytes.lift(1).get.filename mustBe ICON_FILE_NAME
+      passFileAsBytes.last.content.length should be > 1
 
-      passDirectoryCreated.lift(2).get.filename mustBe LOGO_FILE_NAME
-      passDirectoryCreated.last.content.length should be > 1
+      passFileAsBytes.lift(2).get.filename mustBe LOGO_FILE_NAME
+      passFileAsBytes.last.content.length should be > 1
 
-      passDirectoryCreated.last.filename mustBe MANIFEST_JSON_FILE_NAME
-      passDirectoryCreated.last.content.length should be > 1
+      passFileAsBytes.last.filename mustBe MANIFEST_JSON_FILE_NAME
+      passFileAsBytes.last.content.length should be > 1
     }
 
     "create zip data with test directory" in {
-      val passDirectoryCreated = fileService.createFileBytesForPass(applePass)
-      val passDirectoryZipped = fileService.createPkPassZipForPass(passDirectoryCreated, FileAsBytes("test", "test".getBytes()))
-      passDirectoryZipped.get.nonEmpty mustBe true
-      passDirectoryZipped.get.length should be > 1
+      val passFileAsBytes = fileService.createFileBytesForPass(applePass)
+      val passFilesZipped = fileService.createPkPassZipForPass(passFileAsBytes, FileAsBytes("test", "test".getBytes()))
+      passFilesZipped.get.nonEmpty mustBe true
+      passFilesZipped.get.length should be > 1
     }
   }
 }
