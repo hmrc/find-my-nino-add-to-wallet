@@ -21,7 +21,6 @@ import models.apple.ApplePassCard
 import play.api.Logging
 import repositories.ApplePassRepoTrait
 
-import java.nio.file.Files
 import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,7 +56,7 @@ class ApplePassService @Inject()(val config: AppConfig,
     } yield {
       aQrCode match {
         case Some(applePass) => {
-          if (applePass.nino.replace(" ","").equals(nino)) {
+          if (applePass.nino.replace(" ", "").equals(nino)) {
             Some(applePass.qrCode)
           } else {
             logger.warn("Pass NINO does not match session NINO")
@@ -70,36 +69,28 @@ class ApplePassService @Inject()(val config: AppConfig,
   }
 
   def createPass(name: String, nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
-
     val uuid = UUID.randomUUID().toString
-    val path = Files.createTempDirectory(s"$uuid.pass").toAbsolutePath
-
     val pass = ApplePassCard(name, nino, uuid)
-    val isDirectoryCreated = fileService.createDirectoryForPass(path, pass)
-    logger.info(s"[Creating Apple Pass] isDirectoryCreated: $isDirectoryCreated")
 
-    val isPassSigned = signatureService.createSignatureForPass(path, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
-    logger.info(s"[Creating Apple Pass] isPassSigned: $isPassSigned")
+    val passFilesInBytes = fileService.createFileBytesForPass(pass)
 
-    if (isDirectoryCreated && isPassSigned) {
+    val signaturePassInBytes = signatureService.createSignatureForPass(
+      passFilesInBytes, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
+
+    if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
       val passDataTuple = for {
-        pkPassByteArray <- fileService.createPkPassZipForPass(path)
+        pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
         qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
       } yield (pkPassByteArray, qrCodeByteArray)
-
-      logger.info(s"[Creating Apple Pass] Zip and Qr Code Completed")
-      fileService.deleteDirectory(path)
       passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
-      logger.info(s"[Creating Apple Pass] Insert Apple pass to DB Completed")
       Right(uuid)
+
     } else {
       logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
-        s"isDirectoryCreated: $isDirectoryCreated " +
-        s"|| isPassSigned: $isPassSigned"
+        s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
       )
-      fileService.deleteDirectory(path) // It should delete the pass directory even there is a mistake
-      Left(new Exception(s"Problem occurred while creating Apple Pass. " +
-        s"Directory created: $isDirectoryCreated, pass signed: $isPassSigned"))
+      Left(new Exception(s"Problem occurred while creating Apple Pass. "
+        + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"))
     }
   }
 }

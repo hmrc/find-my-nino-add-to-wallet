@@ -17,61 +17,53 @@
 package services
 
 import com.google.common.hash.Hashing
-import com.google.common.io.{Files => ioFiles}
 import models.apple.{ApplePassCard, ApplePassField, ApplePassGeneric}
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 
-import java.io.{BufferedInputStream, ByteArrayOutputStream, File, FileInputStream}
+import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import javax.inject.Inject
-import scala.reflect.io.Directory
 import scala.util.{Success, Try}
+
+case class FileAsBytes(filename: String, content: Array[Byte])
 
 class FileService @Inject()() extends Logging {
 
   import FileService._
 
-  def createDirectoryForPass(path: Path, pass: ApplePassCard): Boolean = {
-    // Create Pass Directory:
-    val isDirectoryCreated = createDirectory(path)
+  def createFileBytesForPass(pass: ApplePassCard): List[FileAsBytes] = {
 
-    // Write pass.json, icon and thumbnail to that directory
-    val isFilePassCreated = writeToAFile(path.resolve(PASS_FILE_NAME), Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
     val iconSource = getClass.getResourceAsStream(ICON_RESOURCE_PATH).readAllBytes()
-    val isIconFileCreated = writeToAFile(path.resolve(ICON_FILE_NAME), iconSource)
     val logoSource = getClass.getResourceAsStream(LOGO_RESOURCE_PATH).readAllBytes()
-    val isLogoFileCreated = writeToAFile(path.resolve(LOGO_FILE_NAME), logoSource)
-    logger.info(s"[Creating Directory For Pass] isFilePassCreated: $isFilePassCreated || " +
-      s"isIconFileCreated: $isIconFileCreated || " +
-      s"isLogoCreated: $isLogoFileCreated")
 
-    // Create Manifest File:
-    val isManifestCreated = createManifestFile(path)
-    logger.info(s"[Creating Directory For Pass] isManifestCreated: $isManifestCreated")
+    val filePass = FileAsBytes(PASS_FILE_NAME, Json.toJson(pass).toString().getBytes(StandardCharsets.UTF_8))
+    val iconFile = FileAsBytes(ICON_FILE_NAME, iconSource)
+    val logoFile = FileAsBytes(LOGO_FILE_NAME, logoSource)
 
-    isDirectoryCreated && isFilePassCreated && isIconFileCreated && isManifestCreated && isLogoFileCreated // && isThumbnailCreated
+    val manifestInput: List[FileAsBytes] = List(filePass, iconFile, logoFile)
+    val createdManifest: FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
+
+    if (filePass.content.nonEmpty && iconFile.content.nonEmpty && logoFile.content.nonEmpty && createdManifest.content.nonEmpty) {
+      List(filePass, iconFile, logoFile, createdManifest)
+    } else {
+      List.empty
+    }
   }
 
-  def createPkPassZipForPass(path: Path): Option[Array[Byte]] = {
+  def createPkPassZipForPass(passContent: List[FileAsBytes], signatureContent: FileAsBytes): Option[Array[Byte]] = {
     Try {
-      val files = path.toFile.listFiles(f => f.getName != ".DS_Store")
-      val byteArrayOStream = new ByteArrayOutputStream();
+      val byteArrayOStream = new ByteArrayOutputStream()
       val zip = new ZipOutputStream(byteArrayOStream)
 
-      files.foreach { file =>
-        zip.putNextEntry(new ZipEntry(file.getName))
-        val in = new BufferedInputStream(new FileInputStream(file))
-        var byteRead = in.read()
-        while (byteRead > -1) {
-          zip.write(byteRead)
-          byteRead = in.read()
-        }
-        in.close()
+      passContent.foreach { file =>
+        zip.putNextEntry(new ZipEntry(file.filename))
+        zip.write(file.content)
         zip.closeEntry()
       }
+      zip.putNextEntry(new ZipEntry(signatureContent.filename)) //add signature file to zip file
+      zip.write(signatureContent.content)
       zip.close()
       byteArrayOStream
     } match {
@@ -80,38 +72,13 @@ class FileService @Inject()() extends Logging {
     }
   }
 
-  def deleteDirectory(path: Path): Boolean = {
+  private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] = {
     Try {
-      val directory = new Directory(new File(path.toString))
-      directory.deleteRecursively()
+      val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha1().hashBytes(p.content).toString) }.toMap
+      FileAsBytes(MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     } match {
-      case Success(_) => true
-      case _ => false
-    }
-  }
-
-  private def createDirectory(path: Path): Boolean = {
-    Try(Files.createDirectories(path)) match {
-      case Success(_) => true
-      case _ => false
-    }
-  }
-
-  private def writeToAFile(path: Path, bytes: Array[Byte]): Boolean = {
-    Try(Files.write(path, bytes)) match {
-      case Success(_) => true
-      case _ => false
-    }
-  }
-
-  private def createManifestFile(path: Path): Boolean = {
-    logger.info(s"[CREATE MANIFEST FILE] Path: $path")
-    val files = path.toFile.listFiles(f => f.getName != ".DS_STORE")
-    logger.info(s"[CREATE MANIFEST FILE] File count: ${files.length}")
-    val map = files.map(f => (f.getName, ioFiles.asByteSource(f).hash(Hashing.sha1()).toString)).toMap
-    Try(Files.write(path.resolve(MANIFEST_JSON_FILE_NAME), Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))) match {
-      case Success(_) => true
-      case _ => false
+      case Success(value) => Some(value)
+      case _ => None
     }
   }
 }
@@ -128,3 +95,4 @@ object FileService {
   val ICON_RESOURCE_PATH = s"/resources/pass/$ICON_FILE_NAME"
   val LOGO_RESOURCE_PATH = s"/resources/pass/$LOGO_FILE_NAME"
 }
+
