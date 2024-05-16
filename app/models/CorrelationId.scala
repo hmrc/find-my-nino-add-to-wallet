@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models.individualDetails
+package models
 
 import java.util.UUID
 

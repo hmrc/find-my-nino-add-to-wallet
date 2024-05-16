@@ -17,7 +17,7 @@
 package services
 import config.AppConfig
 import connectors.IndividualDetailsConnector
-import models.individualDetails.CorrelationId
+import models.CorrelationId
 import play.api.http.Status._
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
