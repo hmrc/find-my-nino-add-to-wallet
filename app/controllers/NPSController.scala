@@ -42,7 +42,7 @@ class NPSController @Inject()(
 
   implicit val format: OFormat[CRNUpliftRequest] = Json.format[CRNUpliftRequest]
 
-  def upliftCrn(identifier: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def upliftCRN(identifier: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     authorisedAsFMNUser { _ => {
 
       val passRequest = request.body.as[CRNUpliftRequest]
@@ -50,12 +50,12 @@ class NPSController @Inject()(
       for {
         httpResponse <- npsService.upliftCRN(identifier, passRequest)
       } yield httpResponse.status match {
-        case 204 => Results.NoContent
-        case 400 => Results.BadRequest(httpResponse.body)
-        case 403 => Results.Forbidden(httpResponse.body)
-        case 422 => Results.UnprocessableEntity(httpResponse.body)
-        case 404 => Results.NotFound
-        case 500 => Results.InternalServerError
+        case NO_CONTENT => Results.NoContent
+        case BAD_REQUEST => Results.BadRequest(httpResponse.body)
+        case FORBIDDEN => Results.Forbidden(httpResponse.body)
+        case UNPROCESSABLE_ENTITY => Results.UnprocessableEntity(httpResponse.body)
+        case NOT_FOUND => Results.NotFound
+        case INTERNAL_SERVER_ERROR => Results.InternalServerError
         case _ => Results.Status(httpResponse.status)(httpResponse.body)
       }
     }

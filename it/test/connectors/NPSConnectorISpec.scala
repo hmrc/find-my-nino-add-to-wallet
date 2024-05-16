@@ -94,11 +94,12 @@ class NPSFMNConnectorSpec
 
     trait LocalSetup extends SpecSetup {
       def url(nino: String) = s"/nps/nps-json-service/nps/v1/api/individual/${nino}/adult-registration"
+
+      implicit val correlationId = CorrelationId(UUID.randomUUID())
+      val body = mock[CRNUpliftRequest]
     }
 
     "return 204 NO_CONTENT when called with a CRN" in new LocalSetup {
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
-      val body = mock[CRNUpliftRequest]
       stubPut(url(nino), NO_CONTENT, Some(Json.toJson(body).toString()), Some(""))
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe NO_CONTENT
@@ -106,44 +107,34 @@ class NPSFMNConnectorSpec
     }
 
     "return 400 BAD_REQUEST when called with invalid request object" in new LocalSetup {
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
-      val body = CRNUpliftRequest("test", "test", "")
       stubPut(url(nino), BAD_REQUEST, Some(Json.toJson(body).toString()), Some(jsonBadRequest))
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe BAD_REQUEST
       result.body mustBe jsonBadRequest
     }
 
-    "return 403 FORBIDDEN when called with " in new LocalSetup {
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
-      val body = mock[CRNUpliftRequest]
+    "return 403 FORBIDDEN when called with forbidden request" in new LocalSetup {
       stubPut(url(nino), FORBIDDEN, Some(Json.toJson(body).toString()), Some(jsonForbidden))
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe FORBIDDEN
       result.body mustBe jsonForbidden
     }
 
-    "return 422 UNPROCESSABLE_ENTITY when called with" in new LocalSetup {
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
-      val body = mock[CRNUpliftRequest]
+    "return 422 UNPROCESSABLE_ENTITY when the action cannot be completed" in new LocalSetup {
       stubPut(url(nino), UNPROCESSABLE_ENTITY, Some(Json.toJson(body).toString()), Some(jsonUnprocessableEntity))
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe UNPROCESSABLE_ENTITY
       result.body mustBe jsonUnprocessableEntity
     }
 
-    "return 404 NOT_FOUND when called with" in new LocalSetup {
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
-      val body = mock[CRNUpliftRequest]
+    "return 404 NOT_FOUND when resource cannot be found" in new LocalSetup {
       stubPut(url(nino), NOT_FOUND, Some(Json.toJson(body).toString()), None)
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe NOT_FOUND
       result.body mustBe ""
     }
 
-    "return 500 INTERNAL_SERVER_ERROR when called with" in new LocalSetup {
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
-      val body = mock[CRNUpliftRequest]
+    "return 500 INTERNAL_SERVER_ERROR when exception is thrown" in new LocalSetup {
       stubPut(url(nino), INTERNAL_SERVER_ERROR, Some(Json.toJson(body).toString()), None)
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe INTERNAL_SERVER_ERROR
