@@ -22,12 +22,11 @@ import models.nps.CRNUpliftRequest
 import play.api.Logging
 import play.api.http.MimeTypes
 import uk.gov.hmrc.http.client.HttpClientV2
-
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-
 import java.net.URL
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 
 class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig) extends Logging {

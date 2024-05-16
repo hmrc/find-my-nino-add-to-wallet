@@ -111,7 +111,7 @@ class NPSFMNConnectorSpec
       stubPut(url(nino), BAD_REQUEST, Some(Json.toJson(body).toString()), Some(jsonBadRequest))
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe BAD_REQUEST
-      //result.body mustBe jsonBadRequest
+      result.body mustBe jsonBadRequest
     }
 
     "return 403 FORBIDDEN when called with " in new LocalSetup {
@@ -129,7 +129,7 @@ class NPSFMNConnectorSpec
       stubPut(url(nino), UNPROCESSABLE_ENTITY, Some(Json.toJson(body).toString()), Some(jsonUnprocessableEntity))
       val result = connector.upliftCRN(nino, body).futureValue.leftSideValue
       result.status mustBe UNPROCESSABLE_ENTITY
-      result.body mustBe ""
+      result.body mustBe jsonUnprocessableEntity
     }
 
     "return 404 NOT_FOUND when called with" in new LocalSetup {

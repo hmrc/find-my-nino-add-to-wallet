@@ -68,7 +68,7 @@ trait WiremockStub
     val baseResponse = aResponse().withStatus(responseStatus).withHeader(CONTENT_TYPE, JSON)
     val response = responseBody.fold(baseResponse)(body => baseResponse.withBody(body))
 
-    requestBody.fold(put(url).withRequestBody(equalToJson(requestBody)).willReturn(response))(requestBody =>
+    requestBody.fold(put(url).willReturn(response))(requestBody =>
       put(url).withRequestBody(equalToJson(requestBody)).willReturn(response)
     )
   }
