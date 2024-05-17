@@ -11,4 +11,4 @@ POST        /create-google-pass-with-credentials            controllers.GooglePa
 POST        /create-govuk-pass                              controllers.GovUKPassController.createGovUKPass
 
 GET         /individuals/details/NINO/:nino/:resolveMerge   controllers.IndividualsDetailsController.getIndividualDetails(nino: String, resolveMerge: String)
-PUT         /adult-registration/:identifier                 controllers.NPSController.upliftCRN(identifier: String)
+PUT         /adult-registration/:identifier                 controllers.NpsController.upliftCRN(identifier: String)

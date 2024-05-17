@@ -19,6 +19,7 @@ package services
 import connectors.NPSConnector
 import models.CorrelationId
 import models.nps.CRNUpliftRequest
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import play.api.Application
 import play.api.http.Status.NO_CONTENT
@@ -40,7 +41,7 @@ class NPSServiceSpec extends SpecBase{
 
     .build()
 
-  val npsService = app.injector.instanceOf[NPSService]
+  val npsService: NPSService = app.injector.instanceOf[NPSService]
 
   override def beforeEach(): Unit =
     reset(mockNPSConnector)
@@ -49,13 +50,11 @@ class NPSServiceSpec extends SpecBase{
     "return 204 response when CRN is uplifted successfully" in {
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      implicit val correlationId: CorrelationId = CorrelationId.random
-      implicit val ec: ExecutionContext = ExecutionContext.global
       val npsRequest = CRNUpliftRequest("test", "test", "01/01/1990")
       val nino = "AA000003B"
 
       when(mockNPSConnector
-        .upliftCRN(nino, npsRequest))
+        .upliftCRN(any, any)(any, any()))
         .thenReturn(Future.successful(HttpResponse(NO_CONTENT, "")))
 
       val result = npsService.upliftCRN(nino, npsRequest)

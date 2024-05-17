@@ -32,13 +32,14 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig) extends Logging {
 
   def upliftCRN(identifier: String, body: CRNUpliftRequest
-               )(implicit hc: HeaderCarrier, correlationId: CorrelationId, ec: ExecutionContext): Future[HttpResponse] = {
+               )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+
     val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$identifier/adult-registration"
 
     val headers = Seq(
       (play.api.http.HeaderNames.CONTENT_TYPE, MimeTypes.JSON),
       (play.api.http.HeaderNames.AUTHORIZATION, s"Basic ${appConfig.npsCrnToken}"),
-      (appConfig.npsCrnCorrelationIdKey, correlationId.value.toString),
+      (appConfig.npsCrnCorrelationIdKey, CorrelationId.random.value.toString),
       (appConfig.npsCrnOriginatorIdKey, appConfig.npsCrnOriginatorIdValue)
     )
 
