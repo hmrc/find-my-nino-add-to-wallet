@@ -38,7 +38,7 @@ import scala.concurrent.ExecutionContext.global
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class NpsControllerSpec extends PlaySpec with Results with MockitoSugar {
+class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val ec: ExecutionContext = global
@@ -77,7 +77,7 @@ class NpsControllerSpec extends PlaySpec with Results with MockitoSugar {
     ("Content-Type" -> "application/json"),
     ("Authorization" -> "Bearer 123"))
 
-  val controller: NpsController = application.injector.instanceOf[NpsController]
+  val controller: NPSController = application.injector.instanceOf[NPSController]
 
   "MyNpsController" must {
 
@@ -106,6 +106,76 @@ class NpsControllerSpec extends PlaySpec with Results with MockitoSugar {
 
       whenReady(result) { _ =>
         status(result) mustBe BAD_REQUEST
+      }
+    }
+
+    "return FORBIDDEN (403) for upliftCRN" in {
+
+      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+
+      when(mockNPSService.upliftCRN(any, any)(any))
+        .thenReturn(Future.successful(HttpResponse(FORBIDDEN, "Forbidden")))
+
+      val result = controller.upliftCRN(identifier)(fakeRequestWithAuth.withJsonBody(Json.toJson(crnUpliftRequest)))
+
+      whenReady(result) { _ =>
+        status(result) mustBe FORBIDDEN
+      }
+    }
+
+    "return UNPROCESSABLE ENTITY (422) for upliftCRN" in {
+
+      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+
+      when(mockNPSService.upliftCRN(any, any)(any))
+        .thenReturn(Future.successful(HttpResponse(UNPROCESSABLE_ENTITY, "Unprocessable Entity")))
+
+      val result = controller.upliftCRN(identifier)(fakeRequestWithAuth.withJsonBody(Json.toJson(crnUpliftRequest)))
+
+      whenReady(result) { _ =>
+        status(result) mustBe UNPROCESSABLE_ENTITY
+      }
+    }
+
+    "return NOT FOUND (404) for upliftCRN" in {
+
+      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+
+      when(mockNPSService.upliftCRN(any, any)(any))
+        .thenReturn(Future.successful(HttpResponse(NOT_FOUND, "Not Found")))
+
+      val result = controller.upliftCRN(identifier)(fakeRequestWithAuth.withJsonBody(Json.toJson(crnUpliftRequest)))
+
+      whenReady(result) { _ =>
+        status(result) mustBe NOT_FOUND
+      }
+    }
+
+    "return INTERNAL SERVER ERROR (400) for upliftCRN" in {
+
+      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+
+      when(mockNPSService.upliftCRN(any, any)(any))
+        .thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, "Internal Server Error")))
+
+      val result = controller.upliftCRN(identifier)(fakeRequestWithAuth.withJsonBody(Json.toJson(crnUpliftRequest)))
+
+      whenReady(result) { _ =>
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "return the same status and body as the service response when the status code is not explicitly handled" in {
+
+      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+
+      when(mockNPSService.upliftCRN(any, any)(any))
+        .thenReturn(Future.successful(HttpResponse(IM_A_TEAPOT, "Teapot")))
+
+      val result = controller.upliftCRN(identifier)(fakeRequestWithAuth.withJsonBody(Json.toJson(crnUpliftRequest)))
+
+      whenReady(result) { _ =>
+        status(result) mustBe IM_A_TEAPOT
       }
     }
   }
