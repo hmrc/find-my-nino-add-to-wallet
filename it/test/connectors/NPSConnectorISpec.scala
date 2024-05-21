@@ -23,6 +23,7 @@ import org.mockito.MockitoSugar
 import play.api.Application
 import play.api.libs.json.Json
 import play.api.test.{DefaultAwaitTimeout, Injecting}
+import services.AuditService
 import uk.gov.hmrc.http.client.HttpClientV2
 import util.{WireMockHelper, WiremockStub}
 
@@ -86,7 +87,8 @@ class NPSFMNConnectorSpec
     lazy val connector = {
       val httpClient2 = app.injector.instanceOf[HttpClientV2]
       val config = app.injector.instanceOf[AppConfig]
-      new NPSConnector(httpClient2, config)
+      val auditService = app.injector.instanceOf[AuditService]
+      new NPSConnector(httpClient2, config, auditService)
     }
   }
 
@@ -94,8 +96,6 @@ class NPSFMNConnectorSpec
 
     trait LocalSetup extends SpecSetup {
       def url(nino: String) = s"/nps/nps-json-service/nps/v1/api/individual/${nino}/adult-registration"
-
-      implicit val correlationId = CorrelationId(UUID.randomUUID())
       val body = mock[CRNUpliftRequest]
     }
 

@@ -21,18 +21,26 @@ import models.CorrelationId
 import models.nps.CRNUpliftRequest
 import play.api.Logging
 import play.api.http.MimeTypes
+import services.AuditService
 import uk.gov.hmrc.http.client.HttpClientV2
+
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+
 import java.net.URL
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import util.AuditUtils
 
 
-class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig) extends Logging {
+class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, auditService: AuditService)
+  extends Logging {
 
-  def upliftCRN(identifier: String, body: CRNUpliftRequest
+  def upliftCRN(identifier: String, request: CRNUpliftRequest
                )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+
+    val auditType: String = "CRNUplift"
+    val appName: String   = appConfig.appName
 
     val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$identifier/adult-registration"
 
@@ -45,10 +53,11 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig) e
 
     val httpResponse = httpClientV2
       .put(new URL(url))
-      .withBody(body)
+      .withBody(request)
       .setHeader(headers: _*)
       .execute[HttpResponse]
       .flatMap { response =>
+        auditService.audit(AuditUtils.crnUplift(url, request, response, auditType, appName))
         Future.successful(response)
       }
 
