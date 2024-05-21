@@ -65,12 +65,12 @@ object AuditUtils {
     )
   }
 
-  private def buildCrnUplift(identifier: String, upliftRequest: CRNUpliftRequest, upliftResponse: HttpResponse, journeyId: String):
+  private def buildCrnUplift(url: String, upliftRequest: CRNUpliftRequest, upliftResponse: HttpResponse, journeyId: String):
   CRNUpliftAuditEvent = {
     CRNUpliftAuditEvent(
       journeyId,
       timestamp(),
-      identifier,
+      url,
       upliftRequest,
       upliftResponse.status.toString,
       upliftResponse.body
