@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.nps.CRNUpliftRequest
+import models.nps.ChildRecordNumberUpliftRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar
@@ -83,7 +83,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return NO CONTENT (204) for upliftCRN" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(NO_CONTENT, "")))
@@ -97,7 +97,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return BAD REQUEST (400) for upliftCRN" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(BAD_REQUEST, "Bad Request")))
@@ -111,7 +111,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return FORBIDDEN (403) for upliftCRN" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(FORBIDDEN, "Forbidden")))
@@ -125,7 +125,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return UNPROCESSABLE ENTITY (422) for upliftCRN" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(UNPROCESSABLE_ENTITY, "Unprocessable Entity")))
@@ -139,7 +139,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return NOT FOUND (404) for upliftCRN" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(NOT_FOUND, "Not Found")))
@@ -153,7 +153,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return INTERNAL SERVER ERROR (400) for upliftCRN" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, "Internal Server Error")))
@@ -167,7 +167,7 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return the same status and body as the service response when the status code is not explicitly handled" in {
 
-      val crnUpliftRequest = CRNUpliftRequest("test", "test", "test")
+      val crnUpliftRequest = ChildRecordNumberUpliftRequest("test", "test", "test")
 
       when(mockNPSService.upliftCRN(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(IM_A_TEAPOT, "Teapot")))
