@@ -62,4 +62,14 @@ class AppConfig @Inject()(config: Configuration) {
   lazy val individualDetailsPort: String = config.get[String]("external-url.individual-details.port")
   val individualDetailsServiceUrl: String = s"$individualDetailsProtocol://$individualDetailsHost:$individualDetailsPort"
 
+  lazy val npsCrnCorrelationIdKey: String = config.get[String]("microservice.services.nps-crn-api.correlationId.key")
+  lazy val npsCrnOriginatorIdKey: String = config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.key")
+  lazy val npsCrnOriginatorIdValue: String = config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.value")
+
+  lazy val npsCrnProtocol: String = config.get[String]("microservice.services.nps-crn-api.protocol")
+  lazy val npsCrnHost: String = config.get[String]("microservice.services.nps-crn-api.host")
+  lazy val npsCrnPort: String = config.get[String]("microservice.services.nps-crn-api.port")
+  lazy val npsCrnToken: String = config.get[String]("microservice.services.nps-crn-api.token")
+  val npsCrnUrl: String = s"$npsCrnProtocol://$npsCrnHost:$npsCrnPort"
+
 }
