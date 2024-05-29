@@ -16,6 +16,7 @@
 
 package controllers
 
+import models.CorrelationId
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result, Results}
 import play.api.{Configuration, Environment, Logging}
 import services.IndividualDetailsService
@@ -45,19 +46,34 @@ class IndividualsDetailsController  @Inject()(authConnector: AuthConnector,
             logger.warn(s"User with NINO ${authContext.nino.value} is trying to access NINO $nino")
             Future(Results.Unauthorized("You are not authorised to access this resource"))
           }else {
-            individualDetailsService.getIndividualDetails(nino, resolveMerge).map(resultFromStatus)
+            individualDetailsService.getIndividualDetails(nino, resolveMerge).map { response =>
+              val headers = response.headers
+              val correlationIdHeader:String = headers.find(_._1 == "CorrelationId") match {
+                case Some((_, value)) => value(0)
+                case None =>
+                  logger.warn("CorrelationId not found in the response headers")
+                  ""
+              }
+              resultFromStatus(response, correlationIdHeader)
+            }
           }
         }
       }
   }
 
-  private def resultFromStatus(response: HttpResponse): Result = {
+  private def resultFromStatus(response: HttpResponse, correlationId: String): Result = {
     response.status match {
       case OK => Results.Ok(response.body)
       case BAD_REQUEST => Results.BadRequest(response.body)
       case UNAUTHORIZED => Results.Unauthorized(response.body)
-      case NOT_FOUND => Results.NotFound(response.body)
-      case INTERNAL_SERVER_ERROR => Results.InternalServerError(response.body)
+      case NOT_FOUND => {
+        logger.warn(s"Resource not found with correlationId: $correlationId")
+        Results.NotFound(response.body)
+      }
+      case INTERNAL_SERVER_ERROR => {
+        logger.warn(s"Internal server error with correlationId: $correlationId")
+        Results.InternalServerError(response.body)
+      }
       case NOT_IMPLEMENTED => Results.NotImplemented(response.body)
       case status => Results.Status(status)(response.body)
     }
