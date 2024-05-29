@@ -44,13 +44,14 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
     val childReferenceNumber: String = identifier.take(len)
     val auditType: String            = "ChildRecordNumberUplift"
     val appName: String              = appConfig.appName
+    val correlationId: String = CorrelationId.random.value.toString
 
     val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$childReferenceNumber/adult-registration"
 
     val headers = Seq(
       (play.api.http.HeaderNames.CONTENT_TYPE, MimeTypes.JSON),
       (play.api.http.HeaderNames.AUTHORIZATION, s"Basic ${appConfig.npsCrnToken}"),
-      (appConfig.npsCrnCorrelationIdKey, CorrelationId.random.value.toString),
+      (appConfig.npsCrnCorrelationIdKey, correlationId),
       (appConfig.npsCrnOriginatorIdKey, appConfig.npsCrnOriginatorIdValue)
     )
 
@@ -60,7 +61,7 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
       .setHeader(headers: _*)
       .execute[HttpResponse]
       .flatMap { response =>
-        auditService.audit(AuditUtils.childRecordNumberUplift(url, request, response, auditType, appName))
+        auditService.audit(AuditUtils.childRecordNumberUplift(url, request, response, auditType, appName, correlationId))
         Future.successful(response)
       }
 

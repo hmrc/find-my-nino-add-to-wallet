@@ -16,6 +16,7 @@
 
 package util
 
+import models.CorrelationId
 import models.nps.ChildRecordNumberUpliftRequest
 import play.api.libs.json.{JsValue, Json, OFormat}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
@@ -34,7 +35,8 @@ object AuditUtils {
                                                 url: String,
                                                 childRecordNumberUpliftRequest: ChildRecordNumberUpliftRequest,
                                                 childRecordNumberUpliftResponseStatus: String,
-                                                childRecordNumberUpliftResponseBody: String
+                                                childRecordNumberUpliftResponseBody: String,
+                                                correlationId: String
                                 )
 
   object ChildRecordNumberUpliftAuditEvent {
@@ -68,7 +70,8 @@ object AuditUtils {
   private def buildChildRecordNumberUplift(url: String,
                                            upliftRequest: ChildRecordNumberUpliftRequest,
                                            upliftResponse: HttpResponse,
-                                           journeyId: String):
+                                           journeyId: String,
+                                           correlationId: String):
   ChildRecordNumberUpliftAuditEvent = {
     ChildRecordNumberUpliftAuditEvent(
       journeyId,
@@ -76,7 +79,8 @@ object AuditUtils {
       url,
       upliftRequest,
       upliftResponse.status.toString,
-      upliftResponse.body
+      upliftResponse.body,
+      correlationId
     )
   }
 
@@ -87,9 +91,11 @@ object AuditUtils {
                               request: ChildRecordNumberUpliftRequest,
                               response: HttpResponse,
                               auditType: String,
-                              appName: String)(implicit hc: HeaderCarrier): ExtendedDataEvent = {
+                              appName: String,
+                              correlationId: String)
+                             (implicit hc: HeaderCarrier): ExtendedDataEvent = {
     buildDataEvent(auditType, s"$appName-$auditType",
-      Json.toJson(buildChildRecordNumberUplift(url, request, response, auditType)))
+      Json.toJson(buildChildRecordNumberUplift(url, request, response, auditType, correlationId)))
   }
 
 }
