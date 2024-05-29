@@ -44,7 +44,7 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
     val childReferenceNumber: String = identifier.take(len)
     val auditType: String            = "ChildRecordNumberUplift"
     val appName: String              = appConfig.appName
-    val correlationId: String = CorrelationId.random.value.toString
+    val correlationId: String        = CorrelationId.random.value.toString
 
     val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$childReferenceNumber/adult-registration"
 
