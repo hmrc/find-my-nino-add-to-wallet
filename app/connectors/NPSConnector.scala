@@ -39,10 +39,13 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
   def upliftCRN(identifier: String, request: ChildRecordNumberUpliftRequest
                )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
 
-    val auditType: String = "ChildRecordNumberUplift"
-    val appName: String   = appConfig.appName
+    val len: Int = 8
 
-    val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$identifier/adult-registration"
+    val childReferenceNumber: String = identifier.take(len)
+    val auditType: String            = "ChildRecordNumberUplift"
+    val appName: String              = appConfig.appName
+
+    val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$childReferenceNumber/adult-registration"
 
     val headers = Seq(
       (play.api.http.HeaderNames.CONTENT_TYPE, MimeTypes.JSON),
