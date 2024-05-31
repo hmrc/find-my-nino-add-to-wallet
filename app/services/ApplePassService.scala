@@ -37,7 +37,7 @@ class ApplePassService @Inject()(val config: AppConfig,
     } yield {
       ap match {
         case Some(applePass) => {
-          if (applePass.nino.replace(" ", "").equals(nino)) {
+          if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
             Some(applePass.applePassCard)
           } else {
             logger.warn("Pass NINO does not match session NINO")
@@ -56,7 +56,7 @@ class ApplePassService @Inject()(val config: AppConfig,
     } yield {
       aQrCode match {
         case Some(applePass) => {
-          if (applePass.nino.replace(" ", "").equals(nino)) {
+          if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
             Some(applePass.qrCode)
           } else {
             logger.warn("Pass NINO does not match session NINO")

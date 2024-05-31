@@ -37,7 +37,7 @@ class GooglePassService @Inject()(val config: AppConfig,
     } yield {
       gp match {
         case Some(googlePass) => {
-          if (googlePass.nino.replace(" ", "").equals(nino)) {
+          if (googlePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
             Some(googlePass.googlePassUrl)
           } else {
             logger.warn("Pass NINO does not match session NINO")
@@ -55,7 +55,7 @@ class GooglePassService @Inject()(val config: AppConfig,
     } yield {
       gqrCode match {
         case Some(googlePass) => {
-          if (googlePass.nino.replace(" ","").equals(nino)) {
+          if (googlePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
             Some(googlePass.qrCode)
           } else {
             logger.warn("Pass NINO does not match session NINO")
