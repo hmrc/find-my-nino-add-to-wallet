@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.nps.ChildRecordNumberUpliftRequest
+import models.nps.ChildReferenceNumberUpliftRequest
 import play.api.mvc._
 import play.api.{Configuration, Environment, Logging}
 import services.NPSService
@@ -38,7 +38,7 @@ class NPSController  @Inject()(authConnector: AuthConnector,
     implicit request =>
       authorisedAsFMNUser {
         _ => {
-          val upliftRequest: ChildRecordNumberUpliftRequest = request.body.asJson.get.as[ChildRecordNumberUpliftRequest]
+          val upliftRequest: ChildReferenceNumberUpliftRequest = request.body.asJson.get.as[ChildReferenceNumberUpliftRequest]
           for {
             httpResponse <- npsService.upliftCRN(identifier, upliftRequest)
           } yield httpResponse.status match {

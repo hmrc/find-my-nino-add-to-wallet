@@ -18,7 +18,7 @@ package services
 
 import connectors.NPSConnector
 import models.CorrelationId
-import models.nps.ChildRecordNumberUpliftRequest
+import models.nps.ChildReferenceNumberUpliftRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import play.api.Application
@@ -50,7 +50,7 @@ class NPSServiceSpec extends SpecBase{
     "return 204 response when CRN is uplifted successfully" in {
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val npsRequest = ChildRecordNumberUpliftRequest("test", "test", "01/01/1990")
+      val npsRequest = ChildReferenceNumberUpliftRequest("test", "test", "01/01/1990")
       val nino = "AA000003B"
 
       when(mockNPSConnector

@@ -18,7 +18,7 @@ package connectors
 
 import config.AppConfig
 import models.CorrelationId
-import models.nps.ChildRecordNumberUpliftRequest
+import models.nps.ChildReferenceNumberUpliftRequest
 import play.api.Logging
 import play.api.http.MimeTypes
 import services.AuditService
@@ -36,13 +36,13 @@ import util.AuditUtils
 class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, auditService: AuditService)
   extends Logging {
 
-  def upliftCRN(identifier: String, request: ChildRecordNumberUpliftRequest
+  def upliftCRN(identifier: String, request: ChildReferenceNumberUpliftRequest
                )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
 
     val len: Int = 8
 
     val childReferenceNumber: String = identifier.take(len)
-    val auditType: String            = "ChildRecordNumberUplift"
+    val auditType: String            = "ChildReferenceNumberUplift"
     val appName: String              = appConfig.appName
     val correlationId: String        = CorrelationId.random.value.toString
 
@@ -61,7 +61,7 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
       .setHeader(headers: _*)
       .execute[HttpResponse]
       .flatMap { response =>
-        auditService.audit(AuditUtils.childRecordNumberUplift(url, request, response, auditType, appName, correlationId))
+        auditService.audit(AuditUtils.childReferenceNumberUplift(url, request, response, auditType, appName, correlationId))
         Future.successful(response)
       }
 

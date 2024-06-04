@@ -20,13 +20,13 @@ import org.apache.commons.lang3.StringUtils
 import play.api.libs.json.{JsValue, Json, OFormat, Writes}
 import play.api.libs.ws.BodyWritable
 
-case class ChildRecordNumberUpliftRequest(firstForename: String, surname: String, dateOfBirth: String)
+case class ChildReferenceNumberUpliftRequest(firstForename: String, surname: String, dateOfBirth: String)
 
-object ChildRecordNumberUpliftRequest {
+object ChildReferenceNumberUpliftRequest {
 
-  def empty = ChildRecordNumberUpliftRequest(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY)
+  def empty = ChildReferenceNumberUpliftRequest(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY)
 
-  implicit val format: OFormat[ChildRecordNumberUpliftRequest] = Json.format[ChildRecordNumberUpliftRequest]
+  implicit val format: OFormat[ChildReferenceNumberUpliftRequest] = Json.format[ChildReferenceNumberUpliftRequest]
   implicit def jsonBodyWritable[T](implicit writes: Writes[T],
                                    jsValueBodyWritable: BodyWritable[JsValue]
                                   ): BodyWritable[T] = jsValueBodyWritable.map(writes.writes)

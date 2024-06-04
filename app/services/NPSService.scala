@@ -18,7 +18,7 @@ package services
 
 import connectors.NPSConnector
 import models.CorrelationId
-import models.nps.ChildRecordNumberUpliftRequest
+import models.nps.ChildReferenceNumberUpliftRequest
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import javax.inject.Inject
@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class NPSService @Inject()(connector: NPSConnector)(implicit ec: ExecutionContext) {
 
-  def upliftCRN(identifier: String, crnUpliftRequest: ChildRecordNumberUpliftRequest)
+  def upliftCRN(identifier: String, crnUpliftRequest: ChildReferenceNumberUpliftRequest)
                (implicit hc: HeaderCarrier): Future[HttpResponse] = {
     connector.upliftCRN(identifier, crnUpliftRequest)
   }

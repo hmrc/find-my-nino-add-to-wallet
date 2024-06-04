@@ -18,7 +18,7 @@ package connectors
 
 import config.AppConfig
 import models.CorrelationId
-import models.nps.ChildRecordNumberUpliftRequest
+import models.nps.ChildReferenceNumberUpliftRequest
 import org.mockito.MockitoSugar
 import play.api.Application
 import play.api.libs.json.Json
@@ -96,7 +96,7 @@ class NPSFMNConnectorSpec
 
     trait LocalSetup extends SpecSetup {
       def url(ninoWithoutSuffix: String) = s"/nps/nps-json-service/nps/v1/api/individual/${ninoWithoutSuffix}/adult-registration"
-      val body = mock[ChildRecordNumberUpliftRequest]
+      val body = mock[ChildReferenceNumberUpliftRequest]
     }
 
     "return 204 NO_CONTENT when called with a CRN" in new LocalSetup {
