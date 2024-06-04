@@ -17,7 +17,7 @@
 package util
 
 import models.CorrelationId
-import models.nps.ChildRecordNumberUpliftRequest
+import models.nps.ChildReferenceNumberUpliftRequest
 import play.api.libs.json.{JsValue, Json, OFormat}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
@@ -29,18 +29,18 @@ object AuditUtils {
 
   val auditSource = "find-my-nino-add-to-wallet"
 
-  case class ChildRecordNumberUpliftAuditEvent(
+  case class ChildReferenceNumberUpliftAuditEvent(
                                                 journeyId: String,
                                                 formCreationTimestamp: String,
                                                 url: String,
-                                                childRecordNumberUpliftRequest: ChildRecordNumberUpliftRequest,
-                                                childRecordNumberUpliftResponseStatus: String,
-                                                childRecordNumberUpliftResponseBody: String,
+                                                childReferenceNumberUpliftRequest: ChildReferenceNumberUpliftRequest,
+                                                childReferenceNumberUpliftResponseStatus: String,
+                                                childReferenceNumberUpliftResponseBody: String,
                                                 correlationId: String
                                 )
 
-  object ChildRecordNumberUpliftAuditEvent {
-    implicit val format: OFormat[ChildRecordNumberUpliftAuditEvent] = Json.format[ChildRecordNumberUpliftAuditEvent]
+  object ChildReferenceNumberUpliftAuditEvent {
+    implicit val format: OFormat[ChildReferenceNumberUpliftAuditEvent] = Json.format[ChildReferenceNumberUpliftAuditEvent]
   }
 
   private def getReferer(hc: HeaderCarrier): String = hc.otherHeaders.toMap.getOrElse("Referer", "")
@@ -67,13 +67,13 @@ object AuditUtils {
     )
   }
 
-  private def buildChildRecordNumberUplift(url: String,
-                                           upliftRequest: ChildRecordNumberUpliftRequest,
+  private def buildChildReferenceNumberUplift(url: String,
+                                           upliftRequest: ChildReferenceNumberUpliftRequest,
                                            upliftResponse: HttpResponse,
                                            journeyId: String,
                                            correlationId: String):
-  ChildRecordNumberUpliftAuditEvent = {
-    ChildRecordNumberUpliftAuditEvent(
+  ChildReferenceNumberUpliftAuditEvent = {
+    ChildReferenceNumberUpliftAuditEvent(
       journeyId,
       timestamp(),
       url,
@@ -87,15 +87,15 @@ object AuditUtils {
   private def timestamp(): String =
     java.time.Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)
 
-  def childRecordNumberUplift(url: String,
-                              request: ChildRecordNumberUpliftRequest,
-                              response: HttpResponse,
-                              auditType: String,
-                              appName: String,
-                              correlationId: String)
-                             (implicit hc: HeaderCarrier): ExtendedDataEvent = {
+  def childReferenceNumberUplift(url: String,
+                                 request: ChildReferenceNumberUpliftRequest,
+                                 response: HttpResponse,
+                                 auditType: String,
+                                 appName: String,
+                                 correlationId: String)
+                                (implicit hc: HeaderCarrier): ExtendedDataEvent = {
     buildDataEvent(auditType, s"$appName-$auditType",
-      Json.toJson(buildChildRecordNumberUplift(url, request, response, auditType, correlationId)))
+      Json.toJson(buildChildReferenceNumberUplift(url, request, response, auditType, correlationId)))
   }
 
 }
