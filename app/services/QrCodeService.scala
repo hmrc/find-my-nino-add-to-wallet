@@ -33,8 +33,10 @@ class QrCodeService @Inject()() {
 
   def createQRCode(qrText: String, imageSize: Int = DEFAULT_BARCODE_SIZE): Option[Array[Byte]] = {
     Try {
+      val margin = 4
       val hintMap = new Hashtable[EncodeHintType, Any]
       hintMap.put(EncodeHintType.CHARACTER_SET, UTF_8)
+      hintMap.put(EncodeHintType.MARGIN, margin)
       val qrCodeWriter = new QRCodeWriter
       val byteMatrix = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, imageSize, imageSize, hintMap)
 
@@ -65,6 +67,6 @@ class QrCodeService @Inject()() {
 
 object QrCodeService {
   val FILE_TYPE = "png"
-  val DEFAULT_BARCODE_SIZE = 150
+  val DEFAULT_BARCODE_SIZE = 200
   val UTF_8 = "utf-8"
 }
