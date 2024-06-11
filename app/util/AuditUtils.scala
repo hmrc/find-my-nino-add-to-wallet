@@ -33,9 +33,9 @@ object AuditUtils {
                                                 journeyId: String,
                                                 formCreationTimestamp: String,
                                                 url: String,
-                                                childReferenceNumberUpliftRequest: ChildReferenceNumberUpliftRequest,
-                                                childReferenceNumberUpliftResponseStatus: String,
-                                                childReferenceNumberUpliftResponseBody: String,
+                                                upliftRequest: ChildReferenceNumberUpliftRequest,
+                                                upliftResponseStatus: String,
+                                                upliftResponseBody: String,
                                                 correlationId: String
                                 )
 
