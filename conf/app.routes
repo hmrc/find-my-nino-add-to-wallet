@@ -8,7 +8,6 @@ GET         /get-google-pass-url                            controllers.GooglePa
 GET         /get-google-qr-code                             controllers.GooglePassController.getQrCodeByPassId(passId: String)
 POST        /create-google-pass-with-credentials            controllers.GooglePassController.createPassWithCredentials
 
-POST        /create-govuk-pass                              controllers.GovUKPassController.createGovUKPass
 
 GET         /individuals/details/NINO/:nino/:resolveMerge   controllers.IndividualsDetailsController.getIndividualDetails(nino: String, resolveMerge: String)
 PUT         /adult-registration/:identifier                 controllers.NPSController.upliftCRN(identifier: String)
