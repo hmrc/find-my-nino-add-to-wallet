@@ -33,7 +33,7 @@ import java.security.{KeyStore, PrivateKey, Security}
 import java.util
 import java.util.{Base64, Date}
 import javax.inject.Inject
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class SignatureService @Inject()() extends Logging {
 
@@ -116,14 +116,19 @@ class SignatureService @Inject()() extends Logging {
     keyStore.load(new ByteArrayInputStream(privateCertificate), password.toCharArray)
 
     val aliases = keyStore.aliases
-    val keyCertPair = Iterator.continually(Option(aliases.nextElement()).filter(_ => aliases.hasMoreElements))
-      .takeWhile(_.isDefined).flatten
-      .map(aliasName => (aliasName, keyStore.getKey(aliasName, password.toCharArray), keyStore.getCertificate(aliasName)))
-      .collectFirst {
-        case (_, key: PrivateKey, cert: X509Certificate) => (key, cert)
+    while (aliases.hasMoreElements) {
+      val aliasName = aliases.nextElement
+      val key = keyStore.getKey(aliasName, password.toCharArray)
+      if (key.isInstanceOf[PrivateKey]) {
+        val privateKey = key.asInstanceOf[PrivateKey]
+        val cert = keyStore.getCertificate(aliasName)
+        if (cert.isInstanceOf[X509Certificate]) {
+          val certificate = cert.asInstanceOf[X509Certificate]
+          return Success((privateKey, certificate))
+        }
       }
-
-    keyCertPair.getOrElse(throw new IllegalStateException("No valid key-certificate pair in the key store"))
+    }
+    throw new IllegalStateException("No valid key-certificate pair in the key store")
   }
 
 }

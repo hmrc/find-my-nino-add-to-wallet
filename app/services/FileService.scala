@@ -74,8 +74,7 @@ class FileService @Inject()() extends Logging {
 
   private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] = {
     Try {
-      // TODO is it okay to replace sha1() with sha256()?
-      val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha256().hashBytes(p.content).toString) }.toMap
+      val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha1().hashBytes(p.content).toString) }.toMap
       FileAsBytes(MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     } match {
       case Success(value) => Some(value)
