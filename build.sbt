@@ -25,7 +25,12 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageMinimumStmtTotal := 80,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions += "-Wconf:cat=unused-imports&src=routes/.*:s"
+      scalacOptions ++= Seq(
+      "-Wconf:cat=unused&src=.*routes.*:s",
+      "-unchecked",
+      "-deprecation",
+      "-Xfatal-warnings"
+    )
   )
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)

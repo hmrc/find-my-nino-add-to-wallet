@@ -16,14 +16,13 @@
 
 package util
 
-import models.CorrelationId
 import models.nps.ChildReferenceNumberUpliftRequest
 import play.api.libs.json.{JsValue, Json, OFormat}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneOffset}
+import java.time.ZoneOffset
 
 object AuditUtils {
 

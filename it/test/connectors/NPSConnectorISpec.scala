@@ -17,7 +17,6 @@
 package connectors
 
 import config.AppConfig
-import models.CorrelationId
 import models.nps.ChildReferenceNumberUpliftRequest
 import org.mockito.MockitoSugar
 import play.api.Application
@@ -26,8 +25,6 @@ import play.api.test.{DefaultAwaitTimeout, Injecting}
 import services.AuditService
 import uk.gov.hmrc.http.client.HttpClientV2
 import util.{WireMockHelper, WiremockStub}
-
-import java.util.UUID
 
 class NPSFMNConnectorSpec
   extends WiremockStub

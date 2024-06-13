@@ -120,6 +120,7 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
           verify(mockQrCodeService, times(1)).createQRCode(any(), any())
           verify(mockGooglePassRepository, times(1)).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any(), any())(any())
           uuid.length mustBe 36
+        case _ => fail("Expected Right")
       }
     }
   }

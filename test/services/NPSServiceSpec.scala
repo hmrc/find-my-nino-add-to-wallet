@@ -17,7 +17,6 @@
 package services
 
 import connectors.NPSConnector
-import models.CorrelationId
 import models.nps.ChildReferenceNumberUpliftRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -27,7 +26,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import play.api.inject.bind
 import util.SpecBase
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class NPSServiceSpec extends SpecBase{
 
