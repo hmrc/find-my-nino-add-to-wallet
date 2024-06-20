@@ -28,17 +28,15 @@ class IndividualDetailsService @Inject()(appConfig: AppConfig,
                                         )(
   implicit val ec:ExecutionContext) {
 
-  private val extraDesHeaders = Seq(
-    "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
-    "CorrelationId" -> CorrelationId.random.value.toString,
-    "Content-Type" -> "application/json",
-    "Environment" -> appConfig.individualDetailsEnvironment,
-    "OriginatorId" -> appConfig.individualDetailsOriginatorId
-  )
-  //val desHeaders:HeaderCarrier = hc.withExtraHeaders(extraDesHeaders: _*)
-
-
   def getIndividualDetails(nino:String, resolveMerge:String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+      val extraDesHeaders = Seq(
+        "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
+        "CorrelationId" -> CorrelationId.random.value.toString,
+        "Content-Type" -> "application/json",
+        "Environment" -> appConfig.individualDetailsEnvironment,
+        "OriginatorId" -> appConfig.individualDetailsOriginatorId
+      )
+
     val desHeaders:HeaderCarrier = hc.withExtraHeaders(extraDesHeaders: _*)
     individualDetailsConnector.getIndividualDetails(nino, resolveMerge, desHeaders)
   }
