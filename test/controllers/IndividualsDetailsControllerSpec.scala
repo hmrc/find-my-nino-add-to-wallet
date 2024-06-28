@@ -35,8 +35,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.{ExecutionContext, Future}
 
-
-
 class IndividualsDetailsControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()

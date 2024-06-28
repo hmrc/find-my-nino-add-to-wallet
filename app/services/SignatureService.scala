@@ -130,6 +130,7 @@ class SignatureService @Inject()() extends Logging {
     }
     throw new IllegalStateException("No valid key-certificate pair in the key store")
   }
+
 }
 
 object SignatureService {

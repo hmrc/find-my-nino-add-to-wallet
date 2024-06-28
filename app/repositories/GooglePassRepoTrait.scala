@@ -18,7 +18,6 @@ package repositories
 
 import models.google.GooglePass
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
 
 trait GooglePassRepoTrait {
   def insert(passId: String,

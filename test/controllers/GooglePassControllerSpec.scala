@@ -29,7 +29,7 @@ import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.GooglePassService
@@ -152,7 +152,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 object GooglePassControllerSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
   private val passId = UUID.randomUUID().toString
-  private val createPassRequest: JsObject = Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q")
 
   private val fakeRequestWithAuth = FakeRequest("GET", "/").withHeaders(
     ("Content-Type" -> "application/json"),

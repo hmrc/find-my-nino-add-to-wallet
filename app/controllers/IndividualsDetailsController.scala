@@ -16,9 +16,8 @@
 
 package controllers
 
-import models.CorrelationId
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result, Results}
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Configuration, Environment}
 import services.IndividualDetailsService
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}

@@ -28,7 +28,6 @@ import models.encryption.EncryptedApplePass
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
 
 @Singleton
 class EncryptedApplePassRepository @Inject()(

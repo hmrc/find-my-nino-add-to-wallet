@@ -18,7 +18,6 @@ package connectors
 
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
-import models.CorrelationId
 import play.api.Logging
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
@@ -31,7 +30,7 @@ class IndividualDetailsConnector @Inject()(
   appConfig:  AppConfig) extends Logging {
 
   def getIndividualDetails(nino: String, resolveMerge: String, desHeaders: HeaderCarrier
-                          )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+                          )(implicit ec: ExecutionContext): Future[HttpResponse] = {
     val url = s"${appConfig.individualDetailsServiceUrl}/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
     httpClient.GET[HttpResponse](url)(implicitly, desHeaders, implicitly)
   }

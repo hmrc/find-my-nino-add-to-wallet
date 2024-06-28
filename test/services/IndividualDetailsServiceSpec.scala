@@ -23,7 +23,6 @@ import org.mockito.MockitoSugar
 import org.scalatestplus.play._
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import org.mockito.ArgumentMatchers.{any, eq}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,7 +37,6 @@ class IndividualDetailsServiceSpec extends PlaySpec with MockitoSugar {
 
       val nino = "AB123456C"
       val resolveMerge = "true"
-      implicit val hc: HeaderCarrier = HeaderCarrier()
 
       when(mockConfig.individualDetailsToken).thenReturn("token")
       when(mockConfig.individualDetailsEnvironment).thenReturn("environment")
@@ -46,9 +44,10 @@ class IndividualDetailsServiceSpec extends PlaySpec with MockitoSugar {
 
       val expectedResponse = HttpResponse(OK, "response body")
       when(mockConnector.getIndividualDetails(org.mockito.ArgumentMatchers.eq(nino),
-        org.mockito.ArgumentMatchers.eq(resolveMerge), any[HeaderCarrier])(any[HeaderCarrier], any[ExecutionContext]))
+        org.mockito.ArgumentMatchers.eq(resolveMerge), any[HeaderCarrier])(any[ExecutionContext]))
         .thenReturn(Future.successful(expectedResponse))
 
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(service.getIndividualDetails(nino, resolveMerge))
 
       result mustBe expectedResponse

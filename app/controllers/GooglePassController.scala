@@ -58,7 +58,7 @@ class GooglePassController @Inject()(
       val keyAsStream = new ByteArrayInputStream(Base64.getDecoder.decode(appConfig.googleKey))
       val googleCredentials: GoogleCredentials = GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
 
-      Future(passService.createPassWithCredentials(passRequest.fullName, passRequest.nino, expirationDate.toString(), googleCredentials) match {
+      Future(passService.createPassWithCredentials(passRequest.fullName, passRequest.nino, expirationDate.toString, googleCredentials) match {
         case Right(value) => Ok(value)
         case Left(exp) => InternalServerError(Json.obj(
           "status" -> "500",

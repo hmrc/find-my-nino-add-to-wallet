@@ -17,7 +17,6 @@
 package services
 
 import connectors.NPSConnector
-import models.CorrelationId
 import models.nps.ChildReferenceNumberUpliftRequest
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 

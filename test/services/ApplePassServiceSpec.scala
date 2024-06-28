@@ -112,6 +112,8 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
         "AB 12 34 56 Q")
       eitherResult.isRight mustBe false
       eitherResult match {
+        case Right(_) =>
+          fail("Should not return an uuid when 'Create File in Bytes for Pass' has failed")
         case Left(exception: Exception) =>
           verify(mockFileService, never).createPkPassZipForPass(any(), any())
           verify(mockQrCodeService, never).createQRCode(any(), any())
@@ -132,6 +134,8 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       )
       eitherResult.isRight mustBe false
       eitherResult match {
+        case Right(_) =>
+          fail("Should not return an uuid when 'Create Signature' failed")
         case Left(exception: Exception) =>
           verify(mockFileService, never).createPkPassZipForPass(any(), any())
           verify(mockQrCodeService, never).createQRCode(any(), any())
@@ -165,6 +169,9 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
           verify(mockQrCodeService, times(1)).createQRCode(any(), any())
           verify(mockApplePassRepository, times(1)).insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
           uuid.length mustBe 36
+
+        case Left(_) =>
+          fail("Should return an uuid when success")
       }
     }
   }
