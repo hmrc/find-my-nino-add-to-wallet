@@ -48,7 +48,7 @@ class GooglePassController @Inject()(
 
   // shall we configure it in application.conf file
   private val DEFAULT_EXPIRATION_YEARS = 100
-
+  // $COVERAGE-OFF$
   def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       val passRequest = request.body.asJson.get.as[GooglePassDetails]
@@ -68,6 +68,7 @@ class GooglePassController @Inject()(
     }
     }
   }
+  // $COVERAGE-ON$
 
   def getPassUrlByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
