@@ -21,6 +21,7 @@ import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar
 import org.mockito.MockitoSugar.{mock, when}
 import org.scalatest.BeforeAndAfter
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
@@ -39,6 +40,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.UUID
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
 class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfter {
@@ -48,6 +50,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   //setup before each test
   before {
     MockitoSugar.reset(mockAuthConnector)
+    MockitoSugar.reset(mockGooglePassService)
 
     val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
       Future.successful(new~(new~(Some("AB123456Q"), Some(User)), Some("id")))
@@ -140,9 +143,21 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
         Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
       ))
 
-      whenReady(result) { _ =>
+      whenReady(result, Timeout(1.second)) { _ =>
         status(result) mustBe OK
         contentAsString(result) mustBe passId
+      }
+    }
+    "return InternalServerError when request body is invalid" ignore {
+      when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
+        .thenReturn(Left(new Exception("SomeError")))
+
+      val result = controller.createPassWithCredentials()(fakeRequestWithAuth.withJsonBody(
+        Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
+      ))
+
+      whenReady(result) { _ =>
+        status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
   }

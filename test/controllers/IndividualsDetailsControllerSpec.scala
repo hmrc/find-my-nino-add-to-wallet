@@ -78,7 +78,7 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
       val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
 
       when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-        .thenReturn(Future.successful(HttpResponse(200, "")))
+        .thenReturn(Future.successful(HttpResponse(OK, "")))
 
       val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
@@ -113,5 +113,58 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
       status(result) mustBe UNAUTHORIZED
     }
   }
-}
+  "return BAD_REQUEST for getIndividualDetails" in {
+    val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
 
+    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+      .thenReturn(Future.successful(HttpResponse(BAD_REQUEST, "")))
+
+    val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+    status(result) mustBe BAD_REQUEST
+  }
+  "return UNAUTHORIZED for getIndividualDetails" in {
+    val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+      .thenReturn(Future.successful(HttpResponse(UNAUTHORIZED, "")))
+
+    val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+    status(result) mustBe UNAUTHORIZED
+  }
+  "return NOT_FOUND for getIndividualDetails" in {
+    val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+      .thenReturn(Future.successful(HttpResponse(NOT_FOUND, "")))
+
+    val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+    status(result) mustBe NOT_FOUND
+  }
+  "return INTERNAL_SERVER_ERROR for getIndividualDetails" in {
+    val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+      .thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, "")))
+
+    val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+    status(result) mustBe INTERNAL_SERVER_ERROR
+  }
+  "return NOT_IMPLEMENTED for getIndividualDetails" in {
+    val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+      .thenReturn(Future.successful(HttpResponse(NOT_IMPLEMENTED, "")))
+
+    val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+    status(result) mustBe NOT_IMPLEMENTED
+  }
+  "return other status for getIndividualDetails" in {
+    val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+      .thenReturn(Future.successful(HttpResponse(IM_A_TEAPOT, "")))
+
+    val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+    status(result) mustBe IM_A_TEAPOT
+  }
+}
