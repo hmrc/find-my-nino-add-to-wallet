@@ -58,7 +58,7 @@ class ApplePassController @Inject()(
   def getPassCardByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       logger.debug(message = s"[Get Pass Card] $passId")
-      passService.getPassCardByPassIdAndNINO(passId,authContext.nino.value).map {
+      passService.getPassCardByPassIdAndNINO(passId,authContext.nino).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
         case _ => NotFound
       }
@@ -69,7 +69,7 @@ class ApplePassController @Inject()(
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
       logger.debug(message = s"[Get QR Code] $passId")
-      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino.value).map {
+      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
         case _ => NotFound
       }

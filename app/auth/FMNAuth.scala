@@ -16,7 +16,6 @@
 
 package auth
 
-import models.FMNIdentifier.NationalInsuranceNumber
 import play.api.Logging
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
@@ -30,20 +29,20 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 final case class AuthContext[A](
-                                 nino:       NationalInsuranceNumber,
+                                 nino: String,
                                  isUser:     Boolean,
                                  internalId: String,
                                  request:    Request[A]
                                )
 
 
-trait FMNAuth extends AuthorisedFunctions with Logging{
+trait FMNAuth extends AuthorisedFunctions with Logging {
   protected type FMNAction[A] = AuthContext[A] => Future[Result]
   val AuthPredicate = AuthProviders(GovernmentGateway)
   val FMNRetrievals = nino and credentialRole and internalId
 
   def authorisedAsFMNUser(body: FMNAction[Any])
-  (implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): Future[Result] = authorisedUser(body)
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): Future[Result] = authorisedUser(body)
 
   // $COVERAGE-OFF$
   def authorisedAsFMNUser(implicit
@@ -52,6 +51,7 @@ trait FMNAuth extends AuthorisedFunctions with Logging{
                          ): ActionBuilder[AuthContext, AnyContent] =
     new ActionBuilder[AuthContext, AnyContent] {
       override protected def executionContext: ExecutionContext = ec
+
       override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
 
       override def invokeBlock[A](request: Request[A], authContext: AuthContext[A] => Future[Result]): Future[Result] = {
@@ -69,7 +69,7 @@ trait FMNAuth extends AuthorisedFunctions with Logging{
     authorised(AuthPredicate)
       .retrieve(FMNRetrievals) {
         case Some(nino) ~ Some(User) ~ Some(internalId) =>
-          block(AuthContext(NationalInsuranceNumber(nino), isUser = true, internalId, request))
+          block(AuthContext(nino, isUser = true, internalId, request))
         case _ =>
           logger.warn("user was not authenticated with required credentials")
           Future successful Unauthorized
