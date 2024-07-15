@@ -5,7 +5,7 @@
 This repository is the backend for the Save your National Insurance number frontend service (find-my-nino-add-to-wallet-frontend).
 It provides the endpoints to create and retrieve the generated digital wallet card.
 
-This repository also fetches individual details from NPS and also integrates with NPS for the purpose of upgrading a CRN (Child Record Number) to a Nino.
+This repository also fetches individual details from NPS and also integrates with NPS for the purpose of upgrading a CRN (Child Reference Number) to a Nino.
 
 ## Endpoints
 There are total of 8 endpoints in use in the backend microservice:
