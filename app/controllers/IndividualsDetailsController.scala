@@ -41,8 +41,8 @@ class IndividualsDetailsController  @Inject()(authConnector: AuthConnector,
         authContext => {
           implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
           val ninoLengthWithoutSuffix = 8
-          if(authContext.nino.value.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
-            logger.warn(s"User with NINO ${authContext.nino.value} is trying to access NINO $nino")
+          if(authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
+            logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
             Future(Results.Unauthorized("You are not authorised to access this resource"))
           }else {
             individualDetailsService.getIndividualDetails(nino, resolveMerge).map(resultFromStatus)

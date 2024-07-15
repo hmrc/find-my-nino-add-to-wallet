@@ -72,7 +72,7 @@ class GooglePassController @Inject()(
 
   def getPassUrlByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      passService.getPassUrlByPassIdAndNINO(passId,authContext.nino.value).map {
+      passService.getPassUrlByPassIdAndNINO(passId,authContext.nino).map {
         case Some(data) => Ok(data)
         case _ => NotFound
       }
@@ -82,7 +82,7 @@ class GooglePassController @Inject()(
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext => {
-      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino.value).map {
+      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
         case _ => NotFound
       }
