@@ -22,7 +22,7 @@ lazy val microservice = Project(appName, file("."))
       ".*models.*;.*BuildInfo.*;.*Routes.*;.*javascript.*;.*GuiceInjector;.*AppConfig;.*Module;" +
       ".*ControllerConfiguration;.*AuditService.*;.*SignatureService.*;",
     ScoverageKeys.coverageExcludedPackages := "<empty>;target.*",
-    ScoverageKeys.coverageMinimumStmtTotal := 80,
+    ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
     scalacOptions += "-Wconf:cat=unused&src=.*routes/.*:s"
