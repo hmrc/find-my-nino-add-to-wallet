@@ -115,20 +115,21 @@ class SignatureService @Inject()() extends Logging {
     val keyStore = KeyStore.getInstance("PKCS12")
     keyStore.load(new ByteArrayInputStream(privateCertificate), password.toCharArray)
 
-    val aliases: util.Enumeration[String]              = keyStore.aliases
-    var done: Boolean                                  = false
+    val aliases: util.Enumeration[String] = keyStore.aliases
     var keyPair: Option[(PrivateKey, X509Certificate)] = None
 
-    while (aliases.hasMoreElements && !done) {
+    while (aliases.hasMoreElements && keyPair.isDefined) {
       val aliasName = aliases.nextElement
       val key = keyStore.getKey(aliasName, password.toCharArray)
       if (key.isInstanceOf[PrivateKey]) {
-        val privateKey = key.asInstanceOf[PrivateKey]
         val cert = keyStore.getCertificate(aliasName)
         if (cert.isInstanceOf[X509Certificate]) {
-          val certificate = cert.asInstanceOf[X509Certificate]
-          keyPair = Some((privateKey, certificate))
-          done = true
+          keyPair = Some(
+            (
+              key.asInstanceOf[PrivateKey],
+              cert.asInstanceOf[X509Certificate]
+            )
+          )
         }
       }
     }
