@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import javax.inject.Inject
+import scala.annotation.nowarn
 import scala.util.{Success, Try}
 
 case class FileAsBytes(filename: String, content: Array[Byte])
@@ -75,7 +76,8 @@ class FileService @Inject()() extends Logging {
   private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] = {
     Try {
       // If you must interoperate with a system that requires SHA-1, then use this method, despite its deprecation.
-      // As this is linked with Apple / Google integration we plan to use SHA1 as per current live processing.
+      // As this is linked with Apple / Google integration we plan to use SHA1 as per current live processing for interop.
+      @nowarn
       val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha1() .hashBytes(p.content).toString) }.toMap
       FileAsBytes(MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     } match {
