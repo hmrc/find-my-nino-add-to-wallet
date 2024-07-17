@@ -26,6 +26,7 @@ import org.bouncycastle.cms.{CMSProcessableByteArray, CMSSignedDataGenerator, CM
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
 import play.api.Logging
+import scala.util.Failure
 
 import java.io.ByteArrayInputStream
 import java.security.cert.X509Certificate
@@ -111,33 +112,23 @@ class SignatureService @Inject()() extends Logging {
     X509CertUtils.parse(publicCertificate)
   }
 
-  private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = Try {
+  private def isPrivateX509(keyStore: KeyStore, password: String)(alias: String) = {
+    for {
+      key <- Try(keyStore.getKey(alias, password.toCharArray).asInstanceOf[PrivateKey])
+      cert <- Try(keyStore.getCertificate(alias).asInstanceOf[X509Certificate])
+    } yield (key, cert)
+  }
+
+  private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = {
     val keyStore = KeyStore.getInstance("PKCS12")
     keyStore.load(new ByteArrayInputStream(privateCertificate), password.toCharArray)
 
-    val aliases: util.Enumeration[String] = keyStore.aliases
-    var keyPair: Option[(PrivateKey, X509Certificate)] = None
+    import scala.jdk.CollectionConverters._
 
-    while (aliases.hasMoreElements && keyPair.isDefined) {
-      val aliasName = aliases.nextElement
-      val key = keyStore.getKey(aliasName, password.toCharArray)
-      if (key.isInstanceOf[PrivateKey]) {
-        val cert = keyStore.getCertificate(aliasName)
-        if (cert.isInstanceOf[X509Certificate]) {
-          keyPair = Some(
-            (
-              key.asInstanceOf[PrivateKey],
-              cert.asInstanceOf[X509Certificate]
-            )
-          )
-        }
-      }
-    }
-
-    keyPair match {
-      case Some(pair) => pair
-      case None       => throw new IllegalStateException("No valid key-certificate pair in the key store")
-    }
+    keyStore.aliases().asScala.toSeq
+      .map(isPrivateX509(keyStore, password))
+      .find(_.isSuccess)
+      .getOrElse(Failure(new IllegalStateException("No valid key-certificate pair in the key store")))
   }
 }
 
