@@ -26,6 +26,7 @@ import org.bouncycastle.cms.{CMSProcessableByteArray, CMSSignedDataGenerator, CM
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
 import play.api.Logging
+import scala.util.Failure
 
 import java.io.ByteArrayInputStream
 import java.security.cert.X509Certificate
@@ -33,7 +34,7 @@ import java.security.{KeyStore, PrivateKey, Security}
 import java.util
 import java.util.{Base64, Date}
 import javax.inject.Inject
-import scala.util.{Success, Try}
+import scala.util.Try
 
 class SignatureService @Inject()() extends Logging {
 
@@ -111,26 +112,24 @@ class SignatureService @Inject()() extends Logging {
     X509CertUtils.parse(publicCertificate)
   }
 
-  private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = Try {
+  private def isPrivateX509(keyStore: KeyStore, password: String)(alias: String) = {
+    for {
+      key <- Try(keyStore.getKey(alias, password.toCharArray).asInstanceOf[PrivateKey])
+      cert <- Try(keyStore.getCertificate(alias).asInstanceOf[X509Certificate])
+    } yield (key, cert)
+  }
+
+  private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = {
     val keyStore = KeyStore.getInstance("PKCS12")
     keyStore.load(new ByteArrayInputStream(privateCertificate), password.toCharArray)
 
-    val aliases = keyStore.aliases
-    while (aliases.hasMoreElements) {
-      val aliasName = aliases.nextElement
-      val key = keyStore.getKey(aliasName, password.toCharArray)
-      if (key.isInstanceOf[PrivateKey]) {
-        val privateKey = key.asInstanceOf[PrivateKey]
-        val cert = keyStore.getCertificate(aliasName)
-        if (cert.isInstanceOf[X509Certificate]) {
-          val certificate = cert.asInstanceOf[X509Certificate]
-          return Success((privateKey, certificate))
-        }
-      }
-    }
-    throw new IllegalStateException("No valid key-certificate pair in the key store")
-  }
+    import scala.jdk.CollectionConverters._
 
+    keyStore.aliases().asScala.toSeq
+      .map(isPrivateX509(keyStore, password))
+      .find(_.isSuccess)
+      .getOrElse(Failure(new IllegalStateException("No valid key-certificate pair in the key store")))
+  }
 }
 
 object SignatureService {
