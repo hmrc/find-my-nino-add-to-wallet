@@ -11,3 +11,6 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
+
+GET        /test-only/check-certs     controllers.testOnly.CertificatesCheck.checkValidity
+GET        /test-only/check-certs2     controllers.testOnly.CertificatesCheck.checkValidity2
