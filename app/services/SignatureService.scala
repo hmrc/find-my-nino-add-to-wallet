@@ -26,15 +26,18 @@ import org.bouncycastle.cms.{CMSProcessableByteArray, CMSSignedDataGenerator, CM
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
 import play.api.Logging
-import scala.util.Failure
 
+import scala.util.{Failure, Success, Try}
 import java.io.ByteArrayInputStream
-import java.security.cert.X509Certificate
+import java.security.cert.{CertificateExpiredException, X509Certificate}
 import java.security.{KeyStore, PrivateKey, Security}
+import java.time.temporal.TemporalUnit
+import java.time.{Duration, Instant, LocalDate}
 import java.util
 import java.util.{Base64, Date}
 import javax.inject.Inject
-import scala.util.Try
+import scala.concurrent.duration
+import scala.concurrent.duration.DurationInt
 
 class SignatureService @Inject()() extends Logging {
 
