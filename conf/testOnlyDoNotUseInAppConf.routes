@@ -11,3 +11,6 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
+
+GET /find-my-nino-add-to-wallet/test-only/showCertificatesExpiry controllers.testOnly.CertificatesTestOnlyController.showExpiry
+
