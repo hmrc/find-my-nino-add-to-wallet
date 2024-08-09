@@ -36,8 +36,15 @@ class CertificatesTestOnlyController @Inject()(cc: MessagesControllerComponents,
 
     Future.successful(Ok(Html(
       s"""<html><body>
-         |apple WWDRCA expiry date: $appleWWDRCAExpiry<br>
+         |<p>
+         |apple WWDRCA expiry date: ${appleWWDRCAExpiry._1}<br>
+         |IssuerX500Principal: ${appleWWDRCAExpiry._2}<br>
+         |SubjectX500Principal: ${appleWWDRCAExpiry._3}<br>
+         |</p>
+         |
+         |<p>
          |private apple certificate expiry date: $privateCertificateExpiry<br>
+         |</p>
          |</body></html>"""".stripMargin)))
   }
 }

@@ -18,19 +18,25 @@ package util
 
 import com.nimbusds.jose.util.X509CertUtils
 import config.AppConfig
+import play.libs.F.Tuple
 
 import java.io.ByteArrayInputStream
 import java.security.{KeyStore, PrivateKey}
 import java.security.cert.X509Certificate
+import java.util
 import java.util.{Base64, Date}
 import javax.inject.Inject
+import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.{Failure, Success, Try}
 
 class CertificatesCheck @Inject()(config: AppConfig) {
-  def getAppleWWDRCAExpiryDate: Date = {
+  def getAppleWWDRCAExpiryDate: (Date, String, String) = {
     val decodedPublicCertificate = Base64.getDecoder.decode(config.appleWWDRCA)
     val appleCertificate = X509CertUtils.parse(decodedPublicCertificate)
-    appleCertificate.getNotAfter
+    (appleCertificate.getNotAfter,
+    appleCertificate.getIssuerX500Principal.getName,
+    appleCertificate.getSubjectX500Principal.getName)
   }
 
   def getPrivateCertificateExpiryDate: Date = {
