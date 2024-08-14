@@ -18,6 +18,7 @@ package controllers
 
 import models.apple.ApplePassDetails
 import play.api.libs.json.{Json, OFormat, Writes}
+import play.api.mvc.Results.InternalServerError
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
 import services.ApplePassService
@@ -44,13 +45,14 @@ class ApplePassController @Inject()(
       val passRequest = request.body.asJson.get.as[ApplePassDetails]
 
       logger.debug(message = s"[Create Pass Event]$passRequest")
-      Future(passService.createPass(passRequest.fullName, passRequest.nino) match {
-        case Right(value) => Ok(value)
-        case Left(exp) => InternalServerError(Json.obj(
-          "status" -> "500",
-          "message" -> exp.getMessage
-        ))
-      })
+      passService.createPass(passRequest.fullName, passRequest.nino).fold(
+        error =>
+          InternalServerError(Json.obj(
+            "status" -> "500",
+            "message" -> error.getMessage
+          )),
+          result => Ok(result)
+      )
     }
     }
   }

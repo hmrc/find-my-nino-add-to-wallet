@@ -18,28 +18,28 @@ package util
 
 import com.nimbusds.jose.util.X509CertUtils
 import config.AppConfig
-import play.libs.F.Tuple
 
 import java.io.ByteArrayInputStream
 import java.security.{KeyStore, PrivateKey}
 import java.security.cert.X509Certificate
-import java.util
 import java.util.{Base64, Date}
-import javax.inject.Inject
-import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
-import scala.jdk.CollectionConverters.CollectionHasAsScala
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class CertificatesCheck @Inject()(config: AppConfig) {
-  def getAppleWWDRCAExpiryDate: (Date, String, String) = {
-    val decodedPublicCertificate = Base64.getDecoder.decode(config.appleWWDRCA)
-    val appleCertificate = X509CertUtils.parse(decodedPublicCertificate)
-    (appleCertificate.getNotAfter,
-    appleCertificate.getIssuerX500Principal.getName,
-    appleCertificate.getSubjectX500Principal.getName)
+@Singleton
+class CertificatesCheck @Inject()(config: AppConfig)(implicit ec: ExecutionContext) {
+  def getAppleWWDRCADetails: Future[(Date, String, String)] = {
+    config.appleWWDRCA.map { appleWWDRCA =>
+      val decodedPublicCertificate = Base64.getDecoder.decode(appleWWDRCA)
+      val appleCertificate = X509CertUtils.parse(decodedPublicCertificate)
+      (appleCertificate.getNotAfter,
+        appleCertificate.getIssuerX500Principal.getName,
+        appleCertificate.getSubjectX500Principal.getName)
+    }
   }
 
-  def getPrivateCertificateExpiryDate: Date = {
+  def getPrivateCertificateDetails: Future[(Date, String, String)] = {
     def isPrivateX509(keyStore: KeyStore, password: String)(alias: String) = {
       for {
         key <- Try(keyStore.getKey(alias, password.toCharArray).asInstanceOf[PrivateKey])
@@ -47,19 +47,27 @@ class CertificatesCheck @Inject()(config: AppConfig) {
       } yield (key, cert)
     }
 
-    val keyStore = KeyStore.getInstance("PKCS12")
-    val decodedPrivateCertificate = Base64.getDecoder.decode(config.privateCertificate)
-    keyStore.load(new ByteArrayInputStream(decodedPrivateCertificate), config.privateCertificatePassword.toCharArray)
+    for {
+      privateCertificate <- config.privateCertificate
+      privateCertificatePassword <- config.privateCertificatePassword
+    } yield {
 
-    import scala.jdk.CollectionConverters._
+      val keyStore = KeyStore.getInstance("PKCS12")
+      val decodedPrivateCertificate = Base64.getDecoder.decode(privateCertificate)
+      keyStore.load(new ByteArrayInputStream(decodedPrivateCertificate), privateCertificatePassword.toCharArray)
 
-    keyStore.aliases().asScala.toSeq
-      .map(isPrivateX509(keyStore, config.privateCertificatePassword))
-      .find(_.isSuccess)
-      .getOrElse(Failure(new IllegalStateException("No valid key-certificate pair in the key store"))) match {
-      case Success((_, cert)) =>
-        cert.getNotAfter
-      case Failure(ex) => throw ex
+      import scala.jdk.CollectionConverters._
+
+      keyStore.aliases().asScala.toSeq
+        .map(isPrivateX509(keyStore, privateCertificatePassword))
+        .find(_.isSuccess)
+        .getOrElse(Failure(new IllegalStateException("No valid key-certificate pair in the key store"))) match {
+        case Success((_, cert)) =>
+          (cert.getNotAfter,
+            cert.getIssuerX500Principal.getName,
+            cert.getSubjectX500Principal.getName)
+        case Failure(ex) => throw ex
+      }
     }
   }
 }

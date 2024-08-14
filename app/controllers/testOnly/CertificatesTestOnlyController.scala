@@ -22,29 +22,31 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import util.CertificatesCheck
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CertificatesTestOnlyController @Inject()(cc: MessagesControllerComponents,
                                                certificatesCheck: CertificatesCheck
-                                              ) extends BackendController(cc) {
+                                              )( implicit ec: ExecutionContext)
+                                             extends BackendController(cc) {
 
 
   def showExpiry: Action[AnyContent] = Action.async {
-    val appleWWDRCAExpiry = certificatesCheck.getAppleWWDRCAExpiryDate
-    val privateCertificateExpiry = certificatesCheck.getPrivateCertificateExpiryDate
 
-    Future.successful(Ok(Html(
-      s"""<html><body>
-         |<p>
-         |apple WWDRCA expiry date: ${appleWWDRCAExpiry._1}<br>
-         |IssuerX500Principal: ${appleWWDRCAExpiry._2}<br>
-         |SubjectX500Principal: ${appleWWDRCAExpiry._3}<br>
-         |</p>
-         |
-         |<p>
-         |private apple certificate expiry date: $privateCertificateExpiry<br>
-         |</p>
-         |</body></html>"""".stripMargin)))
+    for {
+      appleWWDRCAExpiry <- certificatesCheck.getAppleWWDRCADetails
+      privateCertificateExpiry <- certificatesCheck.getPrivateCertificateDetails
+    } yield {
+      Ok(Html(
+        s"""
+           |apple WWDRCA expiry date: ${appleWWDRCAExpiry._1}
+           |IssuerX500Principal: ${appleWWDRCAExpiry._2}
+           |SubjectX500Principal: ${appleWWDRCAExpiry._3}
+           |
+           |private apple certificate expiry date: ${privateCertificateExpiry._1}
+           |IssuerX500Principal: ${privateCertificateExpiry._2}
+           |SubjectX500Principal: ${privateCertificateExpiry._3}
+           |"""".stripMargin))
+    }
   }
 }

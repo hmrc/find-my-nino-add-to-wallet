@@ -16,10 +16,12 @@
 
 package services
 
+import cats.data.EitherT
 import config.AppConfig
 import models.apple.ApplePassCard
 import play.api.Logging
 import repositories.ApplePassRepoTrait
+import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 
 import java.util.UUID
 import javax.inject._
@@ -68,29 +70,35 @@ class ApplePassService @Inject()(val config: AppConfig,
     }
   }
 
-  def createPass(name: String, nino: String)(implicit ec: ExecutionContext): Either[Exception, String] = {
+  def createPass(name: String, nino: String)(implicit ec: ExecutionContext): EitherT[Future, Exception, String] = EitherT {
     val uuid = UUID.randomUUID().toString
     val pass = ApplePassCard(name, nino, uuid)
 
     val passFilesInBytes = fileService.createFileBytesForPass(pass)
 
-    val signaturePassInBytes = signatureService.createSignatureForPass(
-      passFilesInBytes, config.privateCertificate, config.privateCertificatePassword, config.appleWWDRCA)
+    for {
+      privateCertificate <- config.privateCertificate
+      privateCertificatePassword <- config.privateCertificatePassword
+      appleWWDRCA <- config.appleWWDRCA
+    } yield {
+      val signaturePassInBytes = signatureService.createSignatureForPass(
+        passFilesInBytes, privateCertificate, privateCertificatePassword, appleWWDRCA)
 
-    if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
-      val passDataTuple = for {
-        pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
-        qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
-      } yield (pkPassByteArray, qrCodeByteArray)
-      passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
-      Right(uuid)
+      if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
+        val passDataTuple = for {
+          pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
+          qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
+        } yield (pkPassByteArray, qrCodeByteArray)
+        passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
+        Right(uuid)
 
-    } else {
-      logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
-        s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
-      )
-      Left(new Exception(s"Problem occurred while creating Apple Pass. "
-        + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"))
+      } else {
+        logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
+          s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
+        )
+        Left(new Exception(s"Problem occurred while creating Apple Pass. "
+          + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"))
+      }
     }
   }
 }
