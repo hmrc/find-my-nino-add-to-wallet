@@ -18,7 +18,6 @@ package controllers
 
 import models.apple.ApplePassDetails
 import play.api.libs.json.{Json, OFormat, Writes}
-import play.api.mvc.Results.InternalServerError
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
 import services.ApplePassService
@@ -26,7 +25,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
 class ApplePassController @Inject()(

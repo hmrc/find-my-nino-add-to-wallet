@@ -20,13 +20,11 @@ import com.nimbusds.jose.util.X509CertUtils
 import org.bouncycastle.asn1.cms.{AttributeTable, CMSAttributes}
 import org.bouncycastle.asn1.x509.Attribute
 import org.bouncycastle.asn1.{ASN1EncodableVector, DERSet, DERUTCTime}
-import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.jcajce.JcaCertStore
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder
 import org.bouncycastle.cms.{CMSProcessableByteArray, CMSSignedDataGenerator, CMSTypedData, DefaultSignedAttributeTableGenerator}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
-import org.bouncycastle.util.Store
 import play.api.Logging
 
 import scala.util.Failure

@@ -21,7 +21,6 @@ import config.AppConfig
 import models.apple.ApplePassCard
 import play.api.Logging
 import repositories.ApplePassRepoTrait
-import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 
 import java.util.UUID
 import javax.inject._

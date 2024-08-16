@@ -19,8 +19,7 @@ package services
 import config.AppConfig
 import models.apple.ApplePass
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
-import org.mockito.Mockito.reset
-import org.mockito.MockitoSugar.{mock, never, times, verify, when}
+import org.mockito.MockitoSugar.{reset, mock, never, times, verify, when}
 import repositories.ApplePassRepository
 import util.SpecBase
 
@@ -32,6 +31,7 @@ class ApplePassServiceSpec extends SpecBase {
   import ApplePassServiceSpec._
 
   override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockApplePassRepository, mockFileService, mockSignatureService, mockQrCodeService, mockAppConfig)
   }
 
