@@ -25,7 +25,11 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions += "-Wconf:cat=unused&src=.*routes/.*:s"
+    scalacOptions ++= Seq(
+      "-Wconf:cat=unused&src=.*routes/.*:s",
+      "-Wconf:cat=deprecation&msg=trait HttpClient in package http is deprecated \\(since 15.0.0\\).*:s",
+      "-Werror"
+    )
   )
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)

@@ -29,6 +29,7 @@ class Module(env: Environment, config: Configuration) extends AbstractModule {
 
   override def configure(): Unit = {
 
+    bind(classOf[ApplicationStartUp]).asEagerSingleton()
     bind(classOf[AppConfig]).asEagerSingleton()
     bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]).asEagerSingleton()
 
