@@ -26,8 +26,8 @@ import org.bouncycastle.cms.{CMSProcessableByteArray, CMSSignedDataGenerator, CM
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.jcajce.{JcaContentSignerBuilder, JcaDigestCalculatorProviderBuilder}
 import play.api.Logging
-import scala.util.Failure
 
+import scala.util.Failure
 import java.io.ByteArrayInputStream
 import java.security.cert.X509Certificate
 import java.security.{KeyStore, PrivateKey, Security}
@@ -48,13 +48,16 @@ class SignatureService @Inject()() extends Logging {
                              privateCertificatePassword: String,
                              appleWWDRCACertificate: String
                             ): FileAsBytes = {
+    // To create the signature file, make a PKCS #7 detached signature of the manifest file,
+    // using the private key associated with your signing certificate.
+    // Include the WWDR intermediate certificate as part of the signature.
 
     if (passContent.isEmpty) {
       FileAsBytes(SIGNATURE_FILE_NAME, Array.emptyByteArray)
     } else {
       val resultForCreateSignature = for {
         signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
-        processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content))
+        processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content)) // last is manifest
         signContent <- signManifestUsingContent(processableFileBytes, signInfo)
       } yield signContent
 
@@ -67,6 +70,7 @@ class SignatureService @Inject()() extends Logging {
       val signedDataGenerator = new CMSSignedDataGenerator
 
       // Sha1 Signer (We are using SHA1 to create Manifest file)
+      // https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW55
       val sha1Signer = new JcaContentSignerBuilder("SHA1withRSA")
         .setProvider(BouncyCastleProvider.PROVIDER_NAME)
         .build(signInfo.privateKey)

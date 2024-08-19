@@ -25,7 +25,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
 class ApplePassController @Inject()(
@@ -44,13 +44,14 @@ class ApplePassController @Inject()(
       val passRequest = request.body.asJson.get.as[ApplePassDetails]
 
       logger.debug(message = s"[Create Pass Event]$passRequest")
-      Future(passService.createPass(passRequest.fullName, passRequest.nino) match {
-        case Right(value) => Ok(value)
-        case Left(exp) => InternalServerError(Json.obj(
-          "status" -> "500",
-          "message" -> exp.getMessage
-        ))
-      })
+      passService.createPass(passRequest.fullName, passRequest.nino).fold(
+        error =>
+          InternalServerError(Json.obj(
+            "status" -> "500",
+            "message" -> error.getMessage
+          )),
+          result => Ok(result)
+      )
     }
     }
   }

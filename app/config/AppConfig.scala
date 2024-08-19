@@ -16,17 +16,41 @@
 
 package config
 
+import models.admin.ApplePassCertificates2
+
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
+import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AppConfig @Inject()(config: Configuration) {
+class AppConfig @Inject()(config: Configuration, featureFlagService: FeatureFlagService)(implicit ec: ExecutionContext) {
 
   val appName: String = config.get[String]("appName")
   val frontendServiceUrl: String = config.get[String]("frontendServiceUrl")
-  val appleWWDRCA: String = config.get[String]("applePass.appleWWDRCA")
-  val privateCertificate: String = config.get[String]("applePass.privateCertificate")
-  val privateCertificatePassword: String = config.get[String]("applePass.privateCertificatePassword")
+
+  private def appleCerts: Future[(String, String, String)] = {
+    featureFlagService.get(ApplePassCertificates2).map { featureFlag =>
+      if (featureFlag.isEnabled) {
+        (
+          config.get[String]("applePass.appleWWDRCA2"),
+          config.get[String]("applePass.privateCertificate2"),
+          config.get[String]("applePass.privateCertificatePassword2")
+        )
+      } else {
+        (
+          config.get[String]("applePass.appleWWDRCA"),
+          config.get[String]("applePass.privateCertificate"),
+          config.get[String]("applePass.privateCertificatePassword")
+        )
+      }
+    }
+  }
+  def appleWWDRCA: Future[String] = appleCerts.map(_._1)
+  def privateCertificate: Future[String] = appleCerts.map(_._2)
+  def privateCertificatePassword: Future[String] = appleCerts.map(_._3)
+
   val googleIssuerId: String = config.get[String]("googlePass.issuerId")
   val googleKey: String = config.get[String]("googlePass.key")
   val googleJWTExpiry: Int = config.get[Int]("googlePass.expiry")

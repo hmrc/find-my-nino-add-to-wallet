@@ -19,21 +19,19 @@ package services
 import config.AppConfig
 import models.apple.ApplePass
 import org.mockito.ArgumentMatchers.{any, anyString, eq => eqTo}
-import org.mockito.MockitoSugar
-import org.mockito.MockitoSugar.mock
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AsyncWordSpec
+import org.mockito.MockitoSugar.{reset, mock, never, times, verify, when}
 import repositories.ApplePassRepository
+import util.SpecBase
 
 import java.time.Instant
 import scala.concurrent.Future
 
-class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class ApplePassServiceSpec extends SpecBase {
 
   import ApplePassServiceSpec._
 
   override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockApplePassRepository, mockFileService, mockSignatureService, mockQrCodeService, mockAppConfig)
   }
 
@@ -108,8 +106,18 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(blankFileAsBytes)
 
+      when(mockAppConfig.privateCertificate).thenReturn(
+        Future.successful("")
+      )
+      when(mockAppConfig.appleWWDRCA).thenReturn(
+        Future.successful("")
+      )
+      when(mockAppConfig.privateCertificatePassword).thenReturn(
+        Future.successful("")
+      )
+
       val eitherResult = applePassService.createPass("TestName TestSurname",
-        "AB 12 34 56 Q")
+        "AB 12 34 56 Q").value.futureValue
       eitherResult.isRight mustBe false
       eitherResult match {
         case Right(_) =>
@@ -129,9 +137,19 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(blankFileAsBytes)
 
+      when(mockAppConfig.privateCertificate).thenReturn(
+        Future.successful("")
+      )
+      when(mockAppConfig.appleWWDRCA).thenReturn(
+        Future.successful("")
+      )
+      when(mockAppConfig.privateCertificatePassword).thenReturn(
+        Future.successful("")
+      )
+
       val eitherResult = applePassService.createPass("TestName TestSurname",
         "AB 12 34 56 Q"
-      )
+      ).value.futureValue
       eitherResult.isRight mustBe false
       eitherResult match {
         case Right(_) =>
@@ -157,10 +175,21 @@ class ApplePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar
       when(mockFileService.createPkPassZipForPass(any(), any()))
         .thenReturn(Some("SomeZipFile".getBytes()))
 
+      when(mockAppConfig.privateCertificate).thenReturn(
+        Future.successful("")
+      )
+
+      when(mockAppConfig.appleWWDRCA).thenReturn(
+        Future.successful("")
+      )
+      when(mockAppConfig.privateCertificatePassword).thenReturn(
+        Future.successful("")
+      )
+
       val eitherResult = applePassService.createPass(
         "TestName TestSurname",
         "AB 12 34 56 Q"
-      )
+      ).value.futureValue
 
       eitherResult.isLeft mustBe false
       eitherResult match {

@@ -16,6 +16,8 @@
 
 package controllers
 
+import cats.data.EitherT
+import cats.implicits._
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar
@@ -39,6 +41,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.UUID
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfter {
@@ -62,7 +65,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   "createPass" must {
     "return OK with the uuid of the pass" in {
       when(mockApplePassService.createPass(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"))(any()))
-        .thenReturn(Right(passId))
+        .thenReturn(EitherT.rightT[Future, Exception](passId))
 
       val result = controller.createPass()(fakeRequestWithAuth.withJsonBody(createPassRequest))
 
@@ -82,7 +85,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
     "return InternalServerError when there is an error in creating pass" in {
       when(mockApplePassService.createPass(eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"))(any()))
-        .thenReturn(Left(new Exception("SomeError")))
+        .thenReturn(EitherT.leftT[Future, String](new Exception("SomeError")))
 
       val result = controller.createPass()(fakeRequestWithAuth.withJsonBody(createPassRequest))
 
