@@ -1,3 +1,4 @@
 # Add all the application routes to the app.routes file
-->         /find-my-nino-add-to-wallet              app.Routes
-->         /                          health.Routes
+->         /find-my-nino-add-to-wallet       app.Routes
+->         /                                 health.Routes
+->         /admin                            admin.Routes
