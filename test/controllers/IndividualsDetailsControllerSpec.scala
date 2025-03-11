@@ -90,6 +90,28 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     }
 
+    "return OK for getIndividualDetails when trusted helper user calls using helpee nino" in {
+
+      val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+      val trustedHelper = TrustedHelper("PrincipalName", "AttorneyName", "ReturnLink", Some("PrincipalNino"))
+
+      val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
+        Future.successful(new~(new~(new~(Some(testNino), Some(User)), Some("id")), Some(trustedHelper)))
+
+      when(
+        mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
+          any[Predicate],
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(retrievalResult)
+
+      when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
+        .thenReturn(Future.successful(HttpResponse(OK, "")))
+
+      val result: Future[Result] = controller.getIndividualDetails(trustedHelper.principalNino.get, resolveMerge).apply(FakeRequest())
+      status(result) mustBe OK
+
+    }
+
     "return Unauthorized for getIndividualDetails when user is not authorized" in {
 
       val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
