@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, internalId, nino}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, internalId, nino, trustedHelper}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisationException, AuthorisedFunctions, User}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -39,7 +39,7 @@ final case class AuthContext[A](
 trait FMNAuth extends AuthorisedFunctions with Logging {
   protected type FMNAction[A] = AuthContext[A] => Future[Result]
   val AuthPredicate = AuthProviders(GovernmentGateway)
-  val FMNRetrievals = nino and credentialRole and internalId
+  val FMNRetrievals = nino and credentialRole and internalId and trustedHelper
 
   def authorisedAsFMNUser(body: FMNAction[Any])
                          (implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): Future[Result] = authorisedUser(body)
@@ -68,7 +68,9 @@ trait FMNAuth extends AuthorisedFunctions with Logging {
                                )(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[A]): Future[Result] = {
     authorised(AuthPredicate)
       .retrieve(FMNRetrievals) {
-        case Some(nino) ~ Some(User) ~ Some(internalId) =>
+        case Some(_) ~ Some(User) ~ Some(internalId) ~ Some(trustedHelper) =>
+          block(AuthContext(trustedHelper.principalNino.get, isUser = true, internalId, request))
+        case Some(nino) ~ Some(User) ~ Some(internalId) ~ None =>
           block(AuthContext(nino, isUser = true, internalId, request))
         case _ =>
           logger.warn("user was not authenticated with required credentials")

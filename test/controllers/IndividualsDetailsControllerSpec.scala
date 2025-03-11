@@ -16,10 +16,10 @@
 
 package controllers
 
-
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play._
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -30,12 +30,14 @@ import play.api.{Application, Configuration, Environment}
 import services.IndividualDetailsService
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualsDetailsControllerSpec extends PlaySpec with Results with MockitoSugar {
+class IndividualsDetailsControllerSpec extends PlaySpec with Results with MockitoSugar with BeforeAndAfterEach {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val ec: ExecutionContext = global
@@ -52,14 +54,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
   val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(stubControllerComponents().parsers.defaultBodyParser)
   when(cc.actionBuilder).thenReturn(actionBuilder)
 
-  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new ~(new ~(Some(testNino), Some(User)), Some("id")))
-
-  when(
-    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
-      eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
-    .thenReturn(retrievalResult)
+  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
+    Future.successful(new~(new~(new~(Some(testNino), Some(User)), Some("id")), None))
 
   val modules: Seq[GuiceableModule] =
     Seq(
@@ -70,6 +66,15 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
   val application: Application = new GuiceApplicationBuilder()
     .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
     overrides(modules: _*).build()
+
+  override def beforeEach(): Unit = {
+    reset(mockAuthConnector)
+    when(
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
+        any[Predicate],
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
+      .thenReturn(retrievalResult)
+  }
 
   "IndividualsDetailsController" must {
 

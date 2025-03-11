@@ -4,7 +4,7 @@ object AppDependencies {
 
   private val mongoToggleVersion = "1.6.0"
   private val playVersion = "play-30"
-  private val bootstrapVersion = "9.0.0"
+  private val bootstrapVersion = "9.11.0"
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"             %% s"bootstrap-backend-$playVersion"      % bootstrapVersion,
