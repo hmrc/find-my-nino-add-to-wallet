@@ -36,6 +36,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ApplePassService
 import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -51,13 +52,13 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   before {
     MockitoSugar.reset(mockAuthConnector)
 
-    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-      Future.successful(new~(new~(Some("AB123456Q"), Some(User)), Some("id")))
+    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
+      Future.successful(new~(new~(new~(Some("AB123456Q"), Some(User)), Some("id")), None))
 
     when(
-      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
         any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
       .thenReturn(retrievalResult)
   }
 
