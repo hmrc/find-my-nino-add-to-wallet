@@ -21,8 +21,8 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualDetailsService @Inject() (individualDetailsConnector: IndividualDetailsConnector)(
-  implicit val ec: ExecutionContext
+class IndividualDetailsService @Inject() (individualDetailsConnector: IndividualDetailsConnector)(implicit
+  val ec: ExecutionContext
 ) {
 
   def getIndividualDetails(nino: String, resolveMerge: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
