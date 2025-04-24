@@ -3,8 +3,8 @@ import uk.gov.hmrc.DefaultBuildSettings
 
 val appName = "find-my-nino-add-to-wallet"
 
-ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / majorVersion := 1
+ThisBuild / scalaVersion := "3.3.5"
 
 addCommandAlias("report", ";clean; coverage; test; it/test; coverageReport")
 
@@ -26,9 +26,16 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
     scalacOptions ++= Seq(
-      "-Wconf:cat=unused&src=.*routes/.*:s",
-      "-Wconf:cat=deprecation&msg=trait HttpClient in package http is deprecated \\(since 15.0.0\\).*:s",
-      "-Werror"
+      "-Werror",
+      "-unchecked",
+      "-feature",
+      "-language:noAutoTupling",
+      "-Wvalue-discard",
+      "-Wconf:msg=unused&src=.*routes/.*:s",
+      "-Wconf:msg=unused&src=.*RoutesPrefix\\.scala:s",
+      "-Wconf:msg=unused&src=.*Routes\\.scala:s",
+      "-Wconf:msg=unused&src=.*ReverseRoutes\\.scala:s",
+      "-Wconf:msg=Flag.*repeatedly:s"
     )
   )
   .settings(resolvers += Resolver.jcenterRepo)
