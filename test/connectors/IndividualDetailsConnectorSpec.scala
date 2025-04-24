@@ -31,11 +31,11 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
   "IndividualDetailsConnector" should {
 
     "return the expected result from getIndividualDetails" in {
-      val mockHttpClient = mock[HttpClient]
-      val mockConfig = mock[AppConfig]
-      val connector = new IndividualDetailsConnector(mockHttpClient, mockConfig)
-      val nino = "AB123456C"
-      val resolveMerge = "Y"
+      val mockHttpClient   = mock[HttpClient]
+      val mockConfig       = mock[AppConfig]
+      val connector        = new IndividualDetailsConnector(mockHttpClient, mockConfig)
+      val nino             = "AB123456C"
+      val resolveMerge     = "Y"
       val expectedResponse = HttpResponse(OK, "response body")
 
       implicit val hc: HeaderCarrier = HeaderCarrier()

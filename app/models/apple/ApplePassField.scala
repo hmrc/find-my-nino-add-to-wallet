@@ -16,4 +16,9 @@
 
 package models.apple
 
-case class ApplePassField(key: String, label: Option[String], value: String, textAlignment: String = "PKTextAlignmentLeft")
+case class ApplePassField(
+  key: String,
+  label: Option[String],
+  value: String,
+  textAlignment: String = "PKTextAlignmentLeft"
+)

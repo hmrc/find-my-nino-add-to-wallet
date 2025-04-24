@@ -23,21 +23,20 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualDetailsService @Inject()(appConfig: AppConfig,
-                                         individualDetailsConnector: IndividualDetailsConnector
-                                        )(
-  implicit val ec:ExecutionContext) {
+class IndividualDetailsService @Inject() (appConfig: AppConfig, individualDetailsConnector: IndividualDetailsConnector)(
+  implicit val ec: ExecutionContext
+) {
 
-  def getIndividualDetails(nino:String, resolveMerge:String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-      val extraDesHeaders = Seq(
-        "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
-        "CorrelationId" -> CorrelationId.random.value.toString,
-        "Content-Type" -> "application/json",
-        "Environment" -> appConfig.individualDetailsEnvironment,
-        "OriginatorId" -> appConfig.individualDetailsOriginatorId
-      )
+  def getIndividualDetails(nino: String, resolveMerge: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    val extraDesHeaders = Seq(
+      "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
+      "CorrelationId" -> CorrelationId.random.value.toString,
+      "Content-Type"  -> "application/json",
+      "Environment"   -> appConfig.individualDetailsEnvironment,
+      "OriginatorId"  -> appConfig.individualDetailsOriginatorId
+    )
 
-    val desHeaders:HeaderCarrier = hc.withExtraHeaders(extraDesHeaders: _*)
+    val desHeaders: HeaderCarrier = hc.withExtraHeaders(extraDesHeaders: _*)
     individualDetailsConnector.getIndividualDetails(nino, resolveMerge, desHeaders)
   }
 

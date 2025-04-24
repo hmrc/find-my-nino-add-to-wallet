@@ -21,19 +21,26 @@ import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJavatimeFor
 
 import java.time.Instant
 
-case class ApplePass(passId: String,
-                     fullName: String,
-                     nino: String,
-                     applePassCard: Array[Byte],
-                     qrCode: Array[Byte],
-                     lastUpdated: Instant)
+case class ApplePass(
+  passId: String,
+  fullName: String,
+  nino: String,
+  applePassCard: Array[Byte],
+  qrCode: Array[Byte],
+  lastUpdated: Instant
+)
 
 object ApplePass {
-  def apply(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte]): ApplePass = {
+  def apply(
+    passId: String,
+    fullName: String,
+    nino: String,
+    applePassCard: Array[Byte],
+    qrCode: Array[Byte]
+  ): ApplePass =
     ApplePass(passId, fullName, nino, applePassCard, qrCode, Instant.now)
-  }
 
-  implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+  implicit val dateFormat: Format[Instant]      = MongoJavatimeFormats.instantFormat
   implicit val arrayFormat: Format[Array[Byte]] = MongoBinaryFormats.byteArrayFormat
-  implicit val mongoFormat: Format[ApplePass] = Json.format[ApplePass]
+  implicit val mongoFormat: Format[ApplePass]   = Json.format[ApplePass]
 }

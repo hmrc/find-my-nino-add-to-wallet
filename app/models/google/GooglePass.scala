@@ -21,20 +21,28 @@ import uk.gov.hmrc.mongo.play.json.formats.{MongoBinaryFormats, MongoJavatimeFor
 
 import java.time.Instant
 
-case class GooglePass(passId: String,
-                      fullName: String,
-                      nino: String,
-                      expirationDate: String,
-                      googlePassUrl: String,
-                      qrCode: Array[Byte],
-                      lastUpdated: Instant)
+case class GooglePass(
+  passId: String,
+  fullName: String,
+  nino: String,
+  expirationDate: String,
+  googlePassUrl: String,
+  qrCode: Array[Byte],
+  lastUpdated: Instant
+)
 
 object GooglePass {
-  def apply(passId: String, fullName: String, nino: String, expirationDate: String, googlePassUrl: String, qrCode: Array[Byte]): GooglePass = {
+  def apply(
+    passId: String,
+    fullName: String,
+    nino: String,
+    expirationDate: String,
+    googlePassUrl: String,
+    qrCode: Array[Byte]
+  ): GooglePass =
     GooglePass(passId, fullName, nino, expirationDate: String, googlePassUrl, qrCode, Instant.now)
-  }
 
-  implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+  implicit val dateFormat: Format[Instant]      = MongoJavatimeFormats.instantFormat
   implicit val arrayFormat: Format[Array[Byte]] = MongoBinaryFormats.byteArrayFormat
-  implicit val mongoFormat: Format[GooglePass] = Json.format[GooglePass]
+  implicit val mongoFormat: Format[GooglePass]  = Json.format[GooglePass]
 }

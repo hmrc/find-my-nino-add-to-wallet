@@ -20,12 +20,9 @@ import models.apple.ApplePass
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ApplePassRepoTrait {
-  def insert(passId: String,
-             fullName: String,
-             nino: String,
-             applePassCard: Array[Byte],
-             qrCode: Array[Byte])
-            (implicit ec: ExecutionContext): Future[Unit]
+  def insert(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte])(implicit
+    ec: ExecutionContext
+  ): Future[Unit]
 
   def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]]
 }

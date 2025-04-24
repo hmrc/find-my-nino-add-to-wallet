@@ -48,24 +48,26 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
   import GooglePassControllerSpec._
 
-  //setup before each test
+  // setup before each test
   before {
     MockitoSugar.reset(mockAuthConnector)
     MockitoSugar.reset(mockGooglePassService)
 
     val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-      Future.successful(new~(new~(new~(Some("AB123456Q"), Some(User)), Some("id")), None))
+      Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), None))
 
     when(
       mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
         any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+      )(any[HeaderCarrier], any[ExecutionContext])
+    )
       .thenReturn(retrievalResult)
   }
 
   "getPassCardByPassId" must {
     "return OK with the byte data of pass" in {
-      when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
+      when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomePassCodeData")))
 
       val result = controller.getPassUrlByPassId(passId)(fakeRequestWithAuth)
@@ -77,7 +79,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "return NotFound when there is no record for given passId" in {
-      when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
+      when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getPassUrlByPassId(passId)(fakeRequestWithAuth)
@@ -90,7 +92,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
   "getQrCodeByPassId" must {
     "return OK with the byte data of qr code" in {
-      when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
+      when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomeQrCodeData".getBytes())))
 
       val result = controller.getQrCodeByPassId(passId)(fakeRequestWithAuth)
@@ -101,16 +103,17 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
 
-
     "return Unauthorised with when the session NINO does not match Pass NINO" in {
 
       val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-        Future.successful(new~(new~(Some("AB123456N"), Some(User)), Some("id")))
+        Future.successful(new ~(new ~(Some("AB123456N"), Some(User)), Some("id")))
 
       when(
         mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
           any[Predicate],
-          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+        )(any[HeaderCarrier], any[ExecutionContext])
+      )
         .thenReturn(retrievalResult)
 
       when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
@@ -124,7 +127,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "return NotFound when there is no record for given passId" in {
-      when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId),eqTo("AB123456Q"))(any()))
+      when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(None))
 
       val result = controller.getQrCodeByPassId(passId)(fakeRequestWithAuth)
@@ -140,9 +143,11 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
         .thenReturn(Right(passId))
 
-      val result = controller.createPassWithCredentials()(fakeRequestWithAuth.withJsonBody(
-        Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
-      ))
+      val result = controller.createPassWithCredentials()(
+        fakeRequestWithAuth.withJsonBody(
+          Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
+        )
+      )
 
       whenReady(result, Timeout(1.second)) { _ =>
         status(result) mustBe OK
@@ -153,9 +158,11 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
         .thenReturn(Left(new Exception("SomeError")))
 
-      val result = controller.createPassWithCredentials()(fakeRequestWithAuth.withJsonBody(
-        Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
-      ))
+      val result = controller.createPassWithCredentials()(
+        fakeRequestWithAuth.withJsonBody(
+          Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
+        )
+      )
 
       whenReady(result) { _ =>
         status(result) mustBe INTERNAL_SERVER_ERROR
@@ -167,35 +174,35 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
 object GooglePassControllerSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
-  private val passId = UUID.randomUUID().toString
+  private val passId             = UUID.randomUUID().toString
 
-  private val fakeRequestWithAuth = FakeRequest("GET", "/").withHeaders(
-    ("Content-Type" -> "application/json"),
-    ("Authorization" -> "Bearer 123"))
+  private val fakeRequestWithAuth =
+    FakeRequest("GET", "/").withHeaders("Content-Type" -> "application/json", "Authorization" -> "Bearer 123")
 
   private val mockGooglePassService = mock[GooglePassService]
-  private val mockAuthConnector = mock[AuthConnector]
+  private val mockAuthConnector     = mock[AuthConnector]
 
   val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new~(new~(Some("AB123456Q"), Some(User)), Some("id")))
+    Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
 
   when(
     mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
       any[Predicate],
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+    )(any[HeaderCarrier], any[ExecutionContext])
+  )
     .thenReturn(retrievalResult)
-
 
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[GooglePassService].toInstance(mockGooglePassService),
-      bind[AuthConnector].toInstance(mockAuthConnector),
+      bind[AuthConnector].toInstance(mockAuthConnector)
     )
 
   val application: Application = new GuiceApplicationBuilder()
-    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
-    overrides(modules: _*).build()
-  private val controller = application.injector.instanceOf[GooglePassController]
+    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false)
+    .overrides(modules: _*)
+    .build()
+  private val controller       = application.injector.instanceOf[GooglePassController]
 
 }
-

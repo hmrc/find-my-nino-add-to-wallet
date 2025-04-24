@@ -25,33 +25,32 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class EncryptedGooglePass(passId: String,
-                               fullName: EncryptedValue,
-                               nino: EncryptedValue,
-                               expirationDate: EncryptedValue,
-                               googlePassUrl: EncryptedValue,
-                               qrCode: EncryptedValue,
-                               lastUpdated: Instant)
+case class EncryptedGooglePass(
+  passId: String,
+  fullName: EncryptedValue,
+  nino: EncryptedValue,
+  expirationDate: EncryptedValue,
+  googlePassUrl: EncryptedValue,
+  qrCode: EncryptedValue,
+  lastUpdated: Instant
+)
 
 object EncryptedGooglePass {
 
   implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
-  val encryptedFormat: OFormat[EncryptedGooglePass] = {
+  val encryptedFormat: OFormat[EncryptedGooglePass] =
     ((__ \ "passId").format[String]
       ~ (__ \ "fullName").format[EncryptedValue]
       ~ (__ \ "nino").format[EncryptedValue]
       ~ (__ \ "expirationDate").format[EncryptedValue]
       ~ (__ \ "googlePassUrl").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[Instant]
-      )(EncryptedGooglePass.apply, unlift(EncryptedGooglePass.unapply))
-  }
+      ~ (__ \ "lastUpdated").format[Instant])(EncryptedGooglePass.apply, unlift(EncryptedGooglePass.unapply))
 
   def encrypt(googlePass: GooglePass, key: String): EncryptedGooglePass = {
-    def e(field: String): EncryptedValue = {
+    def e(field: String): EncryptedValue =
       SymmetricCryptoFactory.aesGcmAdCrypto(key).encrypt(field, googlePass.passId)
-    }
 
     EncryptedGooglePass(
       passId = googlePass.passId,
@@ -65,9 +64,8 @@ object EncryptedGooglePass {
   }
 
   def decrypt(encryptedGooglePass: EncryptedGooglePass, key: String): GooglePass = {
-    def d(field: EncryptedValue): String = {
+    def d(field: EncryptedValue): String =
       SymmetricCryptoFactory.aesGcmAdCrypto(key).decrypt(field, encryptedGooglePass.passId)
-    }
 
     GooglePass(
       passId = encryptedGooglePass.passId,

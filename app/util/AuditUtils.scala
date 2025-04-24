@@ -29,49 +29,51 @@ object AuditUtils {
   val auditSource = "find-my-nino-add-to-wallet"
 
   case class ChildReferenceNumberUpliftAuditEvent(
-                                                journeyId: String,
-                                                formCreationTimestamp: String,
-                                                url: String,
-                                                upliftRequest: ChildReferenceNumberUpliftRequest,
-                                                upliftResponseStatus: String,
-                                                upliftResponseBody: String,
-                                                correlationId: String
-                                )
+    journeyId: String,
+    formCreationTimestamp: String,
+    url: String,
+    upliftRequest: ChildReferenceNumberUpliftRequest,
+    upliftResponseStatus: String,
+    upliftResponseBody: String,
+    correlationId: String
+  )
 
   object ChildReferenceNumberUpliftAuditEvent {
-    implicit val format: OFormat[ChildReferenceNumberUpliftAuditEvent] = Json.format[ChildReferenceNumberUpliftAuditEvent]
+    implicit val format: OFormat[ChildReferenceNumberUpliftAuditEvent] =
+      Json.format[ChildReferenceNumberUpliftAuditEvent]
   }
 
   private def getReferer(hc: HeaderCarrier): String = hc.otherHeaders.toMap.getOrElse("Referer", "")
 
   private def buildDataEvent(auditType: String, transactionName: String, detail: JsValue)(implicit
-                                                                                          hc: HeaderCarrier
+    hc: HeaderCarrier
   ): ExtendedDataEvent = {
-    val strPath = hc.otherHeaders.toMap.get("path")
+    val strPath    = hc.otherHeaders.toMap.get("path")
     val strReferer = getReferer(hc)
     ExtendedDataEvent(
       auditSource = auditSource,
       auditType = auditType,
       tags = Map(
         "transactionName" -> Some(transactionName),
-        "X-Session-ID" -> hc.sessionId.map(_.value),
-        "X-Request-ID" -> hc.requestId.map(_.value),
-        "clientIP" -> hc.trueClientIp,
-        "clientPort" -> hc.trueClientPort,
-        "deviceID" -> hc.deviceID,
-        "path" -> strPath,
-        "referer" -> Some(strReferer)
+        "X-Session-ID"    -> hc.sessionId.map(_.value),
+        "X-Request-ID"    -> hc.requestId.map(_.value),
+        "clientIP"        -> hc.trueClientIp,
+        "clientPort"      -> hc.trueClientPort,
+        "deviceID"        -> hc.deviceID,
+        "path"            -> strPath,
+        "referer"         -> Some(strReferer)
       ).map(x => x._2.map((x._1, _))).flatten.toMap,
       detail = detail
     )
   }
 
-  private def buildChildReferenceNumberUplift(url: String,
-                                           upliftRequest: ChildReferenceNumberUpliftRequest,
-                                           upliftResponse: HttpResponse,
-                                           journeyId: String,
-                                           correlationId: String):
-  ChildReferenceNumberUpliftAuditEvent = {
+  private def buildChildReferenceNumberUplift(
+    url: String,
+    upliftRequest: ChildReferenceNumberUpliftRequest,
+    upliftResponse: HttpResponse,
+    journeyId: String,
+    correlationId: String
+  ): ChildReferenceNumberUpliftAuditEvent =
     ChildReferenceNumberUpliftAuditEvent(
       journeyId,
       timestamp(),
@@ -81,20 +83,22 @@ object AuditUtils {
       upliftResponse.body,
       correlationId
     )
-  }
 
   private def timestamp(): String =
     java.time.Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)
 
-  def childReferenceNumberUplift(url: String,
-                                 request: ChildReferenceNumberUpliftRequest,
-                                 response: HttpResponse,
-                                 auditType: String,
-                                 appName: String,
-                                 correlationId: String)
-                                (implicit hc: HeaderCarrier): ExtendedDataEvent = {
-    buildDataEvent(auditType, s"$appName-$auditType",
-      Json.toJson(buildChildReferenceNumberUplift(url, request, response, auditType, correlationId)))
-  }
+  def childReferenceNumberUplift(
+    url: String,
+    request: ChildReferenceNumberUpliftRequest,
+    response: HttpResponse,
+    auditType: String,
+    appName: String,
+    correlationId: String
+  )(implicit hc: HeaderCarrier): ExtendedDataEvent =
+    buildDataEvent(
+      auditType,
+      s"$appName-$auditType",
+      Json.toJson(buildChildReferenceNumberUplift(url, request, response, auditType, correlationId))
+    )
 
 }

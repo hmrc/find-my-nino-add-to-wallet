@@ -16,8 +16,7 @@
 
 package models.google
 
-case class GooglePassCard
-(
+case class GooglePassCard(
   header: String,
   title: String,
   rows: Option[Array[GooglePassTextRow]],

@@ -31,16 +31,16 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EncryptedGooglePassRepositorySpec extends AnyWordSpec
-  with MockitoSugar
-  with Matchers
-  with DefaultPlayMongoRepositorySupport[EncryptedGooglePass]
-  with ScalaFutures
-  with IntegrationPatience
-  with OptionValues { // scalastyle:off magic.number
+class EncryptedGooglePassRepositorySpec
+    extends AnyWordSpec
+    with MockitoSugar
+    with Matchers
+    with DefaultPlayMongoRepositorySupport[EncryptedGooglePass]
+    with ScalaFutures
+    with IntegrationPatience
+    with OptionValues { // scalastyle:off magic.number
 
-
-  private val appConfig = mock[AppConfig]
+  private val appConfig                = mock[AppConfig]
   when(appConfig.cacheTtl) thenReturn 1
   when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
   private val DEFAULT_EXPIRATION_YEARS = 100
@@ -50,8 +50,9 @@ class EncryptedGooglePassRepositorySpec extends AnyWordSpec
   "insert" must {
     "save a new Google Pass in Mongo collection when collection is empty" in {
 
-      val passId = "test-pass-id-001"
-      val record = (passId,
+      val passId  = "test-pass-id-001"
+      val record  = (
+        passId,
         "Name Surname",
         "AB 12 34 56 Q",
         ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
@@ -61,7 +62,7 @@ class EncryptedGooglePassRepositorySpec extends AnyWordSpec
       val filters = Filters.eq("passId", passId)
 
       val documentsInDB = for {
-        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
+        _             <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
         documentsInDB <- repository.collection.find[EncryptedGooglePass](filters).toFuture()
       } yield documentsInDB
 
@@ -75,10 +76,17 @@ class EncryptedGooglePassRepositorySpec extends AnyWordSpec
     "retrieve existing Google Pass in Mongo collection" in {
 
       val passId = "test-pass-id-002"
-      val record = (passId, "Name Surname", "AB 12 34 56 Q", ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(), "http://test.com/test", Array[Byte](10))
+      val record = (
+        passId,
+        "Name Surname",
+        "AB 12 34 56 Q",
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        "http://test.com/test",
+        Array[Byte](10)
+      )
 
       val documentsInDB = for {
-        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
+        _             <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
         documentsInDB <- repository.findByPassId(passId)
       } yield documentsInDB
 

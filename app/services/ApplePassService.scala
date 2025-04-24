@@ -26,89 +26,97 @@ import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
-class ApplePassService @Inject()(val config: AppConfig,
-                                 val applePassRepository: ApplePassRepoTrait,
-                                 val fileService: FileService,
-                                 val signatureService: SignatureService,
-                                 val qrCodeService: QrCodeService) extends Logging {
+class ApplePassService @Inject() (
+  val config: AppConfig,
+  val applePassRepository: ApplePassRepoTrait,
+  val fileService: FileService,
+  val signatureService: SignatureService,
+  val qrCodeService: QrCodeService
+) extends Logging {
 
-  def getPassCardByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
+  def getPassCardByPassIdAndNINO(passId: String, nino: String)(implicit
+    ec: ExecutionContext
+  ): Future[Option[Array[Byte]]] =
     for {
       ap <- applePassRepository.findByPassId(passId)
-    } yield {
-      ap match {
-        case Some(applePass) => {
-          if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
-            Some(applePass.applePassCard)
-          } else {
-            logger.warn("Pass NINO does not match session NINO")
-            None
-          }
+    } yield ap match {
+      case Some(applePass) =>
+        if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
+          Some(applePass.applePassCard)
+        } else {
+          logger.warn("Pass NINO does not match session NINO")
+          None
         }
-        case _ => None
-      }
+      case _               => None
     }
-  }
 
-
-  def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
+  def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit
+    ec: ExecutionContext
+  ): Future[Option[Array[Byte]]] =
     for {
       aQrCode <- applePassRepository.findByPassId(passId)
-    } yield {
-      aQrCode match {
-        case Some(applePass) => {
-          if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
-            Some(applePass.qrCode)
-          } else {
-            logger.warn("Pass NINO does not match session NINO")
-            None
-          }
+    } yield aQrCode match {
+      case Some(applePass) =>
+        if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
+          Some(applePass.qrCode)
+        } else {
+          logger.warn("Pass NINO does not match session NINO")
+          None
         }
-        case _ => None
-      }
+      case _               => None
     }
-  }
 
-  def createPass(name: String, nino: String)(implicit ec: ExecutionContext): EitherT[Future, Exception, String] = EitherT {
-    val uuid = UUID.randomUUID().toString
-    val pass = ApplePassCard(name, nino, uuid)
+  def createPass(name: String, nino: String)(implicit ec: ExecutionContext): EitherT[Future, Exception, String] =
+    EitherT {
+      val uuid = UUID.randomUUID().toString
+      val pass = ApplePassCard(name, nino, uuid)
 
-    val passFilesInBytes = fileService.createFileBytesForPass(pass)
+      val passFilesInBytes = fileService.createFileBytesForPass(pass)
 
-    for {
-      privateCertificate <- config.privateCertificate
-      privateCertificatePassword <- config.privateCertificatePassword
-      appleWWDRCA <- config.appleWWDRCA
-    } yield {
-      val signaturePassInBytes = signatureService.createSignatureForPass(
-        passFilesInBytes, privateCertificate, privateCertificatePassword, appleWWDRCA)
-
-      if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
-        val passDataTuple = for {
-          pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
-          qrCodeByteArray <- qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
-        } yield (pkPassByteArray, qrCodeByteArray)
-        passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
-        Right(uuid)
-
-      } else {
-        logger.error(s"[Creating Apple Pass] Zip and Qr Code Failed. " +
-          s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
+      for {
+        privateCertificate         <- config.privateCertificate
+        privateCertificatePassword <- config.privateCertificatePassword
+        appleWWDRCA                <- config.appleWWDRCA
+      } yield {
+        val signaturePassInBytes = signatureService.createSignatureForPass(
+          passFilesInBytes,
+          privateCertificate,
+          privateCertificatePassword,
+          appleWWDRCA
         )
-        Left(new Exception(s"Problem occurred while creating Apple Pass. "
-          + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"))
+
+        if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
+          val passDataTuple = for {
+            pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
+            qrCodeByteArray <-
+              qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
+          } yield (pkPassByteArray, qrCodeByteArray)
+          passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
+          Right(uuid)
+
+        } else {
+          logger.error(
+            s"[Creating Apple Pass] Zip and Qr Code Failed. " +
+              s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
+          )
+          Left(
+            new Exception(
+              s"Problem occurred while creating Apple Pass. "
+                + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"
+            )
+          )
+        }
       }
     }
-  }
 }
 
 object ApplePassService {
-  val KEY_NINO = "nino"
+  val KEY_NINO   = "nino"
   val LABEL_NINO = "NATIONAL INSURANCE NUMBER"
 
-  val KEY_NAME = "name"
+  val KEY_NAME   = "name"
   val LABEL_NAME = "NAME"
 
-  val KEY_WARNING = "warning"
+  val KEY_WARNING  = "warning"
   val TEXT_WARNING = "This is not proof of your identity or your right to work in the UK."
 }

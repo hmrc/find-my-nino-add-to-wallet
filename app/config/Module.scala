@@ -18,8 +18,7 @@ package config
 
 import com.google.inject.AbstractModule
 import play.api.{Configuration, Environment}
-import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository,
-  EncryptedGooglePassRepository, GooglePassRepoTrait, GooglePassRepository}
+import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository, EncryptedGooglePassRepository, GooglePassRepoTrait, GooglePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 

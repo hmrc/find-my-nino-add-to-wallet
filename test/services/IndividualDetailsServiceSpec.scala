@@ -32,10 +32,10 @@ class IndividualDetailsServiceSpec extends PlaySpec with MockitoSugar {
 
     "return the expected result from getIndividualDetails" in {
       val mockConnector = mock[IndividualDetailsConnector]
-      val mockConfig = mock[AppConfig]
-      val service = new IndividualDetailsService(mockConfig, mockConnector)
+      val mockConfig    = mock[AppConfig]
+      val service       = new IndividualDetailsService(mockConfig, mockConnector)
 
-      val nino = "AB123456C"
+      val nino         = "AB123456C"
       val resolveMerge = "true"
 
       when(mockConfig.individualDetailsToken).thenReturn("token")
@@ -43,12 +43,17 @@ class IndividualDetailsServiceSpec extends PlaySpec with MockitoSugar {
       when(mockConfig.individualDetailsOriginatorId).thenReturn("originatorId")
 
       val expectedResponse = HttpResponse(OK, "response body")
-      when(mockConnector.getIndividualDetails(org.mockito.ArgumentMatchers.eq(nino),
-        org.mockito.ArgumentMatchers.eq(resolveMerge), any[HeaderCarrier])(any[ExecutionContext]))
+      when(
+        mockConnector.getIndividualDetails(
+          org.mockito.ArgumentMatchers.eq(nino),
+          org.mockito.ArgumentMatchers.eq(resolveMerge),
+          any[HeaderCarrier]
+        )(any[ExecutionContext])
+      )
         .thenReturn(Future.successful(expectedResponse))
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(service.getIndividualDetails(nino, resolveMerge))
+      val result                     = await(service.getIndividualDetails(nino, resolveMerge))
 
       result mustBe expectedResponse
     }

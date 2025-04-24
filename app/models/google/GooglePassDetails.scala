@@ -16,10 +16,7 @@
 
 package models.google
 
-case class GooglePassDetails
-(
+case class GooglePassDetails(
   fullName: String,
   nino: String
 )
-
-

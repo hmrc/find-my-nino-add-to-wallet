@@ -27,7 +27,8 @@ object ChildReferenceNumberUpliftRequest {
   def empty = ChildReferenceNumberUpliftRequest(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY)
 
   implicit val format: OFormat[ChildReferenceNumberUpliftRequest] = Json.format[ChildReferenceNumberUpliftRequest]
-  implicit def jsonBodyWritable[T](implicit writes: Writes[T],
-                                   jsValueBodyWritable: BodyWritable[JsValue]
-                                  ): BodyWritable[T] = jsValueBodyWritable.map(writes.writes)
+  implicit def jsonBodyWritable[T](implicit
+    writes: Writes[T],
+    jsValueBodyWritable: BodyWritable[JsValue]
+  ): BodyWritable[T] = jsValueBodyWritable.map(writes.writes)
 }

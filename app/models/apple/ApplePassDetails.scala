@@ -16,10 +16,7 @@
 
 package models.apple
 
-case class ApplePassDetails
-(
+case class ApplePassDetails(
   fullName: String,
   nino: String
 )
-
-

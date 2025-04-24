@@ -29,34 +29,37 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 final case class AuthContext[A](
-                                 nino: String,
-                                 isUser:     Boolean,
-                                 internalId: String,
-                                 request:    Request[A]
-                               )
-
+  nino: String,
+  isUser: Boolean,
+  internalId: String,
+  request: Request[A]
+)
 
 trait FMNAuth extends AuthorisedFunctions with Logging {
   protected type FMNAction[A] = AuthContext[A] => Future[Result]
   val AuthPredicate = AuthProviders(GovernmentGateway)
   val FMNRetrievals = nino and credentialRole and internalId and trustedHelper
 
-  def authorisedAsFMNUser(body: FMNAction[Any])
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): Future[Result] = authorisedUser(body)
+  def authorisedAsFMNUser(
+    body: FMNAction[Any]
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): Future[Result] = authorisedUser(body)
 
   // $COVERAGE-OFF$
   def authorisedAsFMNUser(implicit
-                          ec: ExecutionContext,
-                          cc: ControllerComponents
-                         ): ActionBuilder[AuthContext, AnyContent] =
+    ec: ExecutionContext,
+    cc: ControllerComponents
+  ): ActionBuilder[AuthContext, AnyContent] =
     new ActionBuilder[AuthContext, AnyContent] {
       override protected def executionContext: ExecutionContext = ec
 
       override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
 
-      override def invokeBlock[A](request: Request[A], authContext: AuthContext[A] => Future[Result]): Future[Result] = {
+      override def invokeBlock[A](
+        request: Request[A],
+        authContext: AuthContext[A] => Future[Result]
+      ): Future[Result] = {
         implicit val req = request
-        implicit val hc = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+        implicit val hc  = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
         authorisedUser(authContext)
       }
@@ -64,15 +67,15 @@ trait FMNAuth extends AuthorisedFunctions with Logging {
   // $COVERAGE-ON$
 
   private def authorisedUser[A](
-                                 block: FMNAction[A]
-                               )(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[A]): Future[Result] = {
+    block: FMNAction[A]
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[A]): Future[Result] =
     authorised(AuthPredicate)
       .retrieve(FMNRetrievals) {
         case Some(_) ~ Some(User) ~ Some(internalId) ~ Some(trustedHelper) =>
           block(AuthContext(trustedHelper.principalNino.get, isUser = true, internalId, request))
-        case Some(nino) ~ Some(User) ~ Some(internalId) ~ None =>
+        case Some(nino) ~ Some(User) ~ Some(internalId) ~ None             =>
           block(AuthContext(nino, isUser = true, internalId, request))
-        case _ =>
+        case _                                                             =>
           logger.warn("user was not authenticated with required credentials")
           Future successful Unauthorized
       }
@@ -81,10 +84,9 @@ trait FMNAuth extends AuthorisedFunctions with Logging {
           logger.warn("could not authenticate user.")
           logger.debug("could not authenticate user.", ex)
           Unauthorized
-        case ex =>
+        case ex                         =>
           logger.warn("user was not authenticated.")
           logger.debug("user was not authenticated.", ex)
           Unauthorized
       }
-  }
 }

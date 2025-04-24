@@ -30,53 +30,56 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EncryptedApplePassRepository @Inject()(
-                                     mongoComponent: MongoComponent,
-                                     appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedApplePass](
-  collectionName = "apple-pass",
-  mongoComponent = mongoComponent,
-  domainFormat = EncryptedApplePass.encryptedFormat,
-  indexes = Seq(
-    IndexModel(
-      Indexes.ascending("passId"),
-      IndexOptions().name("passId").unique(true)
-    ),
-    IndexModel(
-      Indexes.ascending("fullName", "nino"),
-      IndexOptions().name("fullName_Nino")
-    ),
-    IndexModel(
-      Indexes.ascending("lastUpdated"),
-      IndexOptions()
-        .name("lastUpdatedIdx")
-        .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+class EncryptedApplePassRepository @Inject() (
+  mongoComponent: MongoComponent,
+  appConfig: AppConfig
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[EncryptedApplePass](
+      collectionName = "apple-pass",
+      mongoComponent = mongoComponent,
+      domainFormat = EncryptedApplePass.encryptedFormat,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("passId"),
+          IndexOptions().name("passId").unique(true)
+        ),
+        IndexModel(
+          Indexes.ascending("fullName", "nino"),
+          IndexOptions().name("fullName_Nino")
+        ),
+        IndexModel(
+          Indexes.ascending("lastUpdated"),
+          IndexOptions()
+            .name("lastUpdatedIdx")
+            .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+        )
+      ),
+      replaceIndexes = true
     )
-  ),
-  replaceIndexes = true
-) with Logging with ApplePassRepoTrait {
+    with Logging
+    with ApplePassRepoTrait {
 
-  def insert(passId: String,
-             fullName: String,
-             nino: String,
-             applePassCard: Array[Byte],
-             qrCode: Array[Byte])
-            (implicit ec: ExecutionContext): Future[Unit] = {
+  def insert(passId: String, fullName: String, nino: String, applePassCard: Array[Byte], qrCode: Array[Byte])(implicit
+    ec: ExecutionContext
+  ): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(encrypt(ApplePass(passId, fullName, nino, applePassCard, qrCode), appConfig.encryptionKey))
+    collection
+      .insertOne(encrypt(ApplePass(passId, fullName, nino, applePassCard, qrCode), appConfig.encryptionKey))
       .head()
       .map(_ => ())
-      .recoverWith {
-        case e => Future.successful(logger.info(s"failed to insert apple pass card into $collectionName table with ${e.getMessage}"))
+      .recoverWith { case e =>
+        Future.successful(
+          logger.info(s"failed to insert apple pass card into $collectionName table with ${e.getMessage}")
+        )
       }
   }
 
-  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] = {
-    collection.find(Filters.equal("passId", passId))
+  def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[ApplePass]] =
+    collection
+      .find(Filters.equal("passId", passId))
       .first()
       .toFutureOption()
       .map(optEncryptedApplePass =>
         optEncryptedApplePass.map(encryptedApplePass => decrypt(encryptedApplePass, appConfig.encryptionKey))
       )
-  }
 }

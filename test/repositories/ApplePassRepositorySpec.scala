@@ -30,14 +30,14 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ApplePassRepositorySpec extends AnyWordSpec
-  with MockitoSugar
-  with Matchers
-  with DefaultPlayMongoRepositorySupport[ApplePass]
-  with ScalaFutures
-  with IntegrationPatience
-  with OptionValues
-  { // scalastyle:off magic.number
+class ApplePassRepositorySpec
+    extends AnyWordSpec
+    with MockitoSugar
+    with Matchers
+    with DefaultPlayMongoRepositorySupport[ApplePass]
+    with ScalaFutures
+    with IntegrationPatience
+    with OptionValues { // scalastyle:off magic.number
 
   private val mockAppConfig = mock[AppConfig]
 
@@ -49,17 +49,12 @@ class ApplePassRepositorySpec extends AnyWordSpec
   "insert" must {
     "save a new Apple Pass in Mongo collection when collection is empty" in {
 
-      val passId = "test-pass-id-001"
-      val record = (passId,
-        "Name Surname",
-        "AB 12 34 56 Q",
-        Array[Byte](10),
-        Array[Byte](10)
-      )
+      val passId  = "test-pass-id-001"
+      val record  = (passId, "Name Surname", "AB 12 34 56 Q", Array[Byte](10), Array[Byte](10))
       val filters = Filters.eq("passId", passId)
 
       val documentsInDB = for {
-        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5)
+        _             <- repository.insert(record._1, record._2, record._3, record._4, record._5)
         documentsInDB <- repository.collection.find[ApplePass](filters).toFuture()
       } yield documentsInDB
 
@@ -76,7 +71,7 @@ class ApplePassRepositorySpec extends AnyWordSpec
       val record = (passId, "Name Surname", "AB 12 34 56 Q", Array[Byte](10), Array[Byte](10))
 
       val documentsInDB = for {
-        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5)
+        _             <- repository.insert(record._1, record._2, record._3, record._4, record._5)
         documentsInDB <- repository.findByPassId(passId)
       } yield documentsInDB
 

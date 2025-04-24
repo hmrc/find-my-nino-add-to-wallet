@@ -23,10 +23,10 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class NPSService @Inject()(connector: NPSConnector)(implicit ec: ExecutionContext) {
+class NPSService @Inject() (connector: NPSConnector)(implicit ec: ExecutionContext) {
 
-  def upliftCRN(identifier: String, crnUpliftRequest: ChildReferenceNumberUpliftRequest)
-               (implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def upliftCRN(identifier: String, crnUpliftRequest: ChildReferenceNumberUpliftRequest)(implicit
+    hc: HeaderCarrier
+  ): Future[HttpResponse] =
     connector.upliftCRN(identifier, crnUpliftRequest)
-  }
 }

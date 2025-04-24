@@ -36,12 +36,12 @@ class AppConfigSpec extends SpecBase {
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure(
-      "applePass.appleWWDRCA" -> "appleWWDRCA",
-      "applePass.privateCertificate" -> "privateCertificate",
-      "applePass.privateCertificatePassword" -> "privateCertificatePassword",
-      "applePass.appleWWDRCA2" -> "appleWWDRCA2",
-      "applePass.privateCertificate2" -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2",
+      "applePass.appleWWDRCA"                 -> "appleWWDRCA",
+      "applePass.privateCertificate"          -> "privateCertificate",
+      "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
+      "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
+      "applePass.privateCertificate2"         -> "privateCertificate2",
+      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2"
     )
     .overrides(
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),

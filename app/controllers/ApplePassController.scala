@@ -28,53 +28,54 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ApplePassController @Inject()(
-                                     authConnector: AuthConnector,
-                                     passService: ApplePassService)(implicit
-                                                                    config: Configuration,
-                                                                    env: Environment,
-                                                                    cc: MessagesControllerComponents,
-                                                                    ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
+class ApplePassController @Inject() (authConnector: AuthConnector, passService: ApplePassService)(implicit
+  config: Configuration,
+  env: Environment,
+  cc: MessagesControllerComponents,
+  ec: ExecutionContext
+) extends FMNBaseController(authConnector)
+    with Logging {
 
   implicit val passRequestFormatter: OFormat[ApplePassDetails] = Json.format[ApplePassDetails]
-  implicit val writes: Writes[ApplePassDetails] = Json.writes[ApplePassDetails]
+  implicit val writes: Writes[ApplePassDetails]                = Json.writes[ApplePassDetails]
 
   def createPass: Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
+    authorisedAsFMNUser { authContext =>
       val passRequest = request.body.asJson.get.as[ApplePassDetails]
 
       logger.debug(message = s"[Create Pass Event]$passRequest")
-      passService.createPass(passRequest.fullName, passRequest.nino).fold(
-        error =>
-          InternalServerError(Json.obj(
-            "status" -> "500",
-            "message" -> error.getMessage
-          )),
+      passService
+        .createPass(passRequest.fullName, passRequest.nino)
+        .fold(
+          error =>
+            InternalServerError(
+              Json.obj(
+                "status"  -> "500",
+                "message" -> error.getMessage
+              )
+            ),
           result => Ok(result)
-      )
-    }
+        )
     }
   }
 
   def getPassCardByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
+    authorisedAsFMNUser { authContext =>
       logger.debug(message = s"[Get Pass Card] $passId")
-      passService.getPassCardByPassIdAndNINO(passId,authContext.nino).map {
+      passService.getPassCardByPassIdAndNINO(passId, authContext.nino).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
-        case _ => NotFound
+        case _          => NotFound
       }
-    }
     }
   }
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
+    authorisedAsFMNUser { authContext =>
       logger.debug(message = s"[Get QR Code] $passId")
-      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino).map {
+      passService.getQrCodeByPassIdAndNINO(passId, authContext.nino).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
-        case _ => NotFound
+        case _          => NotFound
       }
-    }
     }
   }
 }

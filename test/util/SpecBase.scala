@@ -31,13 +31,19 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext
 
 trait SpecBase
-  extends AnyWordSpec with GuiceOneAppPerSuite with Matchers with PatienceConfiguration with BeforeAndAfterEach
-    with MockitoSugar with ScalaFutures with Injecting {
+    extends AnyWordSpec
+    with GuiceOneAppPerSuite
+    with Matchers
+    with PatienceConfiguration
+    with BeforeAndAfterEach
+    with MockitoSugar
+    with ScalaFutures
+    with Injecting {
   this: Suite =>
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val configValues: Map[String, AnyVal] =
+  val configValues: Map[String, AnyVal]                                 =
     Map(
       "metrics.enabled"  -> false,
       "auditing.enabled" -> false
@@ -52,7 +58,6 @@ trait SpecBase
 
   lazy val config: AppConfig = inject[AppConfig]
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     super.beforeEach()
-  }
 }
