@@ -15,14 +15,13 @@
  */
 
 package services
-import config.AppConfig
 import connectors.IndividualDetailsConnector
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualDetailsService @Inject() (appConfig: AppConfig, individualDetailsConnector: IndividualDetailsConnector)(
+class IndividualDetailsService @Inject() (individualDetailsConnector: IndividualDetailsConnector)(
   implicit val ec: ExecutionContext
 ) {
 

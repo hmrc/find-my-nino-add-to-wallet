@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package config
 
 import com.google.inject.AbstractModule
-import play.api.{Configuration, Environment}
+import play.api.Configuration
 import repositories.{ApplePassRepoTrait, ApplePassRepository, EncryptedApplePassRepository, EncryptedGooglePassRepository, GooglePassRepoTrait, GooglePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
-class Module(env: Environment, config: Configuration) extends AbstractModule {
+class Module(config: Configuration) extends AbstractModule {
 
   private val encryptionEnabled = config.get[Boolean]("mongodb.encryption.enabled")
 
