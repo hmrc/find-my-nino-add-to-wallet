@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package models.encryption
 
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{Format, OFormat, __}
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import EncryptedValueFormat._
@@ -44,7 +44,10 @@ object EncryptedApplePass {
       ~ (__ \ "nino").format[EncryptedValue]
       ~ (__ \ "applePassCard").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[Instant])(EncryptedApplePass.apply, unlift(EncryptedApplePass.unapply))
+      ~ (__ \ "lastUpdated").format[Instant])(
+      EncryptedApplePass.apply,
+      eap => Tuple6(eap.passId, eap.fullName, eap.nino, eap.applePassCard, eap.qrCode, eap.lastUpdated)
+    )
 
   def encrypt(applePass: ApplePass, key: String): EncryptedApplePass = {
     def e(field: String): EncryptedValue =

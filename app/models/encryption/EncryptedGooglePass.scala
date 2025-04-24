@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package models.encryption
 
 import models.google.GooglePass
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{Format, OFormat, __}
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import EncryptedValueFormat._
@@ -46,7 +46,11 @@ object EncryptedGooglePass {
       ~ (__ \ "expirationDate").format[EncryptedValue]
       ~ (__ \ "googlePassUrl").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[Instant])(EncryptedGooglePass.apply, unlift(EncryptedGooglePass.unapply))
+      ~ (__ \ "lastUpdated").format[Instant])(
+      EncryptedGooglePass.apply,
+      egp =>
+        Tuple7(egp.passId, egp.fullName, egp.nino, egp.expirationDate, egp.googlePassUrl, egp.qrCode, egp.lastUpdated)
+    )
 
   def encrypt(googlePass: GooglePass, key: String): EncryptedGooglePass = {
     def e(field: String): EncryptedValue =
