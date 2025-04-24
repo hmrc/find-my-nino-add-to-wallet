@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package services
 import config.AppConfig
 import connectors.IndividualDetailsConnector
-import models.CorrelationId
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import javax.inject.Inject
@@ -27,17 +26,7 @@ class IndividualDetailsService @Inject() (appConfig: AppConfig, individualDetail
   implicit val ec: ExecutionContext
 ) {
 
-  def getIndividualDetails(nino: String, resolveMerge: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    val extraDesHeaders = Seq(
-      "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
-      "CorrelationId" -> CorrelationId.random.value.toString,
-      "Content-Type"  -> "application/json",
-      "Environment"   -> appConfig.individualDetailsEnvironment,
-      "OriginatorId"  -> appConfig.individualDetailsOriginatorId
-    )
-
-    val desHeaders: HeaderCarrier = hc.withExtraHeaders(extraDesHeaders: _*)
-    individualDetailsConnector.getIndividualDetails(nino, resolveMerge, desHeaders)
-  }
+  def getIndividualDetails(nino: String, resolveMerge: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    individualDetailsConnector.getIndividualDetails(nino, resolveMerge)
 
 }
