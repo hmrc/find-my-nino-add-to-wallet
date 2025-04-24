@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
   val googleJWTExpiry: Int   = config.get[Int]("googlePass.expiry")
   val googleAddUrl: String   = config.get[String]("googlePass.url")
   val googleOrigins: String  = config.get[String]("googlePass.origins")
-  val cacheTtl: Int          = config.get[Int]("mongodb.timeToLiveInSeconds")
+  val cacheTtl: Long         = config.get[Int]("mongodb.timeToLiveInSeconds")
 
   val encryptionKey: String = config.get[String]("mongodb.encryption.key")
 
