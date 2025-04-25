@@ -47,7 +47,8 @@ class EncryptedGooglePassRepositorySpec
   when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
   private val DEFAULT_EXPIRATION_YEARS = 100
 
-  override protected val repository: EncryptedGooglePassRepository = new EncryptedGooglePassRepository(mongoComponent, appConfig)
+  override protected val repository: EncryptedGooglePassRepository =
+    new EncryptedGooglePassRepository(mongoComponent, appConfig)
 
   "insert" must {
     "save a new Google Pass in Mongo collection when collection is empty" in {

@@ -16,7 +16,6 @@
 
 package services
 
-import config.AppConfig
 import connectors.IndividualDetailsConnector
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when

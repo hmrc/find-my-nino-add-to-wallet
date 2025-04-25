@@ -46,7 +46,8 @@ class EncryptedApplePassRepositorySpec
   when(mockAppConfig.cacheTtl) thenReturn 1
   when(mockAppConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
 
-  override protected val repository: EncryptedApplePassRepository = new EncryptedApplePassRepository(mongoComponent, mockAppConfig)
+  override protected val repository: EncryptedApplePassRepository =
+    new EncryptedApplePassRepository(mongoComponent, mockAppConfig)
 
   "insert" must {
     "save a new Apple Pass in Mongo collection when collection is empty" in {
