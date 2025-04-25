@@ -43,7 +43,7 @@ class ApplePassRepositorySpec
 
   private val mockAppConfig = mock[AppConfig]
 
-  when(mockAppConfig.cacheTtl) thenReturn 1
+  when(mockAppConfig.cacheTtl) thenReturn 1L
   when(mockAppConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
 
   override protected val repository: ApplePassRepository = new ApplePassRepository(mongoComponent, mockAppConfig)

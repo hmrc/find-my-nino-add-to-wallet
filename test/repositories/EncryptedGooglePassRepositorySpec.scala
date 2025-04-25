@@ -43,7 +43,7 @@ class EncryptedGooglePassRepositorySpec
     with OptionValues { // scalastyle:off magic.number
 
   private val appConfig                = mock[AppConfig]
-  when(appConfig.cacheTtl) thenReturn 1
+  when(appConfig.cacheTtl) thenReturn 1L
   when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
   private val DEFAULT_EXPIRATION_YEARS = 100
 
