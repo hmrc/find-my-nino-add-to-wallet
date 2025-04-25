@@ -21,6 +21,7 @@ import models.encryption.EncryptedGooglePass
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
+import org.mongodb.scala.ObservableFuture
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -46,7 +47,7 @@ class EncryptedGooglePassRepositorySpec
   when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
   private val DEFAULT_EXPIRATION_YEARS = 100
 
-  override protected val repository = new EncryptedGooglePassRepository(mongoComponent, appConfig)
+  override protected val repository: EncryptedGooglePassRepository = new EncryptedGooglePassRepository(mongoComponent, appConfig)
 
   "insert" must {
     "save a new Google Pass in Mongo collection when collection is empty" in {
@@ -56,7 +57,7 @@ class EncryptedGooglePassRepositorySpec
         passId,
         "Name Surname",
         "AB 12 34 56 Q",
-        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString(),
+        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString,
         "http://test.com/test",
         Array[Byte](10)
       )

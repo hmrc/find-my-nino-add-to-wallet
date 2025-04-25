@@ -21,6 +21,7 @@ import models.apple.ApplePass
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
+import org.mongodb.scala.ObservableFuture
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -45,7 +46,7 @@ class ApplePassRepositorySpec
   when(mockAppConfig.cacheTtl) thenReturn 1
   when(mockAppConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
 
-  override protected val repository = new ApplePassRepository(mongoComponent, mockAppConfig)
+  override protected val repository: ApplePassRepository = new ApplePassRepository(mongoComponent, mockAppConfig)
 
   "insert" must {
     "save a new Apple Pass in Mongo collection when collection is empty" in {
