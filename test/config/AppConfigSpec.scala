@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package config
 
 import models.admin.ApplePassCertificates2
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.reset
-import org.mockito.MockitoSugar.when
+import org.mockito.Mockito.{reset, when}
 import play.api.Application
 import play.api.inject.bind
 import repositories.{ApplePassRepoTrait, ApplePassRepository, GooglePassRepoTrait, GooglePassRepository}

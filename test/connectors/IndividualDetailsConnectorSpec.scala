@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,40 @@ package connectors
 
 import config.AppConfig
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
-import org.scalatestplus.play._
-import play.api.test.Helpers._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.*
+import play.api.test.Helpers.*
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
 
   "IndividualDetailsConnector" should {
 
     "return the expected result from getIndividualDetails" in {
-      val mockHttpClient   = mock[HttpClient]
+      val mockHttpClientV2 = mock[HttpClientV2]
       val mockConfig       = mock[AppConfig]
-      val connector        = new IndividualDetailsConnector(mockHttpClient, mockConfig)
+      val mockRequestBuilder = mock[RequestBuilder]
+      val connector        = new IndividualDetailsConnector(mockHttpClientV2, mockConfig)
       val nino             = "AB123456C"
       val resolveMerge     = "Y"
       val expectedResponse = HttpResponse(OK, "response body")
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
 
-      when(mockHttpClient.GET[HttpResponse](any, any(), any())(any(), any(), any()))
+      when(mockConfig.individualDetailsToken).thenReturn("token")
+      when(mockConfig.individualDetailsEnvironment).thenReturn("environment")
+      when(mockConfig.individualDetailsOriginatorId).thenReturn("originatorId")
+      when(mockRequestBuilder.execute(any[HttpReads[HttpResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(expectedResponse))
 
-      val result = await(connector.getIndividualDetails(nino, resolveMerge, hc))
+      when(mockHttpClientV2.get(any())(any[HeaderCarrier])).thenReturn(mockRequestBuilder)
+
+      val result = await(connector.getIndividualDetails(nino, resolveMerge))
 
       result mustBe expectedResponse
     }

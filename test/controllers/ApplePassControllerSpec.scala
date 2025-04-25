@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,23 @@
 package controllers
 
 import cats.data.EitherT
-import cats.implicits._
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
-import org.mockito.MockitoSugar
-import org.mockito.MockitoSugar.{mock, when}
+import cats.implicits.*
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, when}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.should
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import services.ApplePassService
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
@@ -50,7 +50,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   import ApplePassControllerSpec._
 
   before {
-    MockitoSugar.reset(mockAuthConnector)
+    reset(mockAuthConnector)
 
     val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
       Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), None))

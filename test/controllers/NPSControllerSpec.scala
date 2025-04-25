@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,20 @@
 package controllers
 
 import models.nps.ChildReferenceNumberUpliftRequest
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
-import org.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures.whenReady
-import org.scalatestplus.play._
+import org.scalatestplus.play.*
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.Json
-import play.api.mvc._
-import play.api.test.Helpers._
-import play.api.test._
+import play.api.mvc.*
+import play.api.test.Helpers.*
+import play.api.test.*
 import play.api.{Application, Configuration, Environment}
 import services.NPSService
-import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}

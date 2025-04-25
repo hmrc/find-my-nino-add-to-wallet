@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package repositories
 
 import config.AppConfig
 import models.encryption.EncryptedGooglePass
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
