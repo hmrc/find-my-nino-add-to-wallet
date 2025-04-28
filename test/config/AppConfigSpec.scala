@@ -48,7 +48,7 @@ class AppConfigSpec extends SpecBase {
       bind(classOf[GooglePassRepoTrait]).to(classOf[GooglePassRepository]),
       bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector])
     )
-    .disable[Module]
+    .disable[HmrcModule]
     .build()
 
   lazy val sut: AppConfig = app.injector.instanceOf[AppConfig]
