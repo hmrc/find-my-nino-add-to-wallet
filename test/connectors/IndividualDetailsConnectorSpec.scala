@@ -31,32 +31,33 @@ import util.WireMockHelper
 
 import scala.concurrent.ExecutionContext
 
-class IndividualDetailsConnectorSpec extends PlaySpec
-  with GuiceOneAppPerSuite
-  with WireMockHelper
-  with MockitoSugar
-  with ScalaFutures {
+class IndividualDetailsConnectorSpec
+    extends PlaySpec
+    with GuiceOneAppPerSuite
+    with WireMockHelper
+    with MockitoSugar
+    with ScalaFutures {
 
   override def fakeApplication(): Application = {
     server.start()
     new GuiceApplicationBuilder()
       .configure(
-        "external-url.individual-details.port" -> server.port(),
-        "external-url.individual-details.host" -> "127.0.0.1",
-        "external-url.individual-details.protocol" -> "http",
-        "external-url.individual-details.auth-token" -> "token1",
-        "external-url.individual-details.environment" -> "env1",
+        "external-url.individual-details.port"          -> server.port(),
+        "external-url.individual-details.host"          -> "127.0.0.1",
+        "external-url.individual-details.protocol"      -> "http",
+        "external-url.individual-details.auth-token"    -> "token1",
+        "external-url.individual-details.environment"   -> "env1",
         "external-url.individual-details.originator-id" -> "id1"
       )
       .build()
   }
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val hc: HeaderCarrier    = HeaderCarrier()
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   lazy val connector: IndividualDetailsConnector = {
     val httpClientV2 = app.injector.instanceOf[HttpClientV2]
-    val appConfig = app.injector.instanceOf[AppConfig]
+    val appConfig    = app.injector.instanceOf[AppConfig]
 
     new IndividualDetailsConnector(httpClientV2, appConfig)
   }
@@ -64,9 +65,9 @@ class IndividualDetailsConnectorSpec extends PlaySpec
   "IndividualDetailsConnector" should {
 
     "return the expected result from getIndividualDetails" in {
-      val nino: String = "AB123456C"
+      val nino: String         = "AB123456C"
       val resolveMerge: String = "Y"
-      val urlPath = s"/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
+      val urlPath              = s"/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
 
       server.stubFor(
         get(urlEqualTo(urlPath))
