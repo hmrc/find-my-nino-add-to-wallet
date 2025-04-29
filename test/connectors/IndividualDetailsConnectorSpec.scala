@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, urlPathEqualTo}
 import config.AppConfig
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
@@ -67,10 +67,11 @@ class IndividualDetailsConnectorSpec
     "return the expected result from getIndividualDetails" in {
       val nino: String         = "AB123456C"
       val resolveMerge: String = "Y"
-      val urlPath              = s"/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
+      val urlPath              = s"/individuals/details/NINO/${nino.take(8)}"
 
       server.stubFor(
-        get(urlEqualTo(urlPath))
+        get(urlPathEqualTo(urlPath))
+          .withQueryParam("resolveMerge", equalTo(resolveMerge))
           .willReturn(aResponse().withStatus(OK).withBody("response body"))
       )
 
