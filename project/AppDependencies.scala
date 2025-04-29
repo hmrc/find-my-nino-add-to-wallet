@@ -16,13 +16,12 @@ object AppDependencies {
     "com.google.api-client"   % "google-api-client"                     % "2.7.2",
     "com.google.auth"         % "google-auth-library-oauth2-http"       % "1.33.1",
     "com.auth0"               % "java-jwt"                              % "4.5.0",
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"           % "2.18.3",
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"           % "2.19.0",
     "uk.gov.hmrc"             %% s"crypto-json-$playVersion"            % "8.2.0",
     "uk.gov.hmrc"             %% s"mongo-feature-toggles-client-$playVersion" % mongoToggleVersion
   )
 
   val test: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc"             %% s"bootstrap-test-$playVersion"  % bootstrapVersion,
     "org.scalatestplus"       %% "scalacheck-1-18"               % "3.2.19.0",
     "uk.gov.hmrc"             %% s"mongo-feature-toggles-client-test-$playVersion" % mongoToggleVersion,
   ).map(_  % "test")
