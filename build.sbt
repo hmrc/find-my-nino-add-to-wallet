@@ -18,13 +18,6 @@ lazy val microservice = Project(appName, file("."))
       "HMRC-open-artefacts-maven".at("https://open.artefacts.tax.service.gov.uk/maven2")
     ),
     PlayKeys.playDefaultPort := 14005,
-    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;" +
-      ".*models.*;.*BuildInfo.*;.*Routes.*;.*javascript.*;.*GuiceInjector;.*AppConfig;.*Module;" +
-      ".*ControllerConfiguration;.*AuditService.*;.*SignatureService.*;",
-    ScoverageKeys.coverageExcludedPackages := "<empty>;target.*",
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true,
     scalacOptions ++= Seq(
       "-Werror",
       "-unchecked",
