@@ -16,69 +16,47 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, urlPathEqualTo}
 import config.AppConfig
-import org.scalatest.concurrent.ScalaFutures
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.*
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{Application, inject}
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.*
-import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.HeaderCarrier
-import util.WireMockHelper
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
-import scala.concurrent.ExecutionContext
+import java.net.URL
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualDetailsConnectorSpec
-    extends PlaySpec
-    with GuiceOneAppPerSuite
-    with WireMockHelper
-    with MockitoSugar
-    with ScalaFutures {
-
-  override def fakeApplication(): Application = {
-    server.start()
-    new GuiceApplicationBuilder()
-      .configure(
-        "external-url.individual-details.port"          -> server.port(),
-        "external-url.individual-details.host"          -> "127.0.0.1",
-        "external-url.individual-details.protocol"      -> "http",
-        "external-url.individual-details.auth-token"    -> "token1",
-        "external-url.individual-details.environment"   -> "env1",
-        "external-url.individual-details.originator-id" -> "id1"
-      )
-      .build()
-  }
-
-  implicit val hc: HeaderCarrier    = HeaderCarrier()
-  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-
-  lazy val connector: IndividualDetailsConnector = {
-    val httpClientV2 = app.injector.instanceOf[HttpClientV2]
-    val appConfig    = app.injector.instanceOf[AppConfig]
-
-    new IndividualDetailsConnector(httpClientV2, appConfig)
-  }
+class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
 
   "IndividualDetailsConnector" should {
 
     "return the expected result from getIndividualDetails" in {
-      val nino: String         = "AB123456C"
-      val resolveMerge: String = "Y"
-      val urlPath              = s"/individuals/details/NINO/${nino.take(8)}"
+      val mockHttpClientV2 = mock[HttpClientV2]
+      val mockConfig = mock[AppConfig]
+      val requestBuilder: RequestBuilder = mock[RequestBuilder]
+      val connector = new IndividualDetailsConnector(mockHttpClientV2, mockConfig)
+      val nino = "AB123456C"
+      val resolveMerge = "Y"
+      val expectedResponse = HttpResponse(OK, "response body")
 
-      server.stubFor(
-        get(urlPathEqualTo(urlPath))
-          .withQueryParam("resolveMerge", equalTo(resolveMerge))
-          .willReturn(aResponse().withStatus(OK).withBody("response body"))
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+
+      when(requestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(expectedResponse))
+      when(mockConfig.individualDetailsServiceUrl).thenReturn("http://localhost:14011")
+      val expectedUrl = new URL(
+        s"http://localhost:14011/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
       )
 
-      val result = connector.getIndividualDetails(nino, resolveMerge).futureValue
+      when(mockHttpClientV2.get(eqTo(expectedUrl))(any()))
+        .thenReturn(requestBuilder)
 
-      result.status mustBe OK
-      result.body mustBe "response body"
+
+      val result = await(connector.getIndividualDetails(nino, resolveMerge))
+
+      result mustBe expectedResponse
     }
   }
 }
