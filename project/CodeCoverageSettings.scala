@@ -10,12 +10,29 @@ object CodeCoverageSettings {
     "app.*",
     "prod.*",
     ".*Routes.*",
-    "testOnly.*",
-    "testOnlyDoNotUseInAppConf.*"
+    "controllers.testOnly.*",
+    "testOnlyDoNotUseInAppConf.*",
+    ".*\\$anon.*"
+  )
+
+  private val excludedFiles: Seq[String] = Seq(
+    "<empty>",
+    "Reverse.*",
+    ".*handlers.*",
+    ".*models.*",
+    ".*BuildInfo.*",
+    ".*Routes.*",
+    ".*javascript.*",
+    ".*GuiceInjector",
+    ".*AppConfig",
+    ".*HmrcModule",
+    ".*AuditService.*",
+    ".*SignatureService.*"
   )
 
   val settings: Seq[Setting[_]] = Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
+    ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
     ScoverageKeys.coverageMinimumStmtTotal := 50,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true

@@ -26,54 +26,54 @@ import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
-class GooglePassService @Inject()(val config: AppConfig,
-                                  val googlePassUtil: GooglePassUtil,
-                                  val googlePassRepository: GooglePassRepoTrait,
-                                  val qrCodeService: QrCodeService) extends Logging {
+class GooglePassService @Inject() (
+  val config: AppConfig,
+  val googlePassUtil: GooglePassUtil,
+  val googlePassRepository: GooglePassRepoTrait,
+  val qrCodeService: QrCodeService
+) extends Logging {
 
-  def getPassUrlByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[String]] = {
+  def getPassUrlByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[String]] =
     for {
       gp <- googlePassRepository.findByPassId(passId)
-    } yield {
-      gp match {
-        case Some(googlePass) => {
-          if (googlePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
-            Some(googlePass.googlePassUrl)
-          } else {
-            logger.warn("Pass NINO does not match session NINO")
-            None
-          }
+    } yield gp match {
+      case Some(googlePass) =>
+        if (googlePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
+          Some(googlePass.googlePassUrl)
+        } else {
+          logger.warn("Pass NINO does not match session NINO")
+          None
         }
-        case _ => None
-      }
+      case _                => None
     }
-  }
 
-  def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
+  def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit
+    ec: ExecutionContext
+  ): Future[Option[Array[Byte]]] =
     for {
       gqrCode <- googlePassRepository.findByPassId(passId)
-    } yield {
-      gqrCode match {
-        case Some(googlePass) => {
-          if (googlePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
-            Some(googlePass.qrCode)
-          } else {
-            logger.warn("Pass NINO does not match session NINO")
-            None
-          }
+    } yield gqrCode match {
+      case Some(googlePass) =>
+        if (googlePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
+          Some(googlePass.qrCode)
+        } else {
+          logger.warn("Pass NINO does not match session NINO")
+          None
         }
-        case _ => None
-      }
+      case _                => None
     }
-  }
 
-  def createPassWithCredentials(name: String,
-                                nino: String,
-                                expirationDate: String,
-                                googleCredentials: GoogleCredentials)(implicit ec: ExecutionContext): Either[Exception, String] = {
-    val uuid = UUID.randomUUID().toString
+  def createPassWithCredentials(
+    name: String,
+    nino: String,
+    expirationDate: String,
+    googleCredentials: GoogleCredentials
+  )(implicit ec: ExecutionContext): Either[Exception, String] = {
+    val uuid                  = UUID.randomUUID().toString
     val googlePassUrl: String = googlePassUtil.createGooglePassWithCredentials(name, nino, googleCredentials)
-    val qrCode = qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-google-pass?passId=$uuid&qr-code=true").getOrElse(Array.emptyByteArray)
+    val qrCode                = qrCodeService
+      .createQRCode(s"${config.frontendServiceUrl}/get-google-pass?passId=$uuid&qr-code=true")
+      .getOrElse(Array.emptyByteArray)
     googlePassRepository.insert(uuid, name, nino, expirationDate, googlePassUrl, qrCode)
     Right(uuid)
   }

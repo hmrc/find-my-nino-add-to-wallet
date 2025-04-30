@@ -20,13 +20,14 @@ import models.google.GooglePass
 import scala.concurrent.{ExecutionContext, Future}
 
 trait GooglePassRepoTrait {
-  def insert(passId: String,
-             fullName: String,
-             nino: String,
-             expirationDate: String,
-             googlePassUrl: String,
-             qrCode: Array[Byte])
-            (implicit ec: ExecutionContext): Future[Unit]
+  def insert(
+    passId: String,
+    fullName: String,
+    nino: String,
+    expirationDate: String,
+    googlePassUrl: String,
+    qrCode: Array[Byte]
+  )(implicit ec: ExecutionContext): Future[Unit]
 
   def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]]
 

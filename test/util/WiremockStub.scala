@@ -33,7 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext
 
 trait WiremockStub
-  extends AnyWordSpec
+    extends AnyWordSpec
     with GuiceOneAppPerSuite
     with Status
     with HeaderNames
@@ -42,7 +42,7 @@ trait WiremockStub
     with ScalaFutures
     with IntegrationPatience {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val hc: HeaderCarrier    = HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val server: WireMockServer
@@ -60,13 +60,14 @@ trait WiremockStub
     get(url).willReturn(response)
   }
 
-  def stubPut(url: String,
-              responseStatus: Int,
-              requestBody: Option[String],
-              responseBody: Option[String]
-             ): StubMapping = server.stubFor {
+  def stubPut(
+    url: String,
+    responseStatus: Int,
+    requestBody: Option[String],
+    responseBody: Option[String]
+  ): StubMapping = server.stubFor {
     val baseResponse = aResponse().withStatus(responseStatus).withHeader(CONTENT_TYPE, JSON)
-    val response = responseBody.fold(baseResponse)(body => baseResponse.withBody(body))
+    val response     = responseBody.fold(baseResponse)(body => baseResponse.withBody(body))
 
     requestBody.fold(put(url).willReturn(response))(requestBody =>
       put(url).withRequestBody(equalToJson(requestBody)).willReturn(response)
@@ -74,11 +75,11 @@ trait WiremockStub
   }
 
   def stubPost(
-                url: String,
-                responseStatus: Int,
-                requestBody: Option[String],
-                responseBody: Option[String]
-              ): StubMapping = server.stubFor {
+    url: String,
+    responseStatus: Int,
+    requestBody: Option[String],
+    responseBody: Option[String]
+  ): StubMapping = server.stubFor {
     val baseResponse = aResponse().withStatus(responseStatus).withHeader(CONTENT_TYPE, JSON)
     val response     = responseBody.fold(baseResponse)(body => baseResponse.withBody(body))
 
@@ -96,12 +97,12 @@ trait WiremockStub
   }
 
   def stubWithDelay(
-                     url: String,
-                     responseStatus: Int,
-                     requestBody: Option[String],
-                     responseBody: Option[String],
-                     delay: Int
-                   ): StubMapping = server.stubFor {
+    url: String,
+    responseStatus: Int,
+    requestBody: Option[String],
+    responseBody: Option[String],
+    delay: Int
+  ): StubMapping = server.stubFor {
     val baseResponse = aResponse().withStatus(responseStatus).withHeader(CONTENT_TYPE, JSON).withFixedDelay(delay)
     val response     = responseBody.fold(baseResponse)(body => baseResponse.withBody(body))
 
@@ -118,16 +119,16 @@ trait WiremockStub
       )
     )
 
-  def stubNPS(nino: String, response: Int) = {
-    server.stubFor(post(urlMatching(s"/nps/nps-json-service/nps/itmp/find-my-nino/api/v1/individual/$nino"))
-      .willReturn(
-        aResponse()
-          .withStatus(response)
-          .withBody(
-            s"""{
+  def stubNPS(nino: String, response: Int) =
+    server.stubFor(
+      post(urlMatching(s"/nps/nps-json-service/nps/itmp/find-my-nino/api/v1/individual/$nino"))
+        .willReturn(
+          aResponse()
+            .withStatus(response)
+            .withBody(
+              s"""{
                |}""".stripMargin
-          )
-      )
+            )
+        )
     )
-  }
 }

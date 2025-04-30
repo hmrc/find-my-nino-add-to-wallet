@@ -16,5 +16,9 @@
 
 package models.apple
 
-case class ApplePassGeneric(primaryFields: Array[ApplePassField], secondaryFields: Array[ApplePassField],
-                            auxiliaryFields: Array[ApplePassField], backFields: Array[ApplePassField])
+case class ApplePassGeneric(
+  primaryFields: Array[ApplePassField],
+  secondaryFields: Array[ApplePassField],
+  auxiliaryFields: Array[ApplePassField],
+  backFields: Array[ApplePassField]
+)

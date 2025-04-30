@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package services
 
-import config.AppConfig
 import connectors.IndividualDetailsConnector
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
-import org.scalatestplus.play._
-import play.api.test.Helpers._
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.*
+import play.api.test.Helpers.*
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,23 +33,22 @@ class IndividualDetailsServiceSpec extends PlaySpec with MockitoSugar {
 
     "return the expected result from getIndividualDetails" in {
       val mockConnector = mock[IndividualDetailsConnector]
-      val mockConfig = mock[AppConfig]
-      val service = new IndividualDetailsService(mockConfig, mockConnector)
+      val service       = new IndividualDetailsService(mockConnector)
 
-      val nino = "AB123456C"
+      val nino         = "AB123456C"
       val resolveMerge = "true"
 
-      when(mockConfig.individualDetailsToken).thenReturn("token")
-      when(mockConfig.individualDetailsEnvironment).thenReturn("environment")
-      when(mockConfig.individualDetailsOriginatorId).thenReturn("originatorId")
-
       val expectedResponse = HttpResponse(OK, "response body")
-      when(mockConnector.getIndividualDetails(org.mockito.ArgumentMatchers.eq(nino),
-        org.mockito.ArgumentMatchers.eq(resolveMerge), any[HeaderCarrier])(any[ExecutionContext]))
+      when(
+        mockConnector.getIndividualDetails(
+          org.mockito.ArgumentMatchers.eq(nino),
+          org.mockito.ArgumentMatchers.eq(resolveMerge)
+        )(any[ExecutionContext], any[HeaderCarrier])
+      )
         .thenReturn(Future.successful(expectedResponse))
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(service.getIndividualDetails(nino, resolveMerge))
+      val result                     = await(service.getIndividualDetails(nino, resolveMerge))
 
       result mustBe expectedResponse
     }

@@ -16,7 +16,6 @@
 
 package services.googlepass
 
-
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
@@ -34,51 +33,64 @@ import scala.jdk.CollectionConverters._
 import collection.mutable._
 
 // $COVERAGE-OFF$
-class CreateGenericPrivatePass @Inject()(config: AppConfig) {
+class CreateGenericPrivatePass @Inject() (config: AppConfig) {
 
-  val logoImageUrl = "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-tudor-google-pass.png"
+  val logoImageUrl         =
+    "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-tudor-google-pass.png"
   val logoImageDiscription = "HMRC"
 
-  def createJwtWithCredentials(id: String, issuerId: String, googlePassCard: GooglePassCard, googleCredentials: GoogleCredentials, expiry: Int): String = try {
+  def createJwtWithCredentials(
+    id: String,
+    issuerId: String,
+    googlePassCard: GooglePassCard,
+    googleCredentials: GoogleCredentials,
+    expiry: Int
+  ): String = try
     createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard), expiry)
-  } catch {
+  catch {
     case e: IOException =>
       throw new RuntimeException("Error saving JWT: " + e)
   }
 
-  /**
-   * Creates the generic private pass object
-   *
-   * @param id              A unique identifier for the generic private pass
-   * @param issuerId        A unique ID identifying your issuer account
-   * @param googlePassCard  The google pass card model containing the data to display on the card
-   * @return The created generic private pass
-   */
-  private def createGenericPrivatePassObject(id: String, issuerId: String, googlePassCard: GooglePassCard): GenericPrivatePass = {
+  /** Creates the generic private pass object
+    *
+    * @param id
+    *   A unique identifier for the generic private pass
+    * @param issuerId
+    *   A unique ID identifying your issuer account
+    * @param googlePassCard
+    *   The google pass card model containing the data to display on the card
+    * @return
+    *   The created generic private pass
+    */
+  private def createGenericPrivatePassObject(
+    id: String,
+    issuerId: String,
+    googlePassCard: GooglePassCard
+  ): GenericPrivatePass = {
 
     val imageUri = new ImageUri()
       .setDescription(logoImageDiscription)
       .setUri(logoImageUrl)
-    val image = new Image().setSourceUri(imageUri)
+    val image    = new Image().setSourceUri(imageUri)
 
     val textModulesData = ArrayBuffer[TextModuleData]()
-    for (row: GooglePassTextRow <- googlePassCard.rows.get) {
+    for (row: GooglePassTextRow <- googlePassCard.rows.get)
       textModulesData += new TextModuleData()
         .setBody(row.body.getOrElse(""))
         .setId(row.id.getOrElse(""))
         .setHeader(row.header.getOrElse(""))
-    }
 
     val translatedTitleString: TranslatedString = new TranslatedString()
       .setValue(googlePassCard.title)
       .setLanguage(googlePassCard.language)
-    val title = new LocalizedString()
+    val title                                   = new LocalizedString()
       .setDefaultValue(translatedTitleString)
 
     val translatedHeaderString = new TranslatedString()
       .setValue(googlePassCard.header)
       .setLanguage(googlePassCard.language)
-    val header = new LocalizedString()
+    val header                 = new LocalizedString()
       .setDefaultValue(translatedHeaderString)
 
     new GenericPrivatePass()
@@ -91,17 +103,20 @@ class CreateGenericPrivatePass @Inject()(config: AppConfig) {
       .setHexBackgroundColor(googlePassCard.hexBackgroundColour)
   }
 
-
-
-
-  /**
-   * Creates and signs a JWT using a private key
-   *
-   * @param googleCredentials  The google credentials containing the private key for signing
-   * @param genericPrivatePass The generic private pass object
-   * @return The generated JWT string signed with a private key
-   */
-  private def createAndSignJWT(googleCredentials: GoogleCredentials, genericPrivatePass: GenericPrivatePass, expiry: Int): String = {
+  /** Creates and signs a JWT using a private key
+    *
+    * @param googleCredentials
+    *   The google credentials containing the private key for signing
+    * @param genericPrivatePass
+    *   The generic private pass object
+    * @return
+    *   The generated JWT string signed with a private key
+    */
+  private def createAndSignJWT(
+    googleCredentials: GoogleCredentials,
+    genericPrivatePass: GenericPrivatePass,
+    expiry: Int
+  ): String = {
     // Create the JWT as a HashMap object
     val claims: util.HashMap[String, Object] = new util.HashMap[String, Object]()
 
@@ -113,10 +128,12 @@ class CreateGenericPrivatePass @Inject()(config: AppConfig) {
     val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
     payload.put("genericPrivatePasses", util.Arrays.asList(genericPrivatePass))
     claims.put("payload", payload)
-    val JWTExpiryDate  = Date.from(LocalDateTime.now().plusMinutes(expiry).atZone(ZoneId.systemDefault()).toInstant)
+    val JWTExpiryDate                         = Date.from(LocalDateTime.now().plusMinutes(expiry).atZone(ZoneId.systemDefault()).toInstant)
     // The service account credentials are used to sign the JWT
-    val algorithm: Algorithm = Algorithm.RSA256(null,
-      (googleCredentials.asInstanceOf[ServiceAccountCredentials].getPrivateKey()).asInstanceOf[RSAPrivateKey])
+    val algorithm: Algorithm                  = Algorithm.RSA256(
+      null,
+      googleCredentials.asInstanceOf[ServiceAccountCredentials].getPrivateKey().asInstanceOf[RSAPrivateKey]
+    )
     JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
   }
 }

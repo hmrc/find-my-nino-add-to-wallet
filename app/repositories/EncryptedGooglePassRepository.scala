@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import config.AppConfig
 import models.encryption.EncryptedGooglePass
 import models.google.GooglePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
+import org.mongodb.scala.SingleObservableFuture
 import play.api.Logging
 import EncryptedGooglePass._
 import uk.gov.hmrc.mongo.MongoComponent
@@ -30,49 +31,59 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EncryptedGooglePassRepository @Inject()(
-                                     mongoComponent: MongoComponent,
-                                     appConfig: AppConfig
-                                   )(implicit ec: ExecutionContext) extends PlayMongoRepository[EncryptedGooglePass](
-  collectionName = "google-pass",
-  mongoComponent = mongoComponent,
-  domainFormat = EncryptedGooglePass.encryptedFormat,
-  indexes = Seq(
-    IndexModel(
-      Indexes.ascending("passId"),
-      IndexOptions().name("passId").unique(true)
-    ),
-    IndexModel(
-      Indexes.ascending("fullName", "nino"),
-      IndexOptions().name("fullName_Nino")
-    ),
-    IndexModel(
-      Indexes.ascending("lastUpdated"),
-      IndexOptions()
-        .name("lastUpdatedIdx")
-        .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+class EncryptedGooglePassRepository @Inject() (
+  mongoComponent: MongoComponent,
+  appConfig: AppConfig
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[EncryptedGooglePass](
+      collectionName = "google-pass",
+      mongoComponent = mongoComponent,
+      domainFormat = EncryptedGooglePass.encryptedFormat,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("passId"),
+          IndexOptions().name("passId").unique(true)
+        ),
+        IndexModel(
+          Indexes.ascending("fullName", "nino"),
+          IndexOptions().name("fullName_Nino")
+        ),
+        IndexModel(
+          Indexes.ascending("lastUpdated"),
+          IndexOptions()
+            .name("lastUpdatedIdx")
+            .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+        )
+      ),
+      replaceIndexes = true
     )
-  ),
-  replaceIndexes = true
-) with Logging with GooglePassRepoTrait {
-  def insert(passId: String,
-             fullName: String,
-             nino: String,
-             expirationDate: String,
-             googlePassUrl: String,
-             qrCode: Array[Byte])
-            (implicit ec: ExecutionContext): Future[Unit] = {
+    with Logging
+    with GooglePassRepoTrait {
+  def insert(
+    passId: String,
+    fullName: String,
+    nino: String,
+    expirationDate: String,
+    googlePassUrl: String,
+    qrCode: Array[Byte]
+  )(implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Inserted one in $collectionName table")
-    collection.insertOne(encrypt(GooglePass(passId, fullName, nino, expirationDate, googlePassUrl, qrCode), appConfig.encryptionKey))
+    collection
+      .insertOne(
+        encrypt(GooglePass(passId, fullName, nino, expirationDate, googlePassUrl, qrCode), appConfig.encryptionKey)
+      )
       .head()
       .map(_ => ())
-      .recoverWith {
-        case e => Future.successful(logger.info(s"failed to insert google pass card into $collectionName table with ${e.getMessage}"))
+      .recoverWith { case e =>
+        Future.successful(
+          logger.info(s"failed to insert google pass card into $collectionName table with ${e.getMessage}")
+        )
       }
   }
 
   def findByPassId(passId: String)(implicit ec: ExecutionContext): Future[Option[GooglePass]] =
-    collection.find(Filters.equal("passId", passId))
+    collection
+      .find(Filters.equal("passId", passId))
       .first()
       .toFutureOption()
       .map(optEncryptedGooglePass =>

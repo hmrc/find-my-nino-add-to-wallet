@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, featureFlagService: FeatureFlagService)(implicit ec: ExecutionContext) {
+class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFlagService)(implicit
+  ec: ExecutionContext
+) {
 
-  val appName: String = config.get[String]("appName")
+  val appName: String            = config.get[String]("appName")
   val frontendServiceUrl: String = config.get[String]("frontendServiceUrl")
 
-  private def appleCerts: Future[(String, String, String)] = {
+  private def appleCerts: Future[(String, String, String)] =
     featureFlagService.get(ApplePassCertificates2).map { featureFlag =>
       if (featureFlag.isEnabled) {
         (
@@ -46,38 +48,37 @@ class AppConfig @Inject()(config: Configuration, featureFlagService: FeatureFlag
         )
       }
     }
-  }
-  def appleWWDRCA: Future[String] = appleCerts.map(_._1)
-  def privateCertificate: Future[String] = appleCerts.map(_._2)
-  def privateCertificatePassword: Future[String] = appleCerts.map(_._3)
+  def appleWWDRCA: Future[String]                          = appleCerts.map(_._1)
+  def privateCertificate: Future[String]                   = appleCerts.map(_._2)
+  def privateCertificatePassword: Future[String]           = appleCerts.map(_._3)
 
   val googleIssuerId: String = config.get[String]("googlePass.issuerId")
-  val googleKey: String = config.get[String]("googlePass.key")
-  val googleJWTExpiry: Int = config.get[Int]("googlePass.expiry")
-  val googleAddUrl: String = config.get[String]("googlePass.url")
-  val googleOrigins: String = config.get[String]("googlePass.origins")
-  val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
-
-
+  val googleKey: String      = config.get[String]("googlePass.key")
+  val googleJWTExpiry: Int   = config.get[Int]("googlePass.expiry")
+  val googleAddUrl: String   = config.get[String]("googlePass.url")
+  val googleOrigins: String  = config.get[String]("googlePass.origins")
+  val cacheTtl: Long         = config.get[Int]("mongodb.timeToLiveInSeconds")
 
   val encryptionKey: String = config.get[String]("mongodb.encryption.key")
 
-  lazy val individualDetailsToken: String = config.get[String]("external-url.individual-details.auth-token")
-  lazy val individualDetailsEnvironment: String = config.get[String]("external-url.individual-details.environment")
+  lazy val individualDetailsToken: String        = config.get[String]("external-url.individual-details.auth-token")
+  lazy val individualDetailsEnvironment: String  = config.get[String]("external-url.individual-details.environment")
   lazy val individualDetailsOriginatorId: String = config.get[String]("external-url.individual-details.originator-id")
-  lazy val individualDetailsProtocol: String = config.get[String]("external-url.individual-details.protocol")
-  lazy val individualDetailsHost: String = config.get[String]("external-url.individual-details.host")
-  lazy val individualDetailsPort: String = config.get[String]("external-url.individual-details.port")
-  val individualDetailsServiceUrl: String = s"$individualDetailsProtocol://$individualDetailsHost:$individualDetailsPort"
+  lazy val individualDetailsProtocol: String     = config.get[String]("external-url.individual-details.protocol")
+  lazy val individualDetailsHost: String         = config.get[String]("external-url.individual-details.host")
+  lazy val individualDetailsPort: String         = config.get[String]("external-url.individual-details.port")
+  val individualDetailsServiceUrl: String        =
+    s"$individualDetailsProtocol://$individualDetailsHost:$individualDetailsPort"
 
-  lazy val npsCrnCorrelationIdKey: String = config.get[String]("microservice.services.nps-crn-api.correlationId.key")
-  lazy val npsCrnOriginatorIdKey: String = config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.key")
-  lazy val npsCrnOriginatorIdValue: String = config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.value")
+  lazy val npsCrnCorrelationIdKey: String  = config.get[String]("microservice.services.nps-crn-api.correlationId.key")
+  lazy val npsCrnOriginatorIdKey: String   = config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.key")
+  lazy val npsCrnOriginatorIdValue: String =
+    config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.value")
 
   lazy val npsCrnProtocol: String = config.get[String]("microservice.services.nps-crn-api.protocol")
-  lazy val npsCrnHost: String = config.get[String]("microservice.services.nps-crn-api.host")
-  lazy val npsCrnPort: String = config.get[String]("microservice.services.nps-crn-api.port")
-  lazy val npsCrnToken: String = config.get[String]("microservice.services.nps-crn-api.token")
-  val npsCrnUrl: String = s"$npsCrnProtocol://$npsCrnHost:$npsCrnPort"
+  lazy val npsCrnHost: String     = config.get[String]("microservice.services.nps-crn-api.host")
+  lazy val npsCrnPort: String     = config.get[String]("microservice.services.nps-crn-api.port")
+  lazy val npsCrnToken: String    = config.get[String]("microservice.services.nps-crn-api.token")
+  val npsCrnUrl: String           = s"$npsCrnProtocol://$npsCrnHost:$npsCrnPort"
 
 }

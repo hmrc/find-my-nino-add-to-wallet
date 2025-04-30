@@ -25,20 +25,16 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class CertificatesTestOnlyController @Inject()(cc: MessagesControllerComponents,
-                                               certificatesCheck: CertificatesCheck
-                                              )( implicit ec: ExecutionContext)
-                                             extends BackendController(cc) {
-
+class CertificatesTestOnlyController @Inject() (cc: MessagesControllerComponents, certificatesCheck: CertificatesCheck)(
+  implicit ec: ExecutionContext
+) extends BackendController(cc) {
 
   def showExpiry: Action[AnyContent] = Action.async {
 
     for {
-      appleWWDRCAExpiry <- certificatesCheck.getAppleWWDRCADetails
+      appleWWDRCAExpiry        <- certificatesCheck.getAppleWWDRCADetails
       privateCertificateExpiry <- certificatesCheck.getPrivateCertificateDetails
-    } yield {
-      Ok(Html(
-        s"""
+    } yield Ok(Html(s"""
            |apple WWDRCA expiry date: ${appleWWDRCAExpiry._1}
            |IssuerX500Principal: ${appleWWDRCAExpiry._2}
            |SubjectX500Principal: ${appleWWDRCAExpiry._3}
@@ -47,6 +43,5 @@ class CertificatesTestOnlyController @Inject()(cc: MessagesControllerComponents,
            |IssuerX500Principal: ${privateCertificateExpiry._2}
            |SubjectX500Principal: ${privateCertificateExpiry._3}
            |"""".stripMargin))
-    }
   }
 }

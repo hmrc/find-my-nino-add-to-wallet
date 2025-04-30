@@ -26,32 +26,29 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class NPSController  @Inject()(authConnector: AuthConnector,
-                               npsService: NPSService
-                                             )(implicit
-                                               config: Configuration,
-                                               env: Environment,
-                                               cc: MessagesControllerComponents,
-                                               ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
+class NPSController @Inject() (authConnector: AuthConnector, npsService: NPSService)(implicit
+  config: Configuration,
+  env: Environment,
+  cc: MessagesControllerComponents,
+  ec: ExecutionContext
+) extends FMNBaseController(authConnector)
+    with Logging {
 
-  def upliftCRN(identifier: String): Action[AnyContent] = Action.async {
-    implicit request =>
-      authorisedAsFMNUser {
-        _ => {
-          val upliftRequest: ChildReferenceNumberUpliftRequest = request.body.asJson.get.as[ChildReferenceNumberUpliftRequest]
-          for {
-            httpResponse <- npsService.upliftCRN(identifier, upliftRequest)
-          } yield httpResponse.status match {
-            case NO_CONTENT => Results.NoContent
-            case BAD_REQUEST => Results.BadRequest(httpResponse.body)
-            case FORBIDDEN => Results.Forbidden(httpResponse.body)
-            case UNPROCESSABLE_ENTITY => Results.UnprocessableEntity(httpResponse.body)
-            case NOT_FOUND => Results.NotFound
-            case INTERNAL_SERVER_ERROR => Results.InternalServerError
-            case _ => Results.Status(httpResponse.status)(httpResponse.body)
-          }
-        }
+  def upliftCRN(identifier: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { _ =>
+      val upliftRequest: ChildReferenceNumberUpliftRequest =
+        request.body.asJson.get.as[ChildReferenceNumberUpliftRequest]
+      for {
+        httpResponse <- npsService.upliftCRN(identifier, upliftRequest)
+      } yield httpResponse.status match {
+        case NO_CONTENT            => Results.NoContent
+        case BAD_REQUEST           => Results.BadRequest(httpResponse.body)
+        case FORBIDDEN             => Results.Forbidden(httpResponse.body)
+        case UNPROCESSABLE_ENTITY  => Results.UnprocessableEntity(httpResponse.body)
+        case NOT_FOUND             => Results.NotFound
+        case INTERNAL_SERVER_ERROR => Results.InternalServerError
+        case _                     => Results.Status(httpResponse.status)(httpResponse.body)
       }
+    }
   }
 }
-

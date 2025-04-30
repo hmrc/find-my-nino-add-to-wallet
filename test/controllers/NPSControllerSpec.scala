@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,20 @@
 package controllers
 
 import models.nps.ChildReferenceNumberUpliftRequest
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
-import org.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures.whenReady
-import org.scalatestplus.play._
+import org.scalatestplus.play.*
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.Json
-import play.api.mvc._
-import play.api.test.Helpers._
-import play.api.test._
+import play.api.mvc.*
+import play.api.test.Helpers.*
+import play.api.test.*
 import play.api.{Application, Configuration, Environment}
 import services.NPSService
-import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -40,27 +40,31 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-  implicit val ec: ExecutionContext = global
-  implicit val config: play.api.Configuration = mock[Configuration]
-  implicit val env:Environment = mock[Environment]
+  implicit val hc: HeaderCarrier                = HeaderCarrier()
+  implicit val ec: ExecutionContext             = global
+  implicit val config: play.api.Configuration   = mock[Configuration]
+  implicit val env: Environment                 = mock[Environment]
   implicit val cc: MessagesControllerComponents = mock[MessagesControllerComponents]
 
-  val identifier  = "AB123456Q"
+  val identifier = "AB123456Q"
 
   private val mockAuthConnector = mock[AuthConnector]
-  private val mockNPSService = mock[NPSService]
+  private val mockNPSService    = mock[NPSService]
 
-  val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(stubControllerComponents().parsers.defaultBodyParser)
+  val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(
+    stubControllerComponents().parsers.defaultBodyParser
+  )
   when(cc.actionBuilder).thenReturn(actionBuilder)
 
   val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-    Future.successful(new~(new~(new~(Some(identifier), Some(User)), Some("id")), None))
+    Future.successful(new ~(new ~(new ~(Some(identifier), Some(User)), Some("id")), None))
 
   when(
     mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
       eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
+      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+    )(any[HeaderCarrier], any[ExecutionContext])
+  )
     .thenReturn(retrievalResult)
 
   val modules: Seq[GuiceableModule] =
@@ -70,12 +74,12 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
     )
 
   val application: Application = new GuiceApplicationBuilder()
-    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
-    overrides(modules: _*).build()
+    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false)
+    .overrides(modules: _*)
+    .build()
 
-  private val fakeRequestWithAuth = FakeRequest("PUT", "/").withHeaders(
-    ("Content-Type" -> "application/json"),
-    ("Authorization" -> "Bearer 123"))
+  private val fakeRequestWithAuth =
+    FakeRequest("PUT", "/").withHeaders("Content-Type" -> "application/json", "Authorization" -> "Bearer 123")
 
   val controller: NPSController = application.injector.instanceOf[NPSController]
 
@@ -180,4 +184,3 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
   }
 }
-

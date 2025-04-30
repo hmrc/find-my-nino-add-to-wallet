@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
 
 package controllers
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
-import org.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, when}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.play._
+import org.scalatestplus.play.*
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc._
-import play.api.test.Helpers._
-import play.api.test._
+import play.api.mvc.*
+import play.api.test.Helpers.*
+import play.api.test.*
 import play.api.{Application, Configuration, Environment}
 import services.IndividualDetailsService
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
-import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -39,23 +39,25 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class IndividualsDetailsControllerSpec extends PlaySpec with Results with MockitoSugar with BeforeAndAfterEach {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-  implicit val ec: ExecutionContext = global
-  implicit val config: play.api.Configuration = mock[Configuration]
-  implicit val env:Environment = mock[Environment]
+  implicit val hc: HeaderCarrier                = HeaderCarrier()
+  implicit val ec: ExecutionContext             = global
+  implicit val config: play.api.Configuration   = mock[Configuration]
+  implicit val env: Environment                 = mock[Environment]
   implicit val cc: MessagesControllerComponents = mock[MessagesControllerComponents]
 
-  val testNino  = "AB123456Q"
+  val testNino     = "AB123456Q"
   val resolveMerge = "Y"
 
-  private val mockAuthConnector = mock[AuthConnector]
+  private val mockAuthConnector            = mock[AuthConnector]
   private val mockIndividualDetailsService = mock[IndividualDetailsService]
 
-  val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(stubControllerComponents().parsers.defaultBodyParser)
+  val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(
+    stubControllerComponents().parsers.defaultBodyParser
+  )
   when(cc.actionBuilder).thenReturn(actionBuilder)
 
   val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-    Future.successful(new~(new~(new~(Some(testNino), Some(User)), Some("id")), None))
+    Future.successful(new ~(new ~(new ~(Some(testNino), Some(User)), Some("id")), None))
 
   val modules: Seq[GuiceableModule] =
     Seq(
@@ -64,16 +66,19 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     )
 
   val application: Application = new GuiceApplicationBuilder()
-    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
-    overrides(modules: _*).build()
+    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false)
+    .overrides(modules: _*)
+    .build()
 
   override def beforeEach(): Unit = {
     reset(mockAuthConnector)
     when(
       mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
         any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
-      .thenReturn(retrievalResult)
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+      )(any[HeaderCarrier], any[ExecutionContext])
+    ).thenReturn(retrievalResult)
+    ()
   }
 
   "IndividualsDetailsController" must {
@@ -92,22 +97,25 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     "return OK for getIndividualDetails when trusted helper user calls using helpee nino" in {
 
-      val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+      val controller    = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
       val trustedHelper = TrustedHelper("PrincipalName", "AttorneyName", "ReturnLink", Some("PrincipalNino"))
 
       val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-        Future.successful(new~(new~(new~(Some(testNino), Some(User)), Some("id")), Some(trustedHelper)))
+        Future.successful(new ~(new ~(new ~(Some(testNino), Some(User)), Some("id")), Some(trustedHelper)))
 
       when(
         mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
           any[Predicate],
-          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]])(any[HeaderCarrier], any[ExecutionContext]))
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+        )(any[HeaderCarrier], any[ExecutionContext])
+      )
         .thenReturn(retrievalResult)
 
       when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(OK, "")))
 
-      val result: Future[Result] = controller.getIndividualDetails(trustedHelper.principalNino.get, resolveMerge).apply(FakeRequest())
+      val result: Future[Result] =
+        controller.getIndividualDetails(trustedHelper.principalNino.get, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
 
     }
@@ -119,7 +127,9 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
       when(
         mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
           eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
-          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+        )(any[HeaderCarrier], any[ExecutionContext])
+      )
         .thenReturn(Future.failed(new InsufficientEnrolments))
 
       val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
@@ -128,12 +138,14 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     "return Unauthorized when NINO in authContext does not match the NINO in the request" in {
       val differentNino = "CD123456Q"
-      val controller = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
+      val controller    = new IndividualsDetailsController(mockAuthConnector, mockIndividualDetailsService)
 
       when(
         mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
           eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
-          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]])(any[HeaderCarrier], any[ExecutionContext]))
+          any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+        )(any[HeaderCarrier], any[ExecutionContext])
+      )
         .thenReturn(Future.successful(new ~(new ~(Some(testNino), Some(User)), Some("id"))))
 
       val result: Future[Result] = controller.getIndividualDetails(differentNino, resolveMerge).apply(FakeRequest())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package repositories
 
 import config.AppConfig
 import models.google.GooglePass
-import java.time.{ZonedDateTime, ZoneId}
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import java.time.{ZoneId, ZonedDateTime}
+import org.scalatestplus.mockito.MockitoSugar
 import org.mongodb.scala.model.Filters
+import org.mongodb.scala.ObservableFuture
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -31,27 +33,28 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class GooglePassRepositorySpec extends AnyWordSpec
-  with MockitoSugar
-  with Matchers
-  with DefaultPlayMongoRepositorySupport[GooglePass]
-  with ScalaFutures
-  with IntegrationPatience
-  with OptionValues { // scalastyle:off magic.number
+class GooglePassRepositorySpec
+    extends AnyWordSpec
+    with MockitoSugar
+    with Matchers
+    with DefaultPlayMongoRepositorySupport[GooglePass]
+    with ScalaFutures
+    with IntegrationPatience
+    with OptionValues { // scalastyle:off magic.number
 
-
-  private val appConfig = mock[AppConfig]
-  when(appConfig.cacheTtl) thenReturn 1
+  private val appConfig                = mock[AppConfig]
+  when(appConfig.cacheTtl) thenReturn 1L
   when(appConfig.encryptionKey) thenReturn "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b"
   private val DEFAULT_EXPIRATION_YEARS = 100
 
-  override protected val repository = new GooglePassRepository(mongoComponent, appConfig)
+  override protected val repository: GooglePassRepository = new GooglePassRepository(mongoComponent, appConfig)
 
   "insert" must {
     "save a new Google Pass in Mongo collection when collection is empty" in {
 
-      val passId = "test-pass-id-001"
-      val record = (passId,
+      val passId  = "test-pass-id-001"
+      val record  = (
+        passId,
         "Name Surname",
         "AB 12 34 56 Q",
         ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString,
@@ -61,7 +64,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
       val filters = Filters.eq("passId", passId)
 
       val documentsInDB = for {
-        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
+        _             <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
         documentsInDB <- repository.collection.find[GooglePass](filters).toFuture()
       } yield documentsInDB
 
@@ -85,7 +88,7 @@ class GooglePassRepositorySpec extends AnyWordSpec
       )
 
       val documentsInDB = for {
-        _ <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
+        _             <- repository.insert(record._1, record._2, record._3, record._4, record._5, record._6)
         documentsInDB <- repository.findByPassId(passId)
       } yield documentsInDB
 

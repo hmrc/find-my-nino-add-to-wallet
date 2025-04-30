@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,42 @@
 
 package models.encryption
 
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{Format, OFormat, __}
 import uk.gov.hmrc.crypto.{EncryptedValue, SymmetricCryptoFactory}
 import EncryptedValueFormat._
 import models.apple.ApplePass
-import uk.gov.hmrc.mongo.play.json.formats.{MongoJavatimeFormats}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class EncryptedApplePass(passId: String,
-                              fullName: EncryptedValue,
-                              nino: EncryptedValue,
-                              applePassCard: EncryptedValue,
-                              qrCode: EncryptedValue,
-                              lastUpdated: Instant)
+case class EncryptedApplePass(
+  passId: String,
+  fullName: EncryptedValue,
+  nino: EncryptedValue,
+  applePassCard: EncryptedValue,
+  qrCode: EncryptedValue,
+  lastUpdated: Instant
+)
 
 object EncryptedApplePass {
 
   implicit val dateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
-  val encryptedFormat: OFormat[EncryptedApplePass] = {
+  val encryptedFormat: OFormat[EncryptedApplePass] =
     ((__ \ "passId").format[String]
       ~ (__ \ "fullName").format[EncryptedValue]
       ~ (__ \ "nino").format[EncryptedValue]
       ~ (__ \ "applePassCard").format[EncryptedValue]
       ~ (__ \ "qrCode").format[EncryptedValue]
-      ~ (__ \ "lastUpdated").format[Instant]
-      )(EncryptedApplePass.apply, unlift(EncryptedApplePass.unapply))
-  }
+      ~ (__ \ "lastUpdated").format[Instant])(
+      EncryptedApplePass.apply,
+      eap => Tuple6(eap.passId, eap.fullName, eap.nino, eap.applePassCard, eap.qrCode, eap.lastUpdated)
+    )
 
   def encrypt(applePass: ApplePass, key: String): EncryptedApplePass = {
-    def e(field: String): EncryptedValue = {
+    def e(field: String): EncryptedValue =
       SymmetricCryptoFactory.aesGcmAdCrypto(key).encrypt(field, applePass.passId)
-    }
 
     EncryptedApplePass(
       passId = applePass.passId,
@@ -62,9 +64,8 @@ object EncryptedApplePass {
   }
 
   def decrypt(encryptedApplePass: EncryptedApplePass, key: String): ApplePass = {
-    def d(field: EncryptedValue): String = {
+    def d(field: EncryptedValue): String =
       SymmetricCryptoFactory.aesGcmAdCrypto(key).decrypt(field, encryptedApplePass.passId)
-    }
 
     ApplePass(
       passId = encryptedApplePass.passId,

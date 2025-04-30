@@ -27,40 +27,33 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class IndividualsDetailsController  @Inject()(authConnector: AuthConnector,
-                                              individualDetailsService: IndividualDetailsService
-                                             )(implicit
-                                               config: Configuration,
-                                               env: Environment,
-                                               cc: MessagesControllerComponents,
-                                               ec: ExecutionContext) extends FMNBaseController(authConnector) {
+class IndividualsDetailsController @Inject() (
+  authConnector: AuthConnector,
+  individualDetailsService: IndividualDetailsService
+)(implicit config: Configuration, env: Environment, cc: MessagesControllerComponents, ec: ExecutionContext)
+    extends FMNBaseController(authConnector) {
 
-  def getIndividualDetails(nino: String, resolveMerge: String): Action[AnyContent] = Action.async {
-    implicit request =>
-      authorisedAsFMNUser {
-        authContext => {
-          implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-          val ninoLengthWithoutSuffix = 8
-          if(authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
-            logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
-            Future(Results.Unauthorized("You are not authorised to access this resource"))
-          }else {
-            individualDetailsService.getIndividualDetails(nino, resolveMerge).map(resultFromStatus)
-          }
-        }
+  def getIndividualDetails(nino: String, resolveMerge: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { authContext =>
+      implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+      val ninoLengthWithoutSuffix    = 8
+      if (authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
+        logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
+        Future(Results.Unauthorized("You are not authorised to access this resource"))
+      } else {
+        individualDetailsService.getIndividualDetails(nino, resolveMerge).map(resultFromStatus)
       }
-  }
-
-  private def resultFromStatus(response: HttpResponse): Result = {
-    response.status match {
-      case OK => Results.Ok(response.body)
-      case BAD_REQUEST => Results.BadRequest(response.body)
-      case UNAUTHORIZED => Results.Unauthorized(response.body)
-      case NOT_FOUND => Results.NotFound(response.body)
-      case INTERNAL_SERVER_ERROR => Results.InternalServerError(response.body)
-      case NOT_IMPLEMENTED => Results.NotImplemented(response.body)
-      case status => Results.Status(status)(response.body)
     }
   }
-}
 
+  private def resultFromStatus(response: HttpResponse): Result =
+    response.status match {
+      case OK                    => Results.Ok(response.body)
+      case BAD_REQUEST           => Results.BadRequest(response.body)
+      case UNAUTHORIZED          => Results.Unauthorized(response.body)
+      case NOT_FOUND             => Results.NotFound(response.body)
+      case INTERNAL_SERVER_ERROR => Results.InternalServerError(response.body)
+      case NOT_IMPLEMENTED       => Results.NotImplemented(response.body)
+      case status                => Results.Status(status)(response.body)
+    }
+}

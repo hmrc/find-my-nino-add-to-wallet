@@ -43,14 +43,14 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
 
   def overrideConfig: Map[String, Any] =
     Map(
-      "auditing.enabled"                     -> false,
-      "metrics.enabled"                      -> false,
-      "microservice.services.nps-crn-api.correlationId.key" -> "test",
-      "microservice.services.nps-crn-api.govUkOriginatorId.key" -> "test",
+      "auditing.enabled"                                          -> false,
+      "metrics.enabled"                                           -> false,
+      "microservice.services.nps-crn-api.correlationId.key"       -> "test",
+      "microservice.services.nps-crn-api.govUkOriginatorId.key"   -> "test",
       "microservice.services.nps-crn-api.govUkOriginatorId.value" -> "test",
-      "microservice.services.nps-crn-api.protocol" -> "http",
-      "microservice.services.nps-crn-api.host" -> wireHost,
-      "microservice.services.nps-crn-api.port" -> wirePort,
-      "microservice.services.nps-crn-api.token" -> "test"
+      "microservice.services.nps-crn-api.protocol"                -> "http",
+      "microservice.services.nps-crn-api.host"                    -> wireHost,
+      "microservice.services.nps-crn-api.port"                    -> wirePort,
+      "microservice.services.nps-crn-api.token"                   -> "test"
     )
 }

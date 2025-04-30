@@ -18,8 +18,7 @@ package models.apple
 
 import services.ApplePassService._
 
-case class ApplePassCard
-(
+case class ApplePassCard(
   formatVersion: Int,
   passTypeIdentifier: String,
   teamIdentifier: String,
@@ -30,20 +29,20 @@ case class ApplePassCard
   foregroundColor: String,
   backgroundColor: String,
   labelColor: String,
-  sharingProhibited : Boolean,
+  sharingProhibited: Boolean,
   generic: ApplePassGeneric
 )
 
 object ApplePassCard {
-  val FORMAT_VERSION = 1
+  val FORMAT_VERSION       = 1
   val PASS_TYPE_IDENTIFIER = "pass.uk.gov.hmrc.sca.nino"
-  val TEAM_IDENTIFIER = "4LL5YKZZU7"
-  val ORGANIZATION_NAME = "HMRC"
-  val DESCRIPTION = "National Insurance number"
-  val LOGO_TEXT = "HM Revenue & Customs"
-  val COLOR_WHITE = "rgb(255, 255, 255)"
-  val COLOR_HMRC_GRAY = "rgb(0, 137, 133)"
-  val SHARING_PROHIBITED = true
+  val TEAM_IDENTIFIER      = "4LL5YKZZU7"
+  val ORGANIZATION_NAME    = "HMRC"
+  val DESCRIPTION          = "National Insurance number"
+  val LOGO_TEXT            = "HM Revenue & Customs"
+  val COLOR_WHITE          = "rgb(255, 255, 255)"
+  val COLOR_HMRC_GRAY      = "rgb(0, 137, 133)"
+  val SHARING_PROHIBITED   = true
 
   def apply(fullName: String, nino: String, uuid: String): ApplePassCard = {
     val generic = ApplePassGeneric(
@@ -51,13 +50,29 @@ object ApplePassCard {
       Array(ApplePassField(KEY_NAME, Some(LABEL_NAME), fullName)),
       Array(ApplePassField(KEY_WARNING, None, TEXT_WARNING)),
       Array(
-        ApplePassField("downloadpasspdf", Some("Your National Insurance number on a letter"), "You can get a letter confirming your National Insurance number from your personal tax account.\n" +
-          "To sign in, you’ll need to create or use an existing Government Gateway user ID and password.\n" +
-          "https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter"),
+        ApplePassField(
+          "downloadpasspdf",
+          Some("Your National Insurance number on a letter"),
+          "You can get a letter confirming your National Insurance number from your personal tax account.\n" +
+            "To sign in, you’ll need to create or use an existing Government Gateway user ID and password.\n" +
+            "https://www.tax.service.gov.uk/gg/sign-in?continue=/personal-account/national-insurance-summary/print-letter"
+        ),
         ApplePassField("warning", None, "To help prevent identity fraud, only share your number when necessary."),
-        ApplePassField("steps", Some("You'll need it when you:"), "• start paid work\n• apply for a driving licence\n• apply for a student loan\n• register to vote\n• claim state benefits"),
-        ApplePassField("info", Some("Your National Insurance number is:"), "• unique to you and never changes\n• not proof of your identity\n• not proof of your right to work in the UK"),
-        ApplePassField("findoutmore", Some("Find out more about National Insurance"), "https://www.gov.uk/national-insurance")
+        ApplePassField(
+          "steps",
+          Some("You'll need it when you:"),
+          "• start paid work\n• apply for a driving licence\n• apply for a student loan\n• register to vote\n• claim state benefits"
+        ),
+        ApplePassField(
+          "info",
+          Some("Your National Insurance number is:"),
+          "• unique to you and never changes\n• not proof of your identity\n• not proof of your right to work in the UK"
+        ),
+        ApplePassField(
+          "findoutmore",
+          Some("Find out more about National Insurance"),
+          "https://www.gov.uk/national-insurance"
+        )
       )
     )
 

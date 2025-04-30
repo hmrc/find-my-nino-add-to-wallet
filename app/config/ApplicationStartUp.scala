@@ -28,12 +28,15 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ApplicationStartUp @Inject()(certificatesCheck: CertificatesCheck)(implicit ec: ExecutionContext) extends Logging {
+class ApplicationStartUp @Inject() (certificatesCheck: CertificatesCheck)(implicit ec: ExecutionContext)
+    extends Logging {
   FeatureFlagNamesLibrary.addFlags(AllFeatureFlags.list)
 
   certificatesCheck.getPrivateCertificateDetails.map { certs =>
     if (certs._1.before(Date.from(Instant.now().plus(60, DAYS)))) {
-      logger.error(s"privateCertificate issued by ${certs._2} with subject ${certs._3} expires in less than 60 days on ${certs._1}")
+      logger.error(
+        s"privateCertificate issued by ${certs._2} with subject ${certs._3} expires in less than 60 days on ${certs._1}"
+      )
     } else {
       logger.info(s"privateCertificate issued by ${certs._2} with subject ${certs._3} expires on ${certs._1}")
     }
@@ -41,9 +44,13 @@ class ApplicationStartUp @Inject()(certificatesCheck: CertificatesCheck)(implici
 
   certificatesCheck.getAppleWWDRCADetails.map { certs =>
     if (certs._1.before(Date.from(Instant.now().plus(60, DAYS)))) {
-      logger.error(s"Apple WWDR Intermediate Certificate issued by ${certs._2} with subject ${certs._3} expires in less than 60 days on ${certs._1}")
+      logger.error(
+        s"Apple WWDR Intermediate Certificate issued by ${certs._2} with subject ${certs._3} expires in less than 60 days on ${certs._1}"
+      )
     } else {
-      logger.info(s"Apple WWDR Intermediate Certificate issued by ${certs._2} with subject ${certs._3} expires on ${certs._1}")
+      logger.info(
+        s"Apple WWDR Intermediate Certificate issued by ${certs._2} with subject ${certs._3} expires on ${certs._1}"
+      )
     }
   }
 }

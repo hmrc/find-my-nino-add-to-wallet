@@ -30,7 +30,7 @@ import scala.util.{Success, Try}
 
 case class FileAsBytes(filename: String, content: Array[Byte])
 
-class FileService @Inject()() extends Logging {
+class FileService @Inject() () extends Logging {
 
   import FileService._
 
@@ -44,59 +44,58 @@ class FileService @Inject()() extends Logging {
     val logoFile = FileAsBytes(LOGO_FILE_NAME, logoSource)
 
     val manifestInput: List[FileAsBytes] = List(filePass, iconFile, logoFile)
-    val createdManifest: FileAsBytes = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
+    val createdManifest: FileAsBytes     = createManifest(manifestInput).getOrElse(FileAsBytes("", Array.emptyByteArray))
 
-    if (filePass.content.nonEmpty && iconFile.content.nonEmpty && logoFile.content.nonEmpty && createdManifest.content.nonEmpty) {
+    if (
+      filePass.content.nonEmpty && iconFile.content.nonEmpty && logoFile.content.nonEmpty && createdManifest.content.nonEmpty
+    ) {
       List(filePass, iconFile, logoFile, createdManifest)
     } else {
       List.empty
     }
   }
 
-  def createPkPassZipForPass(passContent: List[FileAsBytes], signatureContent: FileAsBytes): Option[Array[Byte]] = {
+  def createPkPassZipForPass(passContent: List[FileAsBytes], signatureContent: FileAsBytes): Option[Array[Byte]] =
     Try {
       val byteArrayOStream = new ByteArrayOutputStream()
-      val zip = new ZipOutputStream(byteArrayOStream)
+      val zip              = new ZipOutputStream(byteArrayOStream)
 
       passContent.foreach { file =>
         zip.putNextEntry(new ZipEntry(file.filename))
         zip.write(file.content)
         zip.closeEntry()
       }
-      zip.putNextEntry(new ZipEntry(signatureContent.filename)) //add signature file to zip file
+      zip.putNextEntry(new ZipEntry(signatureContent.filename)) // add signature file to zip file
       zip.write(signatureContent.content)
       zip.close()
       byteArrayOStream
     } match {
       case Success(value) => Some(value.toByteArray)
-      case _ => None
+      case _              => None
     }
-  }
 
-  private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] = {
+  private def createManifest(files: List[FileAsBytes]): Option[FileAsBytes] =
     Try {
       // If you must interoperate with a system that requires SHA-1, then use this method, despite its deprecation.
       // As this is linked with Apple / Google integration we plan to use SHA1 as per current live processing for interop.
       @nowarn
-      val map: Map[String, String] = files.map { p => (p.filename, Hashing.sha1() .hashBytes(p.content).toString) }.toMap
+      val map: Map[String, String] = files.map(p => (p.filename, Hashing.sha1().hashBytes(p.content).toString)).toMap
       FileAsBytes(MANIFEST_JSON_FILE_NAME, Json.toJson(map).toString().getBytes(StandardCharsets.UTF_8))
     } match {
       case Success(value) => Some(value)
-      case _ => None
+      case _              => None
     }
-  }
 }
 
 object FileService {
-  implicit val passFieldFormat: OFormat[ApplePassField] = Json.format[ApplePassField]
+  implicit val passFieldFormat: OFormat[ApplePassField]     = Json.format[ApplePassField]
   implicit val passGenericFormat: OFormat[ApplePassGeneric] = Json.format[ApplePassGeneric]
-  implicit val passFormat: OFormat[ApplePassCard] = Json.format[ApplePassCard]
+  implicit val passFormat: OFormat[ApplePassCard]           = Json.format[ApplePassCard]
 
-  val PASS_FILE_NAME = "pass.json"
-  val ICON_FILE_NAME = "icon.png"
-  val LOGO_FILE_NAME = "logo.png" //top of the card logo
+  val PASS_FILE_NAME          = "pass.json"
+  val ICON_FILE_NAME          = "icon.png"
+  val LOGO_FILE_NAME          = "logo.png" // top of the card logo
   val MANIFEST_JSON_FILE_NAME = "manifest.json"
-  val ICON_RESOURCE_PATH = s"/resources/pass/$ICON_FILE_NAME"
-  val LOGO_RESOURCE_PATH = s"/resources/pass/$LOGO_FILE_NAME"
+  val ICON_RESOURCE_PATH      = s"/resources/pass/$ICON_FILE_NAME"
+  val LOGO_RESOURCE_PATH      = s"/resources/pass/$LOGO_FILE_NAME"
 }
-

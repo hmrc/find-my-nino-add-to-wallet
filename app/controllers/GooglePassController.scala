@@ -33,60 +33,68 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class GooglePassController @Inject()(
-                                      authConnector: AuthConnector,
-                                      passService: GooglePassService)(implicit
-                                                                      config: Configuration,
-                                                                      env: Environment,
-                                                                      cc: MessagesControllerComponents,
-                                                                      appConfig: AppConfig,
-                                                                      ec: ExecutionContext) extends FMNBaseController(authConnector) with Logging {
+class GooglePassController @Inject() (authConnector: AuthConnector, passService: GooglePassService)(implicit
+  config: Configuration,
+  env: Environment,
+  cc: MessagesControllerComponents,
+  appConfig: AppConfig,
+  ec: ExecutionContext
+) extends FMNBaseController(authConnector)
+    with Logging {
 
   implicit val passRequestFormatter: OFormat[GooglePassDetails] = Json.format[GooglePassDetails]
 
   implicit val writes: Writes[GooglePassDetails] = Json.writes[GooglePassDetails]
 
   // shall we configure it in application.conf file
-  private val DEFAULT_EXPIRATION_YEARS = 100
+  private val DEFAULT_EXPIRATION_YEARS              = 100
   // $COVERAGE-OFF$
   def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
-      val passRequest = request.body.asJson.get.as[GooglePassDetails]
+    authorisedAsFMNUser { authContext =>
+      val passRequest    = request.body.asJson.get.as[GooglePassDetails]
       val expirationDate = ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS)
 
-      val scope = "https://www.googleapis.com/auth/wallet_object.issuer"
-      val keyAsStream = new ByteArrayInputStream(Base64.getDecoder.decode(appConfig.googleKey))
-      val googleCredentials: GoogleCredentials = GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
+      val scope                                = "https://www.googleapis.com/auth/wallet_object.issuer"
+      val keyAsStream                          = new ByteArrayInputStream(Base64.getDecoder.decode(appConfig.googleKey))
+      val googleCredentials: GoogleCredentials =
+        GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
 
-      Future(passService.createPassWithCredentials(passRequest.fullName, passRequest.nino, expirationDate.toString, googleCredentials) match {
-        case Right(value) => Ok(value)
-        case Left(exp) => InternalServerError(Json.obj(
-          "status" -> "500",
-          "message" -> exp.getMessage
-        ))
-      })
-    }
+      Future(
+        passService.createPassWithCredentials(
+          passRequest.fullName,
+          passRequest.nino,
+          expirationDate.toString,
+          googleCredentials
+        ) match {
+          case Right(value) => Ok(value)
+          case Left(exp)    =>
+            InternalServerError(
+              Json.obj(
+                "status"  -> "500",
+                "message" -> exp.getMessage
+              )
+            )
+        }
+      )
     }
   }
   // $COVERAGE-ON$
 
   def getPassUrlByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
-      passService.getPassUrlByPassIdAndNINO(passId,authContext.nino).map {
+    authorisedAsFMNUser { authContext =>
+      passService.getPassUrlByPassIdAndNINO(passId, authContext.nino).map {
         case Some(data) => Ok(data)
-        case _ => NotFound
+        case _          => NotFound
       }
-    }
     }
   }
 
   def getQrCodeByPassId(passId: String): Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext => {
-      passService.getQrCodeByPassIdAndNINO(passId,authContext.nino).map {
+    authorisedAsFMNUser { authContext =>
+      passService.getQrCodeByPassIdAndNINO(passId, authContext.nino).map {
         case Some(data) => Ok(Base64.getEncoder.encodeToString(data))
-        case _ => NotFound
+        case _          => NotFound
       }
-    }
     }
   }
 }

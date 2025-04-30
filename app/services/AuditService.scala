@@ -25,10 +25,10 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class AuditService @Inject()(auditConnector: AuditConnector, implicit val ec: ExecutionContext) extends Logging {
+class AuditService @Inject() (auditConnector: AuditConnector, implicit val ec: ExecutionContext) extends Logging {
 
   def audit(evt: ExtendedDataEvent)(implicit
-                                    hc: HeaderCarrier
+    hc: HeaderCarrier
   ): Unit =
     auditConnector.sendExtendedEvent(evt).onComplete {
       case Success(AuditResult.Success)         => logger.debug(s"Sent audit event: ${evt.toString}")

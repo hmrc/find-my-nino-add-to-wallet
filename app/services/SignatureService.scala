@@ -36,18 +36,18 @@ import java.util.{Base64, Date}
 import javax.inject.Inject
 import scala.util.Try
 
-class SignatureService @Inject()() extends Logging {
+class SignatureService @Inject() () extends Logging {
 
   import SignatureService._
 
   Security.addProvider(new BouncyCastleProvider)
 
-
-  def createSignatureForPass(passContent: List[FileAsBytes],
-                             privateCertificate: String,
-                             privateCertificatePassword: String,
-                             appleWWDRCACertificate: String
-                            ): FileAsBytes = {
+  def createSignatureForPass(
+    passContent: List[FileAsBytes],
+    privateCertificate: String,
+    privateCertificatePassword: String,
+    appleWWDRCACertificate: String
+  ): FileAsBytes =
     // To create the signature file, make a PKCS #7 detached signature of the manifest file,
     // using the private key associated with your signing certificate.
     // Include the WWDR intermediate certificate as part of the signature.
@@ -56,16 +56,15 @@ class SignatureService @Inject()() extends Logging {
       FileAsBytes(SIGNATURE_FILE_NAME, Array.emptyByteArray)
     } else {
       val resultForCreateSignature = for {
-        signInfo <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
+        signInfo             <- loadSigningInformation(privateCertificate, privateCertificatePassword, appleWWDRCACertificate)
         processableFileBytes <- Try(new CMSProcessableByteArray(passContent.last.content)) // last is manifest
-        signContent <- signManifestUsingContent(processableFileBytes, signInfo)
+        signContent          <- signManifestUsingContent(processableFileBytes, signInfo)
       } yield signContent
 
       FileAsBytes(SIGNATURE_FILE_NAME, resultForCreateSignature.getOrElse(Array.emptyByteArray))
     }
-  }
 
-  private def signManifestUsingContent(content: CMSTypedData, signInfo: ApplePassSignInformation): Try[Array[Byte]] = {
+  private def signManifestUsingContent(content: CMSTypedData, signInfo: ApplePassSignInformation): Try[Array[Byte]] =
     Try {
       val signedDataGenerator = new CMSSignedDataGenerator
 
@@ -84,7 +83,8 @@ class SignatureService @Inject()() extends Logging {
 
       // Create the table table generator that will added to the Signer builder
       val signedAttributeGenerator = new DefaultSignedAttributeTableGenerator(signedAttributesTable)
-      val digestCalculateProvider = new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME).build
+      val digestCalculateProvider  =
+        new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME).build
       signedDataGenerator.addSignerInfoGenerator(
         new JcaSignerInfoGeneratorBuilder(digestCalculateProvider)
           .setSignedAttributeGenerator(signedAttributeGenerator)
@@ -94,20 +94,21 @@ class SignatureService @Inject()() extends Logging {
       val certList = new util.ArrayList[X509Certificate]
       certList.add(signInfo.appleWWDRCACert)
       certList.add(signInfo.privateCertificate)
-      val certs = new JcaCertStore(certList)
+      val certs    = new JcaCertStore(certList)
       signedDataGenerator.addCertificates(certs)
       signedDataGenerator.generate(content, false).getEncoded
     }
-  }
 
-  private def loadSigningInformation(privateCertificate: String,
-                                     privateCertificatePassword: String,
-                                     appleWWDRCACertificate: String): Try[ApplePassSignInformation] = {
-    val decodedPublicCertificate = Base64.getDecoder.decode(appleWWDRCACertificate)
+  private def loadSigningInformation(
+    privateCertificate: String,
+    privateCertificatePassword: String,
+    appleWWDRCACertificate: String
+  ): Try[ApplePassSignInformation] = {
+    val decodedPublicCertificate  = Base64.getDecoder.decode(appleWWDRCACertificate)
     val decodedPrivateCertificate = Base64.getDecoder.decode(privateCertificate)
 
     for {
-      appleCertificate <- loadX509Certificate(decodedPublicCertificate)
+      appleCertificate   <- loadX509Certificate(decodedPublicCertificate)
       privateCertificate <- loadPKCS12File(decodedPrivateCertificate, privateCertificatePassword)
     } yield ApplePassSignInformation(privateCertificate._2, privateCertificate._1, appleCertificate)
   }
@@ -116,12 +117,11 @@ class SignatureService @Inject()() extends Logging {
     X509CertUtils.parse(publicCertificate)
   }
 
-  private def isPrivateX509(keyStore: KeyStore, password: String)(alias: String) = {
+  private def isPrivateX509(keyStore: KeyStore, password: String)(alias: String) =
     for {
-      key <- Try(keyStore.getKey(alias, password.toCharArray).asInstanceOf[PrivateKey])
+      key  <- Try(keyStore.getKey(alias, password.toCharArray).asInstanceOf[PrivateKey])
       cert <- Try(keyStore.getCertificate(alias).asInstanceOf[X509Certificate])
     } yield (key, cert)
-  }
 
   private def loadPKCS12File(privateCertificate: Array[Byte], password: String): Try[(PrivateKey, X509Certificate)] = {
     val keyStore = KeyStore.getInstance("PKCS12")
@@ -129,7 +129,10 @@ class SignatureService @Inject()() extends Logging {
 
     import scala.jdk.CollectionConverters._
 
-    keyStore.aliases().asScala.toSeq
+    keyStore
+      .aliases()
+      .asScala
+      .toSeq
       .map(isPrivateX509(keyStore, password))
       .find(_.isSuccess)
       .getOrElse(Failure(new IllegalStateException("No valid key-certificate pair in the key store")))
@@ -137,9 +140,13 @@ class SignatureService @Inject()() extends Logging {
 }
 
 object SignatureService {
-  val SIGNATURE_FILE_NAME = "signature"
+  val SIGNATURE_FILE_NAME     = "signature"
   val MANIFEST_JSON_FILE_NAME = "manifest.json"
 
 }
 
-private case class ApplePassSignInformation(privateCertificate: X509Certificate, privateKey: PrivateKey, appleWWDRCACert: X509Certificate)
+private case class ApplePassSignInformation(
+  privateCertificate: X509Certificate,
+  privateKey: PrivateKey,
+  appleWWDRCACert: X509Certificate
+)

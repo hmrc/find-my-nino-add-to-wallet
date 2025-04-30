@@ -28,16 +28,14 @@ import util.SpecBase
 
 import scala.concurrent.Future
 
-class NPSServiceSpec extends SpecBase{
+class NPSServiceSpec extends SpecBase {
 
   private val mockNPSConnector = mock[NPSConnector]
-
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .overrides(
       bind[NPSConnector].toInstance(mockNPSConnector)
     )
-
     .build()
 
   val npsService: NPSService = app.injector.instanceOf[NPSService]
@@ -49,11 +47,13 @@ class NPSServiceSpec extends SpecBase{
     "return 204 response when CRN is uplifted successfully" in {
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val npsRequest = ChildReferenceNumberUpliftRequest("test", "test", "01/01/1990")
-      val nino = "AA000003B"
+      val npsRequest                 = ChildReferenceNumberUpliftRequest("test", "test", "01/01/1990")
+      val nino                       = "AA000003B"
 
-      when(mockNPSConnector
-        .upliftCRN(any, any)(any, any()))
+      when(
+        mockNPSConnector
+          .upliftCRN(any, any)(any, any())
+      )
         .thenReturn(Future.successful(HttpResponse(NO_CONTENT, "")))
 
       val result = npsService.upliftCRN(nino, npsRequest)

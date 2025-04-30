@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,36 @@ package connectors
 
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
+import models.CorrelationId
 import play.api.Logging
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class IndividualDetailsConnector @Inject()(
-  val httpClient: HttpClient,
-  appConfig:  AppConfig) extends Logging {
+class IndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV2, appConfig: AppConfig) extends Logging {
 
-  def getIndividualDetails(nino: String, resolveMerge: String, desHeaders: HeaderCarrier
-                          )(implicit ec: ExecutionContext): Future[HttpResponse] = {
-    val url = s"${appConfig.individualDetailsServiceUrl}/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
-    httpClient.GET[HttpResponse](url)(implicitly, desHeaders, implicitly)
+  private val extraDesHeaders: Seq[(String, String)] = Seq(
+    "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
+    "CorrelationId" -> CorrelationId.random.value.toString,
+    "Content-Type"  -> "application/json",
+    "Environment"   -> appConfig.individualDetailsEnvironment,
+    "OriginatorId"  -> appConfig.individualDetailsOriginatorId
+  )
+
+  def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+    ec: ExecutionContext,
+    headerCarrier: HeaderCarrier
+  ): Future[HttpResponse] = {
+
+    implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(extraDesHeaders: _*)
+    val url                        =
+      s"${appConfig.individualDetailsServiceUrl}/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
+
+    httpClientV2
+      .get(url"$url")
+      .execute[HttpResponse]
   }
 }

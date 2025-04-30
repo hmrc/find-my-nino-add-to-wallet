@@ -27,46 +27,43 @@ import javax.imageio.ImageIO
 import javax.inject.Inject
 import scala.util.{Success, Try}
 
-class QrCodeService @Inject()() {
+class QrCodeService @Inject() () {
 
   import QrCodeService._
 
-  def createQRCode(qrText: String, imageSize: Int = DEFAULT_BARCODE_SIZE): Option[Array[Byte]] = {
+  def createQRCode(qrText: String, imageSize: Int = DEFAULT_BARCODE_SIZE): Option[Array[Byte]] =
     Try {
-      val margin = 4
-      val hintMap = new Hashtable[EncodeHintType, Any]
+      val margin       = 4
+      val hintMap      = new Hashtable[EncodeHintType, Any]
       hintMap.put(EncodeHintType.CHARACTER_SET, UTF_8)
       hintMap.put(EncodeHintType.MARGIN, margin)
       val qrCodeWriter = new QRCodeWriter
-      val byteMatrix = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, imageSize, imageSize, hintMap)
+      val byteMatrix   = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, imageSize, imageSize, hintMap)
 
       // Make the BufferedImage that are to hold the QRCode
       val matrixWidth = byteMatrix.getWidth
-      val image = new BufferedImage(matrixWidth, matrixWidth, BufferedImage.TYPE_INT_RGB)
+      val image       = new BufferedImage(matrixWidth, matrixWidth, BufferedImage.TYPE_INT_RGB)
       image.createGraphics
-      val graphics = image.getGraphics.asInstanceOf[Graphics2D]
+      val graphics    = image.getGraphics.asInstanceOf[Graphics2D]
       graphics.setColor(Color.WHITE)
       graphics.fillRect(0, 0, matrixWidth, matrixWidth)
 
       // Paint and save the image using the ByteMatrix
       graphics.setColor(Color.BLACK)
-      for (i <- 0 until matrixWidth) {
-        for (j <- 0 until matrixWidth) {
+      for (i <- 0 until matrixWidth)
+        for (j <- 0 until matrixWidth)
           if (byteMatrix.get(i, j)) graphics.fillRect(i, j, 1, 1)
-        }
-      }
       val byteArrayOStream = new ByteArrayOutputStream();
       ImageIO.write(image, FILE_TYPE, byteArrayOStream);
       byteArrayOStream.toByteArray
     } match {
       case Success(value) => Some(value)
-      case _ => None
+      case _              => None
     }
-  }
 }
 
 object QrCodeService {
-  val FILE_TYPE = "png"
+  val FILE_TYPE            = "png"
   val DEFAULT_BARCODE_SIZE = 200
-  val UTF_8 = "utf-8"
+  val UTF_8                = "utf-8"
 }

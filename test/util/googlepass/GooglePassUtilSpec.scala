@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,27 @@ package util.googlepass
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import services.googlepass.{CreateGenericPrivatePass, GooglePassUtil}
 class GooglePassUtilSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
-
-  val mockConfig: AppConfig = mock[AppConfig]
+  val mockConfig: AppConfig                                  = mock[AppConfig]
   val mockCreateGenericPrivatePass: CreateGenericPrivatePass = mock[CreateGenericPrivatePass]
-  val mockGoogleCredentials: GoogleCredentials = mock[GoogleCredentials]
+  val mockGoogleCredentials: GoogleCredentials               = mock[GoogleCredentials]
 
-  val googlePassUtil: GooglePassUtil = new GooglePassUtil(mockConfig, mockCreateGenericPrivatePass)
+  when(mockConfig.googleAddUrl).thenReturn("https://pay.google.com/gp/v/save/")
+  when(mockCreateGenericPrivatePass.createJwtWithCredentials(any, any, any, any, any)).thenReturn("testJwt")
 
-  when(mockCreateGenericPrivatePass.createJwtWithCredentials(any, any, any, any, any)) thenReturn "testJwt"
-
+  lazy val googlePassUtil: GooglePassUtil = new GooglePassUtil(mockConfig, mockCreateGenericPrivatePass)
 
   "GooglePassUtil createGooglePass" must {
     "must return valid url" in {
       val result = googlePassUtil.createGooglePassWithCredentials("test name", "AB 01 23 45 C", mockGoogleCredentials)
 
-      "https://pay.google.com/gp/v/save/" + result mustBe "https://pay.google.com/gp/v/save/testJwt"
+      result mustBe "https://pay.google.com/gp/v/save/testJwt"
     }
   }
 }

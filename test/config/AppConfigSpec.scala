@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package config
 
 import models.admin.ApplePassCertificates2
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.reset
-import org.mockito.MockitoSugar.when
+import org.mockito.Mockito.{reset, when}
 import play.api.Application
 import play.api.inject.bind
 import repositories.{ApplePassRepoTrait, ApplePassRepository, GooglePassRepoTrait, GooglePassRepository}
@@ -36,12 +35,12 @@ class AppConfigSpec extends SpecBase {
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure(
-      "applePass.appleWWDRCA" -> "appleWWDRCA",
-      "applePass.privateCertificate" -> "privateCertificate",
-      "applePass.privateCertificatePassword" -> "privateCertificatePassword",
-      "applePass.appleWWDRCA2" -> "appleWWDRCA2",
-      "applePass.privateCertificate2" -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2",
+      "applePass.appleWWDRCA"                 -> "appleWWDRCA",
+      "applePass.privateCertificate"          -> "privateCertificate",
+      "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
+      "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
+      "applePass.privateCertificate2"         -> "privateCertificate2",
+      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2"
     )
     .overrides(
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),
@@ -49,7 +48,7 @@ class AppConfigSpec extends SpecBase {
       bind(classOf[GooglePassRepoTrait]).to(classOf[GooglePassRepository]),
       bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector])
     )
-    .disable[Module]
+    .disable[HmrcModule]
     .build()
 
   lazy val sut: AppConfig = app.injector.instanceOf[AppConfig]

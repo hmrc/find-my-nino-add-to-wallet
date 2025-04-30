@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import models.CorrelationId
 import models.nps.ChildReferenceNumberUpliftRequest
 import play.api.Logging
 import play.api.http.MimeTypes
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 import services.AuditService
 import uk.gov.hmrc.http.client.HttpClientV2
 
@@ -32,12 +33,13 @@ import java.net.URL
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import util.AuditUtils
 
+class NPSConnector @Inject() (httpClientV2: HttpClientV2, appConfig: AppConfig, auditService: AuditService)
+    extends Logging {
 
-class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, auditService: AuditService)
-  extends Logging {
-
-  def upliftCRN(identifier: String, request: ChildReferenceNumberUpliftRequest
-               )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+  def upliftCRN(identifier: String, request: ChildReferenceNumberUpliftRequest)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[HttpResponse] = {
 
     val len: Int = 8
 
@@ -46,7 +48,8 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
     val appName: String              = appConfig.appName
     val correlationId: String        = CorrelationId.random.value.toString
 
-    val url = s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$childReferenceNumber/adult-registration"
+    val url =
+      s"${appConfig.npsCrnUrl}/nps/nps-json-service/nps/v1/api/individual/$childReferenceNumber/adult-registration"
 
     val headers = Seq(
       (play.api.http.HeaderNames.CONTENT_TYPE, MimeTypes.JSON),
@@ -61,7 +64,9 @@ class NPSConnector @Inject()(httpClientV2: HttpClientV2, appConfig: AppConfig, a
       .setHeader(headers: _*)
       .execute[HttpResponse]
       .flatMap { response =>
-        auditService.audit(AuditUtils.childReferenceNumberUplift(url, request, response, auditType, appName, correlationId))
+        auditService.audit(
+          AuditUtils.childReferenceNumberUplift(url, request, response, auditType, appName, correlationId)
+        )
         Future.successful(response)
       }
 
