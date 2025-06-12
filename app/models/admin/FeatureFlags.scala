@@ -16,7 +16,8 @@
 
 package models.admin
 
-import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlagName
+import uk.gov.hmrc.mongoFeatureToggles.model.Environment.Environment
+import uk.gov.hmrc.mongoFeatureToggles.model.{Environment, FeatureFlagName}
 
 object AllFeatureFlags {
   val list: List[FeatureFlagName] = List(
@@ -25,8 +26,9 @@ object AllFeatureFlags {
 }
 
 case object ApplePassCertificates2 extends FeatureFlagName {
-  override val name: String                = "apple-pass-certificates-2"
+  override val name: String = "apple-pass-certificates-2"
   override val description: Option[String] = Some(
-    "Use second set of certificates (suffixed with 2 in config)"
+    "Switch to alternate Apple certificate values (applePass.*2) when enabled"
   )
+  override val lockedEnvironments: Seq[Environment] = Seq(Environment.Production, Environment.Staging)
 }
