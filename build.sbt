@@ -14,7 +14,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
     resolvers ++= Seq(
-      Resolver.jcenterRepo,
       "HMRC-open-artefacts-maven".at("https://open.artefacts.tax.service.gov.uk/maven2")
     ),
     PlayKeys.playDefaultPort := 14005,
@@ -31,7 +30,6 @@ lazy val microservice = Project(appName, file("."))
       "-Wconf:msg=Flag.*repeatedly:s"
     )
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)
 
 lazy val it = project
