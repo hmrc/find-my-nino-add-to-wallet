@@ -26,8 +26,8 @@ object AllFeatureFlags {
 }
 
 case object ApplePassCertificates2 extends FeatureFlagName {
-  override val name: String = "apple-pass-certificates-2"
-  override val description: Option[String] = Some(
+  override val name: String                         = "apple-pass-certificates-2"
+  override val description: Option[String]          = Some(
     "Switch to alternate Apple certificate values (applePass.*2) when enabled"
   )
   override val lockedEnvironments: Seq[Environment] = Seq(Environment.Production, Environment.Staging)
