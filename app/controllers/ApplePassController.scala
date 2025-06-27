@@ -16,6 +16,7 @@
 
 package controllers
 
+import connectors.FandFConnector
 import models.apple.ApplePassDetails
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -28,12 +29,12 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ApplePassController @Inject() (authConnector: AuthConnector, passService: ApplePassService)(implicit
+class ApplePassController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, passService: ApplePassService)(implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,
   ec: ExecutionContext
-) extends FMNBaseController(authConnector)
+) extends FMNBaseController(authConnector, fandFConnector)
     with Logging {
 
   implicit val passRequestFormatter: OFormat[ApplePassDetails] = Json.format[ApplePassDetails]

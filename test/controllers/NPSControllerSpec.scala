@@ -16,8 +16,9 @@
 
 package controllers
 
+import connectors.FandFConnector
 import models.nps.ChildReferenceNumberUpliftRequest
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures.whenReady
@@ -31,7 +32,6 @@ import play.api.test.*
 import play.api.{Application, Configuration, Environment}
 import services.NPSService
 import uk.gov.hmrc.auth.core.*
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
@@ -50,27 +50,31 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   private val mockAuthConnector = mock[AuthConnector]
   private val mockNPSService    = mock[NPSService]
+  private val mockFandFConnector = mock[FandFConnector]
 
   val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(
     stubControllerComponents().parsers.defaultBodyParser
   )
   when(cc.actionBuilder).thenReturn(actionBuilder)
 
-  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-    Future.successful(new ~(new ~(new ~(Some(identifier), Some(User)), Some("id")), None))
+  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
+    Future.successful(new ~(new ~(Some(identifier), Some(User)), Some("id")))
 
   when(
-    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
+    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
       eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
     )(any[HeaderCarrier], any[ExecutionContext])
   )
     .thenReturn(retrievalResult)
 
+  when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[NPSService].toInstance(mockNPSService),
-      bind[AuthConnector].toInstance(mockAuthConnector)
+      bind[AuthConnector].toInstance(mockAuthConnector),
+      bind[FandFConnector].toInstance(mockFandFConnector)
     )
 
   val application: Application = new GuiceApplicationBuilder()

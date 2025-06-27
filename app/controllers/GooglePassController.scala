@@ -18,6 +18,7 @@ package controllers
 
 import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
+import connectors.FandFConnector
 import models.google.GooglePassDetails
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, OFormat, Writes}
@@ -33,13 +34,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class GooglePassController @Inject() (authConnector: AuthConnector, passService: GooglePassService)(implicit
+class GooglePassController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, passService: GooglePassService)(implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,
   appConfig: AppConfig,
   ec: ExecutionContext
-) extends FMNBaseController(authConnector)
+) extends FMNBaseController(authConnector, fandFConnector)
     with Logging {
 
   implicit val passRequestFormatter: OFormat[GooglePassDetails] = Json.format[GooglePassDetails]

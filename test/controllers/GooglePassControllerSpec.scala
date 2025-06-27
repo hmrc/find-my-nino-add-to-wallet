@@ -34,7 +34,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.GooglePassService
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -51,13 +50,13 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   before {
     reset(mockAuthConnector, mockGooglePassService)
 
-    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-      Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), None))
+    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
+      Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
 
     when(
-      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
         any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
       )(any[HeaderCarrier], any[ExecutionContext])
     )
       .thenReturn(retrievalResult)

@@ -16,8 +16,9 @@
 
 package controllers
 
+import connectors.FandFConnector
 import models.nps.ChildReferenceNumberUpliftRequest
-import play.api.mvc._
+import play.api.mvc.*
 import play.api.{Configuration, Environment, Logging}
 import services.NPSService
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -26,12 +27,12 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class NPSController @Inject() (authConnector: AuthConnector, npsService: NPSService)(implicit
+class NPSController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, npsService: NPSService)(implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,
   ec: ExecutionContext
-) extends FMNBaseController(authConnector)
+) extends FMNBaseController(authConnector, fandFConnector)
     with Logging {
 
   def upliftCRN(identifier: String): Action[AnyContent] = Action.async { implicit request =>
