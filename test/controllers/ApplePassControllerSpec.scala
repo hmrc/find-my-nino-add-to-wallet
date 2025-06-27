@@ -18,6 +18,7 @@ package controllers
 
 import cats.data.EitherT
 import cats.implicits.*
+import connectors.FandFConnector
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,7 +36,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.ApplePassService
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,18 +49,20 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   import ApplePassControllerSpec._
 
   before {
-    reset(mockAuthConnector)
+    reset(mockAuthConnector, mockFandFConnector)
 
-    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]] =
-      Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), None))
+    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
+      Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
 
     when(
-      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]](
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
         any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[TrustedHelper]]]
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
       )(any[HeaderCarrier], any[ExecutionContext])
     )
       .thenReturn(retrievalResult)
+
+    when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
   }
 
   "createPass" must {
@@ -181,22 +183,16 @@ object ApplePassControllerSpec {
 
   private val mockApplePassService = mock[ApplePassService]
   private val mockAuthConnector    = mock[AuthConnector]
+  private val mockFandFConnector   = mock[FandFConnector]
 
   val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
     Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
 
-  when(
-    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
-      any[Predicate],
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
-    )(any[HeaderCarrier], any[ExecutionContext])
-  )
-    .thenReturn(retrievalResult)
-
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[ApplePassService].toInstance(mockApplePassService),
-      bind[AuthConnector].toInstance(mockAuthConnector)
+      bind[AuthConnector].toInstance(mockAuthConnector),
+      bind[FandFConnector].toInstance(mockFandFConnector)
     )
 
   val application: Application = new GuiceApplicationBuilder()

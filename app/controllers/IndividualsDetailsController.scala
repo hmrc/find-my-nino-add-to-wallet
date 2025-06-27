@@ -16,6 +16,7 @@
 
 package controllers
 
+import connectors.FandFConnector
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result, Results}
 import play.api.{Configuration, Environment}
 import services.IndividualDetailsService
@@ -29,9 +30,10 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton()
 class IndividualsDetailsController @Inject() (
   authConnector: AuthConnector,
+  fandFConnector: FandFConnector,
   individualDetailsService: IndividualDetailsService
 )(implicit config: Configuration, env: Environment, cc: MessagesControllerComponents, ec: ExecutionContext)
-    extends FMNBaseController(authConnector) {
+    extends FMNBaseController(authConnector, fandFConnector) {
 
   def getIndividualDetails(nino: String, resolveMerge: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext =>

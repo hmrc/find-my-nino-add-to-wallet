@@ -28,15 +28,14 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import util.{WireMockHelper, WiremockStub}
 
 class NPSFMNConnectorSpec
-  extends WiremockStub
+    extends WiremockStub
     with WireMockHelper
     with MockitoSugar
     with DefaultAwaitTimeout
     with Injecting {
 
   override implicit lazy val app: Application = app(
-    Map("microservice.services.nps-crn-api.port" -> server.port(),
-    )
+    Map("microservice.services.nps-crn-api.port" -> server.port())
   )
 
   val ninoWithoutSuffix = "XX000000"
@@ -77,14 +76,13 @@ class NPSFMNConnectorSpec
        |}
        |""".stripMargin
 
-
   trait SpecSetup {
 
     def url(nino: String): String
 
     lazy val connector: NPSConnector = {
-      val httpClient2 = app.injector.instanceOf[HttpClientV2]
-      val config = app.injector.instanceOf[AppConfig]
+      val httpClient2  = app.injector.instanceOf[HttpClientV2]
+      val config       = app.injector.instanceOf[AppConfig]
       val auditService = app.injector.instanceOf[AuditService]
       new NPSConnector(httpClient2, config, auditService)
     }
@@ -93,7 +91,8 @@ class NPSFMNConnectorSpec
   "NPS Connector" must {
 
     trait LocalSetup extends SpecSetup {
-      def url(ninoWithoutSuffix: String) = s"/nps/nps-json-service/nps/v1/api/individual/${ninoWithoutSuffix}/adult-registration"
+      def url(ninoWithoutSuffix: String)          =
+        s"/nps/nps-json-service/nps/v1/api/individual/$ninoWithoutSuffix/adult-registration"
       val body: ChildReferenceNumberUpliftRequest = mock[ChildReferenceNumberUpliftRequest]
     }
 
@@ -119,7 +118,12 @@ class NPSFMNConnectorSpec
     }
 
     "return 422 UNPROCESSABLE_ENTITY when the action cannot be completed" in new LocalSetup {
-      stubPut(url(ninoWithoutSuffix), UNPROCESSABLE_ENTITY, Some(Json.toJson(body).toString()), Some(jsonUnprocessableEntity))
+      stubPut(
+        url(ninoWithoutSuffix),
+        UNPROCESSABLE_ENTITY,
+        Some(Json.toJson(body).toString()),
+        Some(jsonUnprocessableEntity)
+      )
       val result: HttpResponse = connector.upliftCRN(ninoWithoutSuffix, body).futureValue
       result.status mustBe UNPROCESSABLE_ENTITY
       result.body mustBe jsonUnprocessableEntity

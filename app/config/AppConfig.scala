@@ -81,4 +81,9 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
   lazy val npsCrnToken: String    = config.get[String]("microservice.services.nps-crn-api.token")
   val npsCrnUrl: String           = s"$npsCrnProtocol://$npsCrnHost:$npsCrnPort"
 
+  lazy val fandfProtocol: String = config.get[String]("microservice.services.fandf.protocol")
+  lazy val fandfHost: String     = config.get[String]("microservice.services.fandf.host")
+  lazy val fandfPort: String     = config.get[String]("microservice.services.fandf.port")
+  val fandfServiceUrl: String    =
+    s"$fandfProtocol://$fandfHost:$fandfPort"
 }

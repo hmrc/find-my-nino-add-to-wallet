@@ -16,11 +16,12 @@
 
 package auth
 
+import connectors.FandFConnector
 import play.api.Logging
 import play.api.mvc.Results.Unauthorized
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, internalId, nino, trustedHelper}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, internalId, nino}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisationException, AuthorisedFunctions, User}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,10 +36,10 @@ final case class AuthContext[A](
   request: Request[A]
 )
 
-trait FMNAuth extends AuthorisedFunctions with Logging {
+trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions with Logging {
   protected type FMNAction[A] = AuthContext[A] => Future[Result]
   val AuthPredicate = AuthProviders(GovernmentGateway)
-  val FMNRetrievals = nino and credentialRole and internalId and trustedHelper
+  val FMNRetrievals = nino and credentialRole and internalId
 
   def authorisedAsFMNUser(
     body: FMNAction[Any]
@@ -71,11 +72,13 @@ trait FMNAuth extends AuthorisedFunctions with Logging {
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[A]): Future[Result] =
     authorised(AuthPredicate)
       .retrieve(FMNRetrievals) {
-        case Some(_) ~ Some(User) ~ Some(internalId) ~ Some(trustedHelper) =>
-          block(AuthContext(trustedHelper.principalNino.get, isUser = true, internalId, request))
-        case Some(nino) ~ Some(User) ~ Some(internalId) ~ None             =>
-          block(AuthContext(nino, isUser = true, internalId, request))
-        case _                                                             =>
+        case Some(nino) ~ Some(User) ~ Some(internalId) =>
+          fandFConnector.getTrustedHelper().flatMap { helper =>
+            block(
+              AuthContext(helper.fold(nino)(helper => helper.principalNino.get), isUser = true, internalId, request)
+            )
+          }
+        case _                                          =>
           logger.warn("user was not authenticated with required credentials")
           Future successful Unauthorized
       }
