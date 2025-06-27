@@ -51,7 +51,7 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
   private val mockAuthConnector            = mock[AuthConnector]
   private val mockIndividualDetailsService = mock[IndividualDetailsService]
-  private val mockFandFConnector = mock[FandFConnector]
+  private val mockFandFConnector           = mock[FandFConnector]
 
   val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(
     stubControllerComponents().parsers.defaultBodyParser
@@ -89,7 +89,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     "return OK for getIndividualDetails" in {
 
-      val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+      val controller =
+        new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
       when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
         .thenReturn(Future.successful(HttpResponse(OK, "")))
@@ -101,7 +102,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     "return OK for getIndividualDetails when trusted helper user calls using helpee nino" in {
 
-      val controller    = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+      val controller    =
+        new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
       val trustedHelper = TrustedHelper("PrincipalName", "AttorneyName", "ReturnLink", Some("PrincipalNino"))
 
       when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(Some(trustedHelper)))
@@ -117,7 +119,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     "return Unauthorized for getIndividualDetails when user is not authorized" in {
 
-      val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+      val controller =
+        new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
       when(
         mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
@@ -133,7 +136,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
     "return Unauthorized when NINO in authContext does not match the NINO in the request" in {
       val differentNino = "CD123456Q"
-      val controller    = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+      val controller    =
+        new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
       when(
         mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
@@ -148,7 +152,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     }
   }
   "return BAD_REQUEST for getIndividualDetails" in {
-    val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+    val controller =
+      new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
     when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
       .thenReturn(Future.successful(HttpResponse(BAD_REQUEST, "")))
@@ -157,7 +162,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     status(result) mustBe BAD_REQUEST
   }
   "return UNAUTHORIZED for getIndividualDetails" in {
-    val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+    val controller =
+      new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
     when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
       .thenReturn(Future.successful(HttpResponse(UNAUTHORIZED, "")))
@@ -166,7 +172,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     status(result) mustBe UNAUTHORIZED
   }
   "return NOT_FOUND for getIndividualDetails" in {
-    val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+    val controller =
+      new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
     when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
       .thenReturn(Future.successful(HttpResponse(NOT_FOUND, "")))
@@ -175,7 +182,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     status(result) mustBe NOT_FOUND
   }
   "return INTERNAL_SERVER_ERROR for getIndividualDetails" in {
-    val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+    val controller =
+      new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
     when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
       .thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, "")))
@@ -184,7 +192,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     status(result) mustBe INTERNAL_SERVER_ERROR
   }
   "return NOT_IMPLEMENTED for getIndividualDetails" in {
-    val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+    val controller =
+      new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
     when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
       .thenReturn(Future.successful(HttpResponse(NOT_IMPLEMENTED, "")))
@@ -193,7 +202,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     status(result) mustBe NOT_IMPLEMENTED
   }
   "return other status for getIndividualDetails" in {
-    val controller = new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+    val controller =
+      new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
     when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
       .thenReturn(Future.successful(HttpResponse(IM_A_TEAPOT, "")))

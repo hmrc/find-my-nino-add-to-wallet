@@ -48,8 +48,8 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   val identifier = "AB123456Q"
 
-  private val mockAuthConnector = mock[AuthConnector]
-  private val mockNPSService    = mock[NPSService]
+  private val mockAuthConnector  = mock[AuthConnector]
+  private val mockNPSService     = mock[NPSService]
   private val mockFandFConnector = mock[FandFConnector]
 
   val actionBuilder: ActionBuilder[Request, AnyContent] = DefaultActionBuilder(

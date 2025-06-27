@@ -5,6 +5,7 @@ val appName = "find-my-nino-add-to-wallet"
 
 ThisBuild / majorVersion := 1
 ThisBuild / scalaVersion := "3.3.5"
+ThisBuild / scalafmtOnCompile := true
 
 addCommandAlias("report", ";clean; coverage; test; it/test; coverageReport")
 
