@@ -74,9 +74,11 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
       .retrieve(FMNRetrievals) {
         case Some(nino) ~ Some(User) ~ Some(internalId) =>
           fandFConnector.getTrustedHelper().flatMap { helper =>
-            block(AuthContext(helper.fold(nino)(helper => helper.principalNino.get), isUser = true, internalId, request))
+            block(
+              AuthContext(helper.fold(nino)(helper => helper.principalNino.get), isUser = true, internalId, request)
+            )
           }
-        case _                                                             =>
+        case _                                          =>
           logger.warn("user was not authenticated with required credentials")
           Future successful Unauthorized
       }

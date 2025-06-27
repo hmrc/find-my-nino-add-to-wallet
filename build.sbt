@@ -12,7 +12,7 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     resolvers ++= Seq(
       "HMRC-open-artefacts-maven".at("https://open.artefacts.tax.service.gov.uk/maven2")
     ),

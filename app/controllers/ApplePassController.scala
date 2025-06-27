@@ -29,7 +29,11 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ApplePassController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, passService: ApplePassService)(implicit
+class ApplePassController @Inject() (
+  authConnector: AuthConnector,
+  fandFConnector: FandFConnector,
+  passService: ApplePassService
+)(implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,

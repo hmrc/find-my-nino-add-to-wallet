@@ -34,7 +34,11 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class GooglePassController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, passService: GooglePassService)(implicit
+class GooglePassController @Inject() (
+  authConnector: AuthConnector,
+  fandFConnector: FandFConnector,
+  passService: GooglePassService
+)(implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,

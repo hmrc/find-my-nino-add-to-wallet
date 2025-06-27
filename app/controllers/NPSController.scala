@@ -27,7 +27,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class NPSController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, npsService: NPSService)(implicit
+class NPSController @Inject() (authConnector: AuthConnector, fandFConnector: FandFConnector, npsService: NPSService)(
+  implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,

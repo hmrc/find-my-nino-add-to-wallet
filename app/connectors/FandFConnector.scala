@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-class FandFConnector @Inject()(
+class FandFConnector @Inject() (
   val httpClient: HttpClientV2,
   appConfig: AppConfig
 )(implicit val ec: ExecutionContext)
