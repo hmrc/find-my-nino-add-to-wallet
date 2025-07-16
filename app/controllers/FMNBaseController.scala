@@ -17,6 +17,7 @@
 package controllers
 
 import auth.FMNAuth
+import connectors.FandFConnector
 import play.api.i18n.I18nSupport
 import play.api.mvc.{MessagesControllerComponents, RequestHeader}
 import play.api.{Configuration, Environment}
@@ -28,12 +29,12 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class FMNBaseController @Inject() (val authConnector: AuthConnector)(implicit
+class FMNBaseController @Inject() (val authConnector: AuthConnector, fandFConnector: FandFConnector)(implicit
   val config: Configuration,
   val env: Environment,
   cc: MessagesControllerComponents
 ) extends BackendController(cc)
-    with FMNAuth
+    with FMNAuth(fandFConnector)
     with I18nSupport {
 
   override implicit def hc(implicit rh: RequestHeader): HeaderCarrier =
