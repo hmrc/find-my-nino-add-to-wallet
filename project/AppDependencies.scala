@@ -18,7 +18,8 @@ object AppDependencies {
     "com.auth0"                     % "java-jwt"                                   % "4.5.0",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"                       % "2.19.0",
     "uk.gov.hmrc"                  %% s"crypto-json-$playVersion"                  % "8.2.0",
-    "uk.gov.hmrc"                  %% s"mongo-feature-toggles-client-$playVersion" % mongoToggleVersion
+    "uk.gov.hmrc"                  %% s"mongo-feature-toggles-client-$playVersion" % mongoToggleVersion,
+    "uk.gov.hmrc"                 %% "domain-play-30"                  % "11.0.0"
   )
 
   val test: Seq[ModuleID] = Seq(
