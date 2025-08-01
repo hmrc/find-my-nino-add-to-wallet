@@ -78,7 +78,7 @@ trait ApiPayloadHelper {
 
   protected val generatedNino: String = new Generator().nextNino.nino
 
-  protected val individualDetailsApiResponseMain: JsObject = Json
+  protected def individualDetailsApiResponseMain(crnIndicator: Int): JsObject = Json
     .parse(s"""{
               |  "details": {
               |    "nino": "$generatedNino",
@@ -99,7 +99,7 @@ trait ApiPayloadHelper {
               |    "ntTaxCodeInd": 1,
               |    "mergeStatus": 0,
               |    "marriageStatusType": 3,
-              |    "crnIndicator": 1
+              |    "crnIndicator": $crnIndicator
               |  },
               |  "indicators": {
               |    "manualCodingInd": 2,

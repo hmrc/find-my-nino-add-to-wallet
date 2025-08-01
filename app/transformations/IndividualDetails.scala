@@ -19,6 +19,9 @@ package transformations
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.*
 import play.api.libs.json.Reads.JsObjectReducer
+
+import scala.util.chaining.scalaUtilChainingOps
+
 object IndividualDetails {
   final val NameTypeReal              = 1
   final val NameTypeKnownAs           = 2
@@ -26,6 +29,14 @@ object IndividualDetails {
   final val AddressTypeCorrespondance = 2
 
   private val doNothing: Reads[JsObject] = __.json.put(Json.obj())
+
+  private def addOptionalField(rds: Reads[JsObject], fieldName: String, optionalValue: Option[String]) =
+    rds.map { jsObject =>
+      optionalValue match {
+        case None    => jsObject
+        case Some(v) => jsObject ++ Json.obj(fieldName -> v)
+      }
+    }
 
   private val codeToCountry: Map[Int, String] = Map(
     0   -> "NOT SPECIFIED OR NOT USED",
@@ -379,21 +390,6 @@ object IndividualDetails {
     case None          => code.toString
   }
 
-  private val readsCountry: Reads[JsString] =
-    Reads {
-      case JsNumber(n) => JsSuccess(JsString(convertCodeToCountryName(n.toInt)))
-      case s           => JsError(s"Invalid json $s")
-    }
-
-  private def addOptionalField(rds: Reads[JsObject], fieldName: String, optionalValue: Option[String]) =
-    rds.map { jsObject =>
-      optionalValue match {
-        case None    => jsObject
-        case Some(v) => jsObject ++ Json.obj(fieldName -> v)
-      }
-    }
-
-  import scala.util.chaining.scalaUtilChainingOps
   private val readsPreferredNameDetails: Reads[JsObject] =
     readsPreferredName.flatMap { preferredNameJsObject =>
       (
@@ -405,30 +401,25 @@ object IndividualDetails {
     }
 
   private val readsPreferredAddressDetails: Reads[JsObject] =
-    readsPreferredAddress.flatMap { preferredAddressJsObject =>
-      (
-        (__ \ "address" \ "addressLine1").json.put((preferredAddressJsObject \ "addressLine1").as[JsString]) and
-          (__ \ "address" \ "addressLine2").json.put((preferredAddressJsObject \ "addressLine2").as[JsString]) and
-          (__ \ "address" \ "addressLine3").json
-            .put((preferredAddressJsObject \ "addressLine3").as[JsString]) // TODO
-            .orElse(doNothing) and
-          (__ \ "address" \ "addressLine4").json
-            .put((preferredAddressJsObject \ "addressLine4").as[JsString])
-            .orElse(doNothing) and
-          (__ \ "address" \ "addressLine5").json
-            .put((preferredAddressJsObject \ "addressLine5").as[JsString])
-            .orElse(doNothing) and
-          (__ \ "address" \ "addressPostcode").json
-            .put((preferredAddressJsObject \ "addressPostcode").as[JsString])
-            .orElse(doNothing) and
-          (__ \ "address" \ "addressStartDate").json.put(
-            (preferredAddressJsObject \ "addressStartDate").as[JsString]
-          ) and
-          (__ \ "address" \ "addressType").json.put((preferredAddressJsObject \ "addressType").as[JsNumber]) and
-          (__ \ "address" \ "addressCountry").json.put(
-            (preferredAddressJsObject \ "countryCode").as[JsString](readsCountry)
-          )
-      ).reduce
+    readsPreferredAddress.map { preferredAddressJsObject =>
+
+      def addOptional(fieldName: String): JsObject =
+        (preferredAddressJsObject \ fieldName).asOpt[String].fold(Json.obj())(s => Json.obj(fieldName -> s))
+
+      val addr = Json.obj(
+        "addressLine1"     -> (preferredAddressJsObject \ "addressLine1").as[String],
+        "addressLine2"     -> (preferredAddressJsObject \ "addressLine2").as[String],
+        "addressStartDate" -> (preferredAddressJsObject \ "addressStartDate").as[String],
+        "addressCountry"   -> convertCodeToCountryName((preferredAddressJsObject \ "countryCode").as[Int]),
+        "addressType"      -> (preferredAddressJsObject \ "addressType").as[Int]
+      ) ++ addOptional("addressLine3")
+        ++ addOptional("addressLine4")
+        ++ addOptional("addressLine5")
+        ++ addOptional("addressPostcode")
+
+      Json.obj(
+        "address" -> addr
+      )
     }
 
   val reads: Reads[JsObject] =
