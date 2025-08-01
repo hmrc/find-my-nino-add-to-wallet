@@ -20,6 +20,11 @@ import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.*
 import play.api.libs.json.Reads.JsObjectReducer
 object IndividualDetails {
+  final val NameTypeReal              = 1
+  final val NameTypeKnownAs           = 2
+  final val AddressTypeResidential    = 1
+  final val AddressTypeCorrespondance = 2
+
   private val doNothing: Reads[JsObject] = __.json.put(Json.obj())
 
   private val codeToCountry: Map[Int, String] = Map(
@@ -315,12 +320,19 @@ object IndividualDetails {
   private val readsAllNames: Reads[Seq[JsObject]] = (__ \ "nameList" \ "name").read(Reads.seq(readsName))
 
   private val readsPreferredName: Reads[JsObject] = readsAllNames.map { seqJsObject =>
-    seqJsObject.find(jsObject => (jsObject \ "nameType").as[Int] == 2).fold(seqJsObject.head)(identity)
+    def maxNameType(nameType: Int): Option[JsObject] = seqJsObject
+      .filter(jsObject => (jsObject \ "nameType").as[Int] == nameType)
+      .maxByOption(jsObject => (jsObject \ "nameSequenceNumber").as[Int])
+
+    maxNameType(NameTypeKnownAs).fold(maxNameType(NameTypeReal).getOrElse(Json.obj()))(
+      identity
+    )
   }
 
   private val readsAddress: Reads[JsObject] =
     (
-      (__ \ "countryCode").json.copyFrom((__ \ "countryCode").json.pick) and
+      (__ \ "addressSequenceNumber").json.copyFrom((__ \ "addressSequenceNumber").json.pick) and
+        (__ \ "countryCode").json.copyFrom((__ \ "countryCode").json.pick) and
         (__ \ "addressType").json.copyFrom((__ \ "addressType").json.pick) and
         (__ \ "addressStatus").json.copyFrom((__ \ "addressStatus").json.pick) and
         (__ \ "addressStartDate").json.copyFrom((__ \ "addressStartDate").json.pick) and
@@ -335,7 +347,13 @@ object IndividualDetails {
   private val readsAllAddresses: Reads[Seq[JsObject]] = (__ \ "addressList" \ "address").read(Reads.seq(readsAddress))
 
   private val readsPreferredAddress: Reads[JsObject] = readsAllAddresses.map { seqJsObject =>
-    seqJsObject.find(jsObject => (jsObject \ "addressType").as[Int] == 2).fold(seqJsObject.head)(identity)
+    def maxAddressType(addressType: Int): Option[JsObject] = seqJsObject
+      .filter(jsObject => (jsObject \ "addressType").as[Int] == addressType)
+      .maxByOption(jsObject => (jsObject \ "addressSequenceNumber").as[Int])
+
+    maxAddressType(AddressTypeCorrespondance).fold(maxAddressType(AddressTypeResidential).getOrElse(Json.obj()))(
+      identity
+    )
   }
 
   private val readsTitleType: Reads[JsString] =

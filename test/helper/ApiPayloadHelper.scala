@@ -54,6 +54,7 @@ trait ApiPayloadHelper {
   )
 
   protected def individualDetailsApiAddressSection(
+    seqNo: Int,
     addressType: Int,
     addressStatus: Int,
     addr1: String,
@@ -63,12 +64,13 @@ trait ApiPayloadHelper {
     addr5: Option[String],
     postcode: Option[String]
   ): JsObject = Json.obj(
-    "countryCode"      -> 1, // GREAT BRITAIN
-    "addressType"      -> addressType,
-    "addressStatus"    -> addressStatus,
-    "addressStartDate" -> "2018-03-10",
-    "addressLine1"     -> addr1,
-    "addressLine2"     -> addr2
+    "addressSequenceNumber" -> seqNo,
+    "countryCode"           -> 1,
+    "addressType"           -> addressType,
+    "addressStatus"         -> addressStatus,
+    "addressStartDate"      -> "2018-03-10",
+    "addressLine1"          -> addr1,
+    "addressLine2"          -> addr2
   ) ++ addr3.fold(Json.obj())(a => Json.obj("addressLine3" -> a))
     ++ addr4.fold(Json.obj())(a => Json.obj("addressLine4" -> a))
     ++ addr5.fold(Json.obj())(a => Json.obj("addressLine5" -> a))
@@ -81,9 +83,6 @@ trait ApiPayloadHelper {
               |  "details": {
               |    "nino": "$generatedNino",
               |    "ninoSuffix": "C",
-              |    "accountStatusType": 2,
-              |    "sex": "U",
-              |    "dateOfEntry": "2004-11-07",
               |    "dateOfBirth": "1990-07-20",
               |    "dateOfBirthStatus": 2,
               |    "dateOfDeath": "2015-06-15",

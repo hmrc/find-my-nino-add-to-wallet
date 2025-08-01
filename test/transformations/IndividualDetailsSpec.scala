@@ -21,14 +21,15 @@ import helper.ApiPayloadHelper
 import play.api.libs.json.*
 
 class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
+  import transformations.IndividualDetails._
   "reads" must {
-    "transform using name with name type 2 ('known as' name) and known title type" in {
+    "transform correctly - latest name type 'known as' and address type 'correspondance'" in {
       val jsonToTransform: JsObject = individualDetailsApiFull(
         individualDetailsApiResponseMain,
         Seq(
           individualDetailsApiNameSection(
             seqNo = 1,
-            nameType = 3,
+            nameType = NameTypeReal,
             titleType = 5,
             name1 = "name11",
             name2 = "name12",
@@ -36,16 +37,25 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
           ),
           individualDetailsApiNameSection(
             seqNo = 2,
-            nameType = 2,
+            nameType = NameTypeKnownAs,
             titleType = 1,
             name1 = "name21",
             name2 = "name22",
             surname = "surname2"
+          ),
+          individualDetailsApiNameSection(
+            seqNo = 3,
+            nameType = NameTypeKnownAs,
+            titleType = 1,
+            name1 = "name31",
+            name2 = "name32",
+            surname = "surname3"
           )
         ),
         Seq(
           individualDetailsApiAddressSection(
-            addressType = 5,
+            seqNo = 1,
+            addressType = AddressTypeResidential,
             addressStatus = 6,
             addr1 = "addr11",
             addr2 = "addr12",
@@ -55,7 +65,8 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
             postcode = Some("postcode1")
           ),
           individualDetailsApiAddressSection(
-            addressType = 2,
+            seqNo = 2,
+            addressType = AddressTypeCorrespondance,
             addressStatus = 6,
             addr1 = "addr21",
             addr2 = "addr22",
@@ -63,28 +74,39 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
             addr4 = Some("addr24"),
             addr5 = Some("addr25"),
             postcode = Some("postcode2")
+          ),
+          individualDetailsApiAddressSection(
+            seqNo = 3,
+            addressType = AddressTypeCorrespondance,
+            addressStatus = 6,
+            addr1 = "addr31",
+            addr2 = "addr32",
+            addr3 = Some("addr33"),
+            addr4 = Some("addr34"),
+            addr5 = Some("addr35"),
+            postcode = Some("postcode3")
           )
         )
       )
 
       val expTransformedJson = Json.parse(s"""{
          |   "title":"Mr",
-         |   "firstForename":"name21",
-         |   "secondForename":"name22",
-         |   "surname":"surname2",
+         |   "firstForename":"name31",
+         |   "secondForename":"name32",
+         |   "surname":"surname3",
          |   "honours":"BA",
          |   "dateOfBirth":"1990-07-20",
          |   "nino":"$generatedNino",
          |   "address":{
-         |      "addressLine1":"addr21",
+         |      "addressLine1":"addr31",
          |      "addressCountry":"GREAT BRITAIN",
-         |      "addressLine3":"addr23",
-         |      "addressLine2":"addr22",
-         |      "addressType":2,
-         |      "addressLine5":"addr25",
+         |      "addressLine3":"addr33",
+         |      "addressLine2":"addr32",
+         |      "addressType":$AddressTypeCorrespondance,
+         |      "addressLine5":"addr35",
          |      "addressStartDate":"2018-03-10",
-         |      "addressPostcode":"postcode2",
-         |      "addressLine4":"addr24"
+         |      "addressPostcode":"postcode3",
+         |      "addressLine4":"addr34"
          |   },
          |   "crnIndicator":"true"
          |}""".stripMargin)
