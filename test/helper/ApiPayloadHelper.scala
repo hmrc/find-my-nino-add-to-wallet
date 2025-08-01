@@ -42,16 +42,16 @@ trait ApiPayloadHelper {
     titleType: Int,
     name1: String,
     name2: String,
-    surname: String
+    surname: String,
+    honours: Option[String] = None
   ): JsObject = Json.obj(
     "nameSequenceNumber" -> seqNo,
     "nameType"           -> nameType,
     "titleType"          -> titleType,
-    "honours"            -> "BA",
     "firstForename"      -> name1,
     "secondForename"     -> name2,
     "surname"            -> surname
-  )
+  ) ++ honours.fold(Json.obj())(h => Json.obj("honours" -> h))
 
   protected def individualDetailsApiAddressSection(
     seqNo: Int,
@@ -59,10 +59,10 @@ trait ApiPayloadHelper {
     addressStatus: Int,
     addr1: String,
     addr2: String,
-    addr3: Option[String],
-    addr4: Option[String],
-    addr5: Option[String],
-    postcode: Option[String]
+    addr3: Option[String] = None,
+    addr4: Option[String] = None,
+    addr5: Option[String] = None,
+    postcode: Option[String] = None
   ): JsObject = Json.obj(
     "addressSequenceNumber" -> seqNo,
     "countryCode"           -> 1,

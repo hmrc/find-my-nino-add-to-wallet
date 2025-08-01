@@ -313,7 +313,7 @@ object IndividualDetails {
         (__ \ "firstForename").json.copyFrom((__ \ "firstForename").json.pick) and
         (__ \ "secondForename").json.copyFrom((__ \ "secondForename").json.pick) and
         (__ \ "surname").json.copyFrom((__ \ "surname").json.pick) and
-        (__ \ "honours").json.copyFrom((__ \ "honours").json.pick) and
+        (__ \ "honours").json.copyFrom((__ \ "honours").json.pick).orElse(doNothing) and
         (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick)
     ).reduce
 
@@ -385,15 +385,23 @@ object IndividualDetails {
       case s           => JsError(s"Invalid json $s")
     }
 
+  private def addOptionalField(rds: Reads[JsObject], fieldName: String, optionalValue: Option[String]) =
+    rds.map { jsObject =>
+      optionalValue match {
+        case None    => jsObject
+        case Some(v) => jsObject ++ Json.obj(fieldName -> v)
+      }
+    }
+
+  import scala.util.chaining.scalaUtilChainingOps
   private val readsPreferredNameDetails: Reads[JsObject] =
     readsPreferredName.flatMap { preferredNameJsObject =>
       (
         (__ \ "title").json.put((preferredNameJsObject \ "titleType").as[JsString](readsTitleType)) and
           (__ \ "firstForename").json.put((preferredNameJsObject \ "firstForename").as[JsString]) and
           (__ \ "secondForename").json.put((preferredNameJsObject \ "secondForename").as[JsString]) and
-          (__ \ "surname").json.put((preferredNameJsObject \ "surname").as[JsString]) and
-          (__ \ "honours").json.put((preferredNameJsObject \ "honours").as[JsString])
-      ).reduce
+          (__ \ "surname").json.put((preferredNameJsObject \ "surname").as[JsString])
+      ).reduce.pipe(addOptionalField(_, "honours", (preferredNameJsObject \ "honours").asOpt[String]))
     }
 
   private val readsPreferredAddressDetails: Reads[JsObject] =
@@ -402,7 +410,7 @@ object IndividualDetails {
         (__ \ "address" \ "addressLine1").json.put((preferredAddressJsObject \ "addressLine1").as[JsString]) and
           (__ \ "address" \ "addressLine2").json.put((preferredAddressJsObject \ "addressLine2").as[JsString]) and
           (__ \ "address" \ "addressLine3").json
-            .put((preferredAddressJsObject \ "addressLine3").as[JsString])
+            .put((preferredAddressJsObject \ "addressLine3").as[JsString]) // TODO
             .orElse(doNothing) and
           (__ \ "address" \ "addressLine4").json
             .put((preferredAddressJsObject \ "addressLine4").as[JsString])
