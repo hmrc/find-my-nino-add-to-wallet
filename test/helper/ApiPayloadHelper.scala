@@ -42,17 +42,11 @@ trait ApiPayloadHelper {
     titleType: Int,
     name1: String,
     name2: String,
-    surname: String,
-    startDate: String,
-    endDate: String
+    surname: String
   ): JsObject = Json.obj(
     "nameSequenceNumber" -> seqNo,
     "nameType"           -> nameType,
     "titleType"          -> titleType,
-    "requestedName"      -> s"$name1 $name2 $surname",
-    "nameStartDate"      -> startDate,
-    "nameEndDate"        -> endDate,
-    "otherTitle"         -> "other title",
     "honours"            -> "BA",
     "firstForename"      -> name1,
     "secondForename"     -> name2,
@@ -60,8 +54,6 @@ trait ApiPayloadHelper {
   )
 
   protected def individualDetailsApiAddressSection(
-    seqNo: Int,
-    addressSource: Int,
     addressType: Int,
     addressStatus: Int,
     addr1: String,
@@ -71,19 +63,12 @@ trait ApiPayloadHelper {
     addr5: Option[String],
     postcode: Option[String]
   ): JsObject = Json.obj(
-    "addressSequenceNumber"    -> seqNo,
-    "addressSource"            -> addressSource,
-    "countryCode"              -> 1, // GREAT BRITAIN
-    "addressType"              -> addressType,
-    "addressStatus"            -> addressStatus,
-    "addressStartDate"         -> "2018-03-10",
-    "addressEndDate"           -> "2025-12-31",
-    "addressLastConfirmedDate" -> "2022-09-30",
-    "vpaMail"                  -> 101,
-    "deliveryInfo"             -> "ELECTRONIC DELIVERY",
-    "pafReference"             -> "PAF67890",
-    "addressLine1"             -> addr1,
-    "addressLine2"             -> addr2
+    "countryCode"      -> 1, // GREAT BRITAIN
+    "addressType"      -> addressType,
+    "addressStatus"    -> addressStatus,
+    "addressStartDate" -> "2018-03-10",
+    "addressLine1"     -> addr1,
+    "addressLine2"     -> addr2
   ) ++ addr3.fold(Json.obj())(a => Json.obj("addressLine3" -> a))
     ++ addr4.fold(Json.obj())(a => Json.obj("addressLine4" -> a))
     ++ addr5.fold(Json.obj())(a => Json.obj("addressLine5" -> a))

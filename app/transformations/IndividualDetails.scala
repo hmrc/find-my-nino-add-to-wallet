@@ -309,7 +309,6 @@ object IndividualDetails {
         (__ \ "secondForename").json.copyFrom((__ \ "secondForename").json.pick) and
         (__ \ "surname").json.copyFrom((__ \ "surname").json.pick) and
         (__ \ "honours").json.copyFrom((__ \ "honours").json.pick) and
-        (__ \ "nameStartDate").json.copyFrom((__ \ "nameStartDate").json.pick) and
         (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick)
     ).reduce
 
@@ -321,17 +320,10 @@ object IndividualDetails {
 
   private val readsAddress: Reads[JsObject] =
     (
-      (__ \ "addressSequenceNumber").json.copyFrom((__ \ "addressSequenceNumber").json.pick) and
-        (__ \ "addressSource").json.copyFrom((__ \ "addressSource").json.pick) and
-        (__ \ "countryCode").json.copyFrom((__ \ "countryCode").json.pick) and
+      (__ \ "countryCode").json.copyFrom((__ \ "countryCode").json.pick) and
         (__ \ "addressType").json.copyFrom((__ \ "addressType").json.pick) and
         (__ \ "addressStatus").json.copyFrom((__ \ "addressStatus").json.pick) and
         (__ \ "addressStartDate").json.copyFrom((__ \ "addressStartDate").json.pick) and
-        (__ \ "addressEndDate").json.copyFrom((__ \ "addressEndDate").json.pick) and
-        (__ \ "addressLastConfirmedDate").json.copyFrom((__ \ "addressLastConfirmedDate").json.pick) and
-        (__ \ "vpaMail").json.copyFrom((__ \ "vpaMail").json.pick) and
-        (__ \ "deliveryInfo").json.copyFrom((__ \ "deliveryInfo").json.pick) and
-        (__ \ "pafReference").json.copyFrom((__ \ "pafReference").json.pick) and
         (__ \ "addressLine1").json.copyFrom((__ \ "addressLine1").json.pick) and
         (__ \ "addressLine2").json.copyFrom((__ \ "addressLine2").json.pick) and
         (__ \ "addressLine3").json.copyFrom((__ \ "addressLine3").json.pick).orElse(doNothing) and

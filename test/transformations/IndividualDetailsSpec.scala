@@ -32,9 +32,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
             titleType = 5,
             name1 = "name11",
             name2 = "name12",
-            surname = "surname1",
-            startDate = "2010-02-05",
-            endDate = "2022-11-15"
+            surname = "surname1"
           ),
           individualDetailsApiNameSection(
             seqNo = 2,
@@ -42,15 +40,11 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
             titleType = 1,
             name1 = "name21",
             name2 = "name22",
-            surname = "surname2",
-            startDate = "2010-02-05",
-            endDate = "2022-11-15"
+            surname = "surname2"
           )
         ),
         Seq(
           individualDetailsApiAddressSection(
-            seqNo = 1,
-            addressSource = 3,
             addressType = 5,
             addressStatus = 6,
             addr1 = "addr11",
@@ -61,8 +55,6 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
             postcode = Some("postcode1")
           ),
           individualDetailsApiAddressSection(
-            seqNo = 1,
-            addressSource = 2,
             addressType = 2,
             addressStatus = 6,
             addr1 = "addr21",
