@@ -25,7 +25,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
 
   "reads" must {
     "transform correctly - latest name type 'known as' (Mr & no honours) and address type 'correspondance' & crn ind 1" in {
-      val result: JsResult[JsObject] = jsonThreeNamesThreeAddresses.validate[JsObject](IndividualDetails.reads)
+      val result: JsResult[JsObject] = apiIndividualDetailsJsonThreeNamesThreeAddresses.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(Json.parse(s"""{
         |   "title":"Mr",
         |   "firstForename":"name31",
@@ -49,7 +49,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
     }
 
     "transform correctly - only name type 'known as' (Mr & no honours) and address type 'correspondance' & crn ind 1" in {
-      val result: JsResult[JsObject] = jsonTwoNamesTwoAddresses.validate[JsObject](IndividualDetails.reads)
+      val result: JsResult[JsObject] = apiIndividualDetailsJsonTwoNamesTwoAddresses.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(Json.parse(s"""{
         |   "title":"Mr",
         |   "firstForename":"name21",
@@ -72,7 +72,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
         |}""".stripMargin))
     }
     "transform correctly - only 1 name of type 'real' (Dr with honours) and 1 address of type 'residential' + missing opt address lines & crn ind 0" in {
-      val result: JsResult[JsObject] = jsonOneNameOneAddress.validate[JsObject](IndividualDetails.reads)
+      val result: JsResult[JsObject] = apiIndividualDetailsJsonOneNameOneAddress.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(Json.parse(s"""{
         |   "title":"Dr",
         |   "firstForename":"name11",
@@ -93,7 +93,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
     }
   }
 
-  private lazy val jsonThreeNamesThreeAddresses: JsObject = individualDetailsApiFull(
+  private lazy val apiIndividualDetailsJsonThreeNamesThreeAddresses: JsObject = individualDetailsApiFull(
     individualDetailsApiResponseMain(crnIndicator = 1),
     Seq(
       individualDetailsApiNameSection(
@@ -158,7 +158,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
     )
   )
 
-  private lazy val jsonTwoNamesTwoAddresses: JsObject = individualDetailsApiFull(
+  private lazy val apiIndividualDetailsJsonTwoNamesTwoAddresses: JsObject = individualDetailsApiFull(
     individualDetailsApiResponseMain(crnIndicator = 1),
     Seq(
       individualDetailsApiNameSection(
@@ -204,7 +204,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
     )
   )
 
-  private lazy val jsonOneNameOneAddress: JsObject = individualDetailsApiFull(
+  private lazy val apiIndividualDetailsJsonOneNameOneAddress: JsObject = individualDetailsApiFull(
     individualDetailsApiResponseMain(crnIndicator = 0),
     Seq(
       individualDetailsApiNameSection(
