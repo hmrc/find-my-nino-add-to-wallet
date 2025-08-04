@@ -17,9 +17,11 @@
 package controllers
 
 import connectors.FandFConnector
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result, Results}
+import play.api.libs.json.{JsError, JsResultException, JsSuccess}
+import play.api.mvc.*
 import play.api.{Configuration, Environment}
 import services.IndividualDetailsService
+import transformations.IndividualDetails
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -50,7 +52,14 @@ class IndividualsDetailsController @Inject() (
 
   private def resultFromStatus(response: HttpResponse): Result =
     response.status match {
-      case OK                    => Results.Ok(response.body)
+      case OK                    =>
+        response.json.transform(IndividualDetails.reads) match {
+          case JsSuccess(jsObject, _) => Ok(jsObject)
+          case JsError(errors)        =>
+            val ex = JsResultException(errors)
+            logger.error("Json transformation failure", ex)
+            Results.InternalServerError(ex.getMessage)
+        }
       case BAD_REQUEST           => Results.BadRequest(response.body)
       case UNAUTHORIZED          => Results.Unauthorized(response.body)
       case NOT_FOUND             => Results.NotFound(response.body)

@@ -17,6 +17,7 @@
 package controllers
 
 import connectors.FandFConnector
+import helper.ApiPayloadHelper
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -24,6 +25,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.*
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.libs.json.Json
 import play.api.mvc.*
 import play.api.test.Helpers.*
 import play.api.test.*
@@ -38,7 +40,12 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualsDetailsControllerSpec extends PlaySpec with Results with MockitoSugar with BeforeAndAfterEach {
+class IndividualsDetailsControllerSpec
+    extends PlaySpec
+    with Results
+    with MockitoSugar
+    with BeforeAndAfterEach
+    with ApiPayloadHelper {
 
   implicit val hc: HeaderCarrier                = HeaderCarrier()
   implicit val ec: ExecutionContext             = global
@@ -85,6 +92,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     ()
   }
 
+  private val validApiResponsePayload: String = apiIndividualDetailsJsonOneNameOneAddress.toString
+
   "IndividualsDetailsController" must {
 
     "return OK for getIndividualDetails" in {
@@ -93,11 +102,11 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
         new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
       when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-        .thenReturn(Future.successful(HttpResponse(OK, "")))
+        .thenReturn(Future.successful(HttpResponse(OK, validApiResponsePayload)))
 
       val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
-
+      Json.parse(contentAsString(result)) mustBe apiTransformedIndividualDetailsJsonOneNameOneAddress
     }
 
     "return OK for getIndividualDetails when trusted helper user calls using helpee nino" in {
@@ -109,12 +118,12 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
       when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(Some(trustedHelper)))
 
       when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-        .thenReturn(Future.successful(HttpResponse(OK, "")))
+        .thenReturn(Future.successful(HttpResponse(OK, validApiResponsePayload)))
 
       val result: Future[Result] =
         controller.getIndividualDetails(trustedHelper.principalNino.get, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
-
+      Json.parse(contentAsString(result)) mustBe apiTransformedIndividualDetailsJsonOneNameOneAddress
     }
 
     "return Unauthorized for getIndividualDetails when user is not authorized" in {

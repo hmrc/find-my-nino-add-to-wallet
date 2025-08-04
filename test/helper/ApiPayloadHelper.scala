@@ -17,6 +17,7 @@
 package helper
 
 import play.api.libs.json.{JsArray, JsObject, Json}
+import transformations.IndividualDetails.{AddressTypeCorrespondance, AddressTypeResidential, NameTypeKnownAs, NameTypeReal}
 import uk.gov.hmrc.domain.Generator
 
 trait ApiPayloadHelper {
@@ -78,10 +79,10 @@ trait ApiPayloadHelper {
 
   protected val generatedNino: String = new Generator().nextNino.nino
 
-  protected def individualDetailsApiResponseMain(crnIndicator: Int): JsObject = Json
+  protected def individualDetailsApiResponseMain(crnIndicator: Int, nino: String): JsObject = Json
     .parse(s"""{
               |  "details": {
-              |    "nino": "$generatedNino",
+              |    "nino": "$nino",
               |    "ninoSuffix": "C",
               |    "dateOfBirth": "1990-07-20",
               |    "dateOfBirthStatus": 2,
@@ -142,6 +143,161 @@ trait ApiPayloadHelper {
               |  }
               |}
               |""".stripMargin)
+    .as[JsObject]
+
+  protected lazy val apiIndividualDetailsJsonThreeNamesThreeAddresses: JsObject = individualDetailsApiFull(
+    individualDetailsApiResponseMain(crnIndicator = 1, generatedNino),
+    Seq(
+      individualDetailsApiNameSection(
+        seqNo = 1,
+        nameType = NameTypeReal,
+        titleType = 5,
+        name1 = "name11",
+        name2 = "name12",
+        surname = "surname1"
+      ),
+      individualDetailsApiNameSection(
+        seqNo = 2,
+        nameType = NameTypeKnownAs,
+        titleType = 1,
+        name1 = "name21",
+        name2 = "name22",
+        surname = "surname2"
+      ),
+      individualDetailsApiNameSection(
+        seqNo = 3,
+        nameType = NameTypeKnownAs,
+        titleType = 1,
+        name1 = "name31",
+        name2 = "name32",
+        surname = "surname3"
+      )
+    ),
+    Seq(
+      individualDetailsApiAddressSection(
+        seqNo = 1,
+        addressType = AddressTypeResidential,
+        addressStatus = 6,
+        addr1 = "addr11",
+        addr2 = "addr12",
+        addr3 = Some("addr13"),
+        addr4 = Some("addr14"),
+        addr5 = Some("addr15"),
+        postcode = Some("postcode1")
+      ),
+      individualDetailsApiAddressSection(
+        seqNo = 2,
+        addressType = AddressTypeCorrespondance,
+        addressStatus = 6,
+        addr1 = "addr21",
+        addr2 = "addr22",
+        addr3 = Some("addr23"),
+        addr4 = Some("addr24"),
+        addr5 = Some("addr25"),
+        postcode = Some("postcode2")
+      ),
+      individualDetailsApiAddressSection(
+        seqNo = 3,
+        addressType = AddressTypeCorrespondance,
+        addressStatus = 6,
+        addr1 = "addr31",
+        addr2 = "addr32",
+        addr3 = Some("addr33"),
+        addr4 = Some("addr34"),
+        addr5 = Some("addr35"),
+        postcode = Some("postcode3")
+      )
+    )
+  )
+
+  protected lazy val apiIndividualDetailsJsonTwoNamesTwoAddresses: JsObject = individualDetailsApiFull(
+    individualDetailsApiResponseMain(crnIndicator = 1, generatedNino),
+    Seq(
+      individualDetailsApiNameSection(
+        seqNo = 1,
+        nameType = NameTypeReal,
+        titleType = 5,
+        name1 = "name11",
+        name2 = "name12",
+        surname = "surname1"
+      ),
+      individualDetailsApiNameSection(
+        seqNo = 2,
+        nameType = NameTypeKnownAs,
+        titleType = 1,
+        name1 = "name21",
+        name2 = "name22",
+        surname = "surname2"
+      )
+    ),
+    Seq(
+      individualDetailsApiAddressSection(
+        seqNo = 1,
+        addressType = AddressTypeResidential,
+        addressStatus = 6,
+        addr1 = "addr11",
+        addr2 = "addr12",
+        addr3 = Some("addr13"),
+        addr4 = Some("addr14"),
+        addr5 = Some("addr15"),
+        postcode = Some("postcode1")
+      ),
+      individualDetailsApiAddressSection(
+        seqNo = 2,
+        addressType = AddressTypeCorrespondance,
+        addressStatus = 6,
+        addr1 = "addr21",
+        addr2 = "addr22",
+        addr3 = Some("addr23"),
+        addr4 = Some("addr24"),
+        addr5 = Some("addr25"),
+        postcode = Some("postcode2")
+      )
+    )
+  )
+
+  protected lazy val apiIndividualDetailsJsonOneNameOneAddress: JsObject = individualDetailsApiFull(
+    individualDetailsApiResponseMain(crnIndicator = 0, generatedNino),
+    Seq(
+      individualDetailsApiNameSection(
+        seqNo = 1,
+        nameType = NameTypeReal,
+        titleType = 5,
+        name1 = "name11",
+        name2 = "name12",
+        surname = "surname1",
+        honours = Some("BA")
+      )
+    ),
+    Seq(
+      individualDetailsApiAddressSection(
+        seqNo = 1,
+        addressType = AddressTypeResidential,
+        addressStatus = 6,
+        addr1 = "addr11",
+        addr2 = "addr12"
+      )
+    )
+  )
+
+  protected def apiTransformedIndividualDetailsJsonOneNameOneAddress: JsObject = Json
+    .parse(s"""{
+                |   "title":"Dr",
+                |   "firstForename":"name11",
+                |   "secondForename":"name12",
+                |   "surname":"surname1",
+                |   "honours":"BA",
+                |   "dateOfBirth":"1990-07-20",
+                |   "nino":"$generatedNino",
+                |   "address":{
+                |      "addressLine1":"addr11",
+                |      "addressCountry":"GREAT BRITAIN",
+                |      "addressLine2":"addr12",
+                |      "addressType":$AddressTypeResidential,
+                |      "addressStartDate":"2018-03-10"
+                |   },
+                |   "crnIndicator":"false"
+                |}""".stripMargin)
     .as[JsObject]
 
 }

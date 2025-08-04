@@ -25,7 +25,8 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
 
   "reads" must {
     "transform correctly - latest name type 'known as' (Mr & no honours) and address type 'correspondance' & crn ind 1" in {
-      val result: JsResult[JsObject] = apiIndividualDetailsJsonThreeNamesThreeAddresses.validate[JsObject](IndividualDetails.reads)
+      val result: JsResult[JsObject] =
+        apiIndividualDetailsJsonThreeNamesThreeAddresses.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(Json.parse(s"""{
         |   "title":"Mr",
         |   "firstForename":"name31",
@@ -49,7 +50,8 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
     }
 
     "transform correctly - only name type 'known as' (Mr & no honours) and address type 'correspondance' & crn ind 1" in {
-      val result: JsResult[JsObject] = apiIndividualDetailsJsonTwoNamesTwoAddresses.validate[JsObject](IndividualDetails.reads)
+      val result: JsResult[JsObject] =
+        apiIndividualDetailsJsonTwoNamesTwoAddresses.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(Json.parse(s"""{
         |   "title":"Mr",
         |   "firstForename":"name21",
@@ -72,160 +74,9 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
         |}""".stripMargin))
     }
     "transform correctly - only 1 name of type 'real' (Dr with honours) and 1 address of type 'residential' + missing opt address lines & crn ind 0" in {
-      val result: JsResult[JsObject] = apiIndividualDetailsJsonOneNameOneAddress.validate[JsObject](IndividualDetails.reads)
-      result mustBe JsSuccess(Json.parse(s"""{
-        |   "title":"Dr",
-        |   "firstForename":"name11",
-        |   "secondForename":"name12",
-        |   "surname":"surname1",
-        |   "honours":"BA",
-        |   "dateOfBirth":"1990-07-20",
-        |   "nino":"$generatedNino",
-        |   "address":{
-        |      "addressLine1":"addr11",
-        |      "addressCountry":"GREAT BRITAIN",
-        |      "addressLine2":"addr12",
-        |      "addressType":$AddressTypeResidential,
-        |      "addressStartDate":"2018-03-10"
-        |   },
-        |   "crnIndicator":"false"
-        |}""".stripMargin))
+      val result: JsResult[JsObject] =
+        apiIndividualDetailsJsonOneNameOneAddress.validate[JsObject](IndividualDetails.reads)
+      result mustBe JsSuccess(apiTransformedIndividualDetailsJsonOneNameOneAddress)
     }
   }
-
-  private lazy val apiIndividualDetailsJsonThreeNamesThreeAddresses: JsObject = individualDetailsApiFull(
-    individualDetailsApiResponseMain(crnIndicator = 1),
-    Seq(
-      individualDetailsApiNameSection(
-        seqNo = 1,
-        nameType = NameTypeReal,
-        titleType = 5,
-        name1 = "name11",
-        name2 = "name12",
-        surname = "surname1"
-      ),
-      individualDetailsApiNameSection(
-        seqNo = 2,
-        nameType = NameTypeKnownAs,
-        titleType = 1,
-        name1 = "name21",
-        name2 = "name22",
-        surname = "surname2"
-      ),
-      individualDetailsApiNameSection(
-        seqNo = 3,
-        nameType = NameTypeKnownAs,
-        titleType = 1,
-        name1 = "name31",
-        name2 = "name32",
-        surname = "surname3"
-      )
-    ),
-    Seq(
-      individualDetailsApiAddressSection(
-        seqNo = 1,
-        addressType = AddressTypeResidential,
-        addressStatus = 6,
-        addr1 = "addr11",
-        addr2 = "addr12",
-        addr3 = Some("addr13"),
-        addr4 = Some("addr14"),
-        addr5 = Some("addr15"),
-        postcode = Some("postcode1")
-      ),
-      individualDetailsApiAddressSection(
-        seqNo = 2,
-        addressType = AddressTypeCorrespondance,
-        addressStatus = 6,
-        addr1 = "addr21",
-        addr2 = "addr22",
-        addr3 = Some("addr23"),
-        addr4 = Some("addr24"),
-        addr5 = Some("addr25"),
-        postcode = Some("postcode2")
-      ),
-      individualDetailsApiAddressSection(
-        seqNo = 3,
-        addressType = AddressTypeCorrespondance,
-        addressStatus = 6,
-        addr1 = "addr31",
-        addr2 = "addr32",
-        addr3 = Some("addr33"),
-        addr4 = Some("addr34"),
-        addr5 = Some("addr35"),
-        postcode = Some("postcode3")
-      )
-    )
-  )
-
-  private lazy val apiIndividualDetailsJsonTwoNamesTwoAddresses: JsObject = individualDetailsApiFull(
-    individualDetailsApiResponseMain(crnIndicator = 1),
-    Seq(
-      individualDetailsApiNameSection(
-        seqNo = 1,
-        nameType = NameTypeReal,
-        titleType = 5,
-        name1 = "name11",
-        name2 = "name12",
-        surname = "surname1"
-      ),
-      individualDetailsApiNameSection(
-        seqNo = 2,
-        nameType = NameTypeKnownAs,
-        titleType = 1,
-        name1 = "name21",
-        name2 = "name22",
-        surname = "surname2"
-      )
-    ),
-    Seq(
-      individualDetailsApiAddressSection(
-        seqNo = 1,
-        addressType = AddressTypeResidential,
-        addressStatus = 6,
-        addr1 = "addr11",
-        addr2 = "addr12",
-        addr3 = Some("addr13"),
-        addr4 = Some("addr14"),
-        addr5 = Some("addr15"),
-        postcode = Some("postcode1")
-      ),
-      individualDetailsApiAddressSection(
-        seqNo = 2,
-        addressType = AddressTypeCorrespondance,
-        addressStatus = 6,
-        addr1 = "addr21",
-        addr2 = "addr22",
-        addr3 = Some("addr23"),
-        addr4 = Some("addr24"),
-        addr5 = Some("addr25"),
-        postcode = Some("postcode2")
-      )
-    )
-  )
-
-  private lazy val apiIndividualDetailsJsonOneNameOneAddress: JsObject = individualDetailsApiFull(
-    individualDetailsApiResponseMain(crnIndicator = 0),
-    Seq(
-      individualDetailsApiNameSection(
-        seqNo = 1,
-        nameType = NameTypeReal,
-        titleType = 5,
-        name1 = "name11",
-        name2 = "name12",
-        surname = "surname1",
-        honours = Some("BA")
-      )
-    ),
-    Seq(
-      individualDetailsApiAddressSection(
-        seqNo = 1,
-        addressType = AddressTypeResidential,
-        addressStatus = 6,
-        addr1 = "addr11",
-        addr2 = "addr12"
-      )
-    )
-  )
-
 }
