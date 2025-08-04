@@ -33,7 +33,7 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
         |   "secondForename":"name32",
         |   "surname":"surname3",
         |   "dateOfBirth":"1990-07-20",
-        |   "nino":"$generatedNino",
+        |   "nino":"$generatedNinoWithoutSuffix$generatedNinoSuffix",
         |   "address":{
         |      "addressLine1":"addr31",
         |      "addressCountry":"GREAT BRITAIN",
@@ -49,16 +49,15 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
         |}""".stripMargin))
     }
 
-    "transform correctly - only name type 'known as' (Mr & no honours) and address type 'correspondance' & crn ind 1" in {
+    "transform correctly - only name type 'known as' (Mr & no honours) and address type 'correspondance' & crn ind 1 & no second forename" in {
       val result: JsResult[JsObject] =
         apiIndividualDetailsJsonTwoNamesTwoAddresses.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(Json.parse(s"""{
         |   "title":"Mr",
         |   "firstForename":"name21",
-        |   "secondForename":"name22",
         |   "surname":"surname2",
         |   "dateOfBirth":"1990-07-20",
-        |   "nino":"$generatedNino",
+        |   "nino":"$generatedNinoWithoutSuffix$generatedNinoSuffix",
         |   "address":{
         |      "addressLine1":"addr21",
         |      "addressCountry":"GREAT BRITAIN",

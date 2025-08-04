@@ -322,7 +322,7 @@ object IndividualDetails {
         (__ \ "nameType").json.copyFrom((__ \ "nameType").json.pick) and
         (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick) and
         (__ \ "firstForename").json.copyFrom((__ \ "firstForename").json.pick) and
-        (__ \ "secondForename").json.copyFrom((__ \ "secondForename").json.pick) and
+        (__ \ "secondForename").json.copyFrom((__ \ "secondForename").json.pick).orElse(doNothing) and
         (__ \ "surname").json.copyFrom((__ \ "surname").json.pick) and
         (__ \ "honours").json.copyFrom((__ \ "honours").json.pick).orElse(doNothing) and
         (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick)
@@ -395,9 +395,10 @@ object IndividualDetails {
       (
         (__ \ "title").json.put((preferredNameJsObject \ "titleType").as[JsString](readsTitleType)) and
           (__ \ "firstForename").json.put((preferredNameJsObject \ "firstForename").as[JsString]) and
-          (__ \ "secondForename").json.put((preferredNameJsObject \ "secondForename").as[JsString]) and
           (__ \ "surname").json.put((preferredNameJsObject \ "surname").as[JsString])
-      ).reduce.pipe(addOptionalField(_, "honours", (preferredNameJsObject \ "honours").asOpt[String]))
+      ).reduce
+        .pipe(addOptionalField(_, "honours", (preferredNameJsObject \ "honours").asOpt[String]))
+        .pipe(addOptionalField(_, "secondForename", (preferredNameJsObject \ "secondForename").asOpt[String]))
     }
 
   private val readsPreferredAddressDetails: Reads[JsObject] =
@@ -422,11 +423,17 @@ object IndividualDetails {
       )
     }
 
+  private val readsNino: Reads[JsString] =
+    (
+      (__ \ "details" \ "nino").readNullable[String] and
+        (__ \ "details" \ "ninoSuffix").readNullable[String]
+    )((nino, ninoSuffix) => JsString(nino.getOrElse("") + ninoSuffix.getOrElse("")))
+
   val reads: Reads[JsObject] =
     (
       readsPreferredNameDetails and
         (__ \ "dateOfBirth").json.copyFrom((__ \ "details" \ "dateOfBirth").json.pick) and
-        (__ \ "nino").json.copyFrom((__ \ "details" \ "nino").json.pick) and
+        (__ \ "nino").json.copyFrom(readsNino) and
         readsPreferredAddressDetails and
         (__ \ "crnIndicator").json.copyFrom((__ \ "details" \ "crnIndicator").read(readsCRNInd))
     ).reduce

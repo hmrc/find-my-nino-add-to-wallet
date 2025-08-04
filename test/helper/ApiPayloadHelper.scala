@@ -42,7 +42,7 @@ trait ApiPayloadHelper {
     nameType: Int,
     titleType: Int,
     name1: String,
-    name2: String,
+    name2: Option[String] = None,
     surname: String,
     honours: Option[String] = None
   ): JsObject = Json.obj(
@@ -50,9 +50,10 @@ trait ApiPayloadHelper {
     "nameType"           -> nameType,
     "titleType"          -> titleType,
     "firstForename"      -> name1,
-    "secondForename"     -> name2,
     "surname"            -> surname
-  ) ++ honours.fold(Json.obj())(h => Json.obj("honours" -> h))
+  )
+    ++ honours.fold(Json.obj())(h => Json.obj("honours" -> h))
+    ++ name2.fold(Json.obj())(h => Json.obj("secondForename" -> h))
 
   protected def individualDetailsApiAddressSection(
     seqNo: Int,
@@ -77,13 +78,20 @@ trait ApiPayloadHelper {
     ++ addr5.fold(Json.obj())(a => Json.obj("addressLine5" -> a))
     ++ postcode.fold(Json.obj())(a => Json.obj("addressPostcode" -> a))
 
-  protected val generatedNino: String = new Generator().nextNino.nino
+  protected val (generatedNinoWithoutSuffix, generatedNinoSuffix) = {
+    val generatedNino: String = new Generator().nextNino.nino
+    (generatedNino.take(8), generatedNino.takeRight(1))
+  }
 
-  protected def individualDetailsApiResponseMain(crnIndicator: Int, nino: String): JsObject = Json
+  protected def individualDetailsApiResponseMain(
+    crnIndicator: Int,
+    ninoWithoutSuffix: String,
+    ninoSuffix: String
+  ): JsObject = Json
     .parse(s"""{
               |  "details": {
-              |    "nino": "$nino",
-              |    "ninoSuffix": "C",
+              |    "nino": "$ninoWithoutSuffix",
+              |    "ninoSuffix": "$ninoSuffix",
               |    "dateOfBirth": "1990-07-20",
               |    "dateOfBirthStatus": 2,
               |    "dateOfDeath": "2015-06-15",
@@ -146,14 +154,14 @@ trait ApiPayloadHelper {
     .as[JsObject]
 
   protected lazy val apiIndividualDetailsJsonThreeNamesThreeAddresses: JsObject = individualDetailsApiFull(
-    individualDetailsApiResponseMain(crnIndicator = 1, generatedNino),
+    individualDetailsApiResponseMain(crnIndicator = 1, generatedNinoWithoutSuffix, generatedNinoSuffix),
     Seq(
       individualDetailsApiNameSection(
         seqNo = 1,
         nameType = NameTypeReal,
         titleType = 5,
         name1 = "name11",
-        name2 = "name12",
+        name2 = Some("name12"),
         surname = "surname1"
       ),
       individualDetailsApiNameSection(
@@ -161,7 +169,7 @@ trait ApiPayloadHelper {
         nameType = NameTypeKnownAs,
         titleType = 1,
         name1 = "name21",
-        name2 = "name22",
+        name2 = Some("name22"),
         surname = "surname2"
       ),
       individualDetailsApiNameSection(
@@ -169,7 +177,7 @@ trait ApiPayloadHelper {
         nameType = NameTypeKnownAs,
         titleType = 1,
         name1 = "name31",
-        name2 = "name32",
+        name2 = Some("name32"),
         surname = "surname3"
       )
     ),
@@ -211,14 +219,14 @@ trait ApiPayloadHelper {
   )
 
   protected lazy val apiIndividualDetailsJsonTwoNamesTwoAddresses: JsObject = individualDetailsApiFull(
-    individualDetailsApiResponseMain(crnIndicator = 1, generatedNino),
+    individualDetailsApiResponseMain(crnIndicator = 1, generatedNinoWithoutSuffix, generatedNinoSuffix),
     Seq(
       individualDetailsApiNameSection(
         seqNo = 1,
         nameType = NameTypeReal,
         titleType = 5,
         name1 = "name11",
-        name2 = "name12",
+        name2 = Some("name12"),
         surname = "surname1"
       ),
       individualDetailsApiNameSection(
@@ -226,7 +234,6 @@ trait ApiPayloadHelper {
         nameType = NameTypeKnownAs,
         titleType = 1,
         name1 = "name21",
-        name2 = "name22",
         surname = "surname2"
       )
     ),
@@ -257,14 +264,14 @@ trait ApiPayloadHelper {
   )
 
   protected lazy val apiIndividualDetailsJsonOneNameOneAddress: JsObject = individualDetailsApiFull(
-    individualDetailsApiResponseMain(crnIndicator = 0, generatedNino),
+    individualDetailsApiResponseMain(crnIndicator = 0, generatedNinoWithoutSuffix, generatedNinoSuffix),
     Seq(
       individualDetailsApiNameSection(
         seqNo = 1,
         nameType = NameTypeReal,
         titleType = 5,
         name1 = "name11",
-        name2 = "name12",
+        name2 = Some("name12"),
         surname = "surname1",
         honours = Some("BA")
       )
@@ -288,7 +295,7 @@ trait ApiPayloadHelper {
                 |   "surname":"surname1",
                 |   "honours":"BA",
                 |   "dateOfBirth":"1990-07-20",
-                |   "nino":"$generatedNino",
+                |   "nino":"$generatedNinoWithoutSuffix$generatedNinoSuffix",
                 |   "address":{
                 |      "addressLine1":"addr11",
                 |      "addressCountry":"GREAT BRITAIN",
