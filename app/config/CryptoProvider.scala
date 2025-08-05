@@ -22,7 +22,7 @@ import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
 import javax.inject.{Inject, Provider, Singleton}
 
 @Singleton
-class CryptoProvider @Inject()(
+class CryptoProvider @Inject() (
   configuration: Configuration
 ) extends Provider[Encrypter with Decrypter] {
 

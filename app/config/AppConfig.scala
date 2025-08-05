@@ -52,12 +52,13 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
   def privateCertificate: Future[String]                   = appleCerts.map(_._2)
   def privateCertificatePassword: Future[String]           = appleCerts.map(_._3)
 
-  val googleIssuerId: String = config.get[String]("googlePass.issuerId")
-  val googleKey: String      = config.get[String]("googlePass.key")
-  val googleJWTExpiry: Int   = config.get[Int]("googlePass.expiry")
-  val googleAddUrl: String   = config.get[String]("googlePass.url")
-  val googleOrigins: String  = config.get[String]("googlePass.origins")
-  val cacheTtl: Long         = config.get[Int]("mongodb.timeToLiveInSeconds")
+  val googleIssuerId: String        = config.get[String]("googlePass.issuerId")
+  val googleKey: String             = config.get[String]("googlePass.key")
+  val googleJWTExpiry: Int          = config.get[Int]("googlePass.expiry")
+  val googleAddUrl: String          = config.get[String]("googlePass.url")
+  val googleOrigins: String         = config.get[String]("googlePass.origins")
+  val cacheTtl: Long                = config.get[Int]("mongodb.timeToLiveInSeconds")
+  val sessionCacheTTLInSeconds: Int = config.get[Int]("mongodb.session-cache.timeToLiveInSeconds")
 
   val encryptionKey: String = config.get[String]("mongodb.encryption.key")
 

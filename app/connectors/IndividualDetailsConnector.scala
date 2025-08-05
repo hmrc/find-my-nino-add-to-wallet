@@ -16,10 +16,14 @@
 
 package connectors
 
+import com.google.inject.name.Named
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.AppConfig
 import models.CorrelationId
 import play.api.Logging
+import play.api.libs.json.{Format, JsValue}
+import repositories.cache.FMNSessionCacheRepository
+import services.SensitiveFormatService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
@@ -64,16 +68,16 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
 
 //@Singleton
 //class CachingIndividualDetailsConnector @Inject() (
-//                                                 @Named("default") underlying: IndividualDetailsConnector,
-//                                                 sessionCacheRepository: PertaxSessionCacheRepository,
-//                                                 sensitiveFormatService: SensitiveFormatService
-//                                               )(implicit ec: ExecutionContext)
-//  extends IndividualDetailsConnector
+//  @Named("default") underlying: IndividualDetailsConnector,
+//  sessionCacheRepository: FMNSessionCacheRepository,
+//  sensitiveFormatService: SensitiveFormatService
+//)(implicit ec: ExecutionContext)
+//    extends IndividualDetailsConnector
 //    with Logging {
 //
 //  private def cache[L, A: Format](
-//                                   key: String
-//                                 )(f: => EitherT[Future, L, A])(implicit hc: HeaderCarrier): EitherT[Future, L, A] = {
+//    key: String
+//  )(f: => EitherT[Future, L, A])(implicit hc: HeaderCarrier): EitherT[Future, L, A] = {
 //    def fetchAndCache: EitherT[Future, L, A] = for {
 //      result <- f
 //      _      <- EitherT.liftF(sessionCacheRepository.putSession[A](DataKey[A](key), result))
@@ -88,8 +92,8 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
 //  }
 //
 //  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
-//                                                                                     ec: ExecutionContext,
-//                                                                                     headerCarrier: HeaderCarrier
+//    ec: ExecutionContext,
+//    headerCarrier: HeaderCarrier
 //  ): Future[HttpResponse] =
 //    cache(s"getIndividualDetails-$nino") {
 //      underlying.getIndividualDetails(nino, resolveMerge)
