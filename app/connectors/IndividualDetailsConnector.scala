@@ -16,6 +16,7 @@
 
 package connectors
 
+import cats.data.EitherT
 import com.google.inject.name.Named
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.AppConfig
@@ -26,7 +27,7 @@ import repositories.cache.FMNSessionCacheRepository
 import services.SensitiveFormatService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,7 +36,7 @@ trait IndividualDetailsConnector {
   def getIndividualDetails(nino: String, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
-  ): Future[HttpResponse]
+  ): EitherT[Future, UpstreamErrorResponse, JsValue]
 }
 
 @Singleton
@@ -54,15 +55,16 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
   override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
-  ): Future[HttpResponse] = {
+  ): EitherT[Future, UpstreamErrorResponse, JsValue] = {
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(extraDesHeaders: _*)
     val url                        =
       s"${appConfig.individualDetailsServiceUrl}/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
 
-    httpClientV2
+    val apiResponse: Future[Either[UpstreamErrorResponse, HttpResponse]] = httpClientV2
       .get(url"$url")
-      .execute[HttpResponse]
+      .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw))
+    EitherT(apiResponse).map(_.json)
   }
 }
 
