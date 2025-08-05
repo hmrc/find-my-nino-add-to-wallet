@@ -26,7 +26,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlag
 import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
-import util.SpecBase
+import _root_.util.SpecBase
 
 import scala.concurrent.Future
 
@@ -40,7 +40,8 @@ class AppConfigSpec extends SpecBase {
       "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
       "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
       "applePass.privateCertificate2"         -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2"
+      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2",
+      "json.encryption"                       -> "key"
     )
     .overrides(
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),

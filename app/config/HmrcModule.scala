@@ -16,8 +16,8 @@
 
 package config
 
-import play.api.{Configuration, Environment}
 import play.api.inject.{Binding, Module}
+import play.api.{Configuration, Environment}
 import repositories.*
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
@@ -29,7 +29,9 @@ class HmrcModule extends Module {
 
     Seq(
       bind[ApplicationStartUp].toSelf.eagerly(),
-      bind[AuthConnector].to(classOf[DefaultAuthConnector])
+      bind[AuthConnector].to(classOf[DefaultAuthConnector]) // ,
+      //   bind[Encrypter with Decrypter].toProvider[CryptoProvider],
+      //   bind[IndividualDetailsConnector].to[DefaultIndividualDetailsConnector]
     ) ++ {
       if (encryptionEnabled) {
         Seq(

@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.AppConfig
 import models.CorrelationId
 import play.api.Logging
@@ -26,8 +26,18 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@ImplementedBy(classOf[DefaultIndividualDetailsConnector])
+trait IndividualDetailsConnector {
+  def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+    ec: ExecutionContext,
+    headerCarrier: HeaderCarrier
+  ): Future[HttpResponse]
+}
+
 @Singleton
-class IndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV2, appConfig: AppConfig) extends Logging {
+class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV2, appConfig: AppConfig)
+    extends IndividualDetailsConnector
+    with Logging {
 
   private val extraDesHeaders: Seq[(String, String)] = Seq(
     "Authorization" -> s"Bearer ${appConfig.individualDetailsToken}",
@@ -37,7 +47,7 @@ class IndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV2, appC
     "OriginatorId"  -> appConfig.individualDetailsOriginatorId
   )
 
-  def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): Future[HttpResponse] = {
@@ -51,3 +61,37 @@ class IndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV2, appC
       .execute[HttpResponse]
   }
 }
+
+//@Singleton
+//class CachingIndividualDetailsConnector @Inject() (
+//                                                 @Named("default") underlying: IndividualDetailsConnector,
+//                                                 sessionCacheRepository: PertaxSessionCacheRepository,
+//                                                 sensitiveFormatService: SensitiveFormatService
+//                                               )(implicit ec: ExecutionContext)
+//  extends IndividualDetailsConnector
+//    with Logging {
+//
+//  private def cache[L, A: Format](
+//                                   key: String
+//                                 )(f: => EitherT[Future, L, A])(implicit hc: HeaderCarrier): EitherT[Future, L, A] = {
+//    def fetchAndCache: EitherT[Future, L, A] = for {
+//      result <- f
+//      _      <- EitherT.liftF(sessionCacheRepository.putSession[A](DataKey[A](key), result))
+//    } yield result
+//
+//    EitherT {
+//      sessionCacheRepository.getFromSession[A](DataKey[A](key)).flatMap {
+//        case Some(value) => Future.successful(Right(value))
+//        case None        => fetchAndCache.value
+//      }
+//    }
+//  }
+//
+//  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+//                                                                                     ec: ExecutionContext,
+//                                                                                     headerCarrier: HeaderCarrier
+//  ): Future[HttpResponse] =
+//    cache(s"getIndividualDetails-$nino") {
+//      underlying.getIndividualDetails(nino, resolveMerge)
+//    }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+//}
