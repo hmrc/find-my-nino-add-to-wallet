@@ -21,7 +21,7 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.*
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.*
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
@@ -35,13 +35,15 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
   "IndividualDetailsConnector" should {
 
     "return the expected result from getIndividualDetails" in {
-      val mockHttpClientV2               = mock[HttpClientV2]
-      val mockConfig                     = mock[AppConfig]
-      val requestBuilder: RequestBuilder = mock[RequestBuilder]
-      val connector                      = new DefaultIndividualDetailsConnector(mockHttpClientV2, mockConfig)
-      val nino                           = "AB123456C"
-      val resolveMerge                   = "Y"
-      val expectedResponse               = HttpResponse(OK, "response body")
+      val mockHttpClientV2                                              = mock[HttpClientV2]
+      val mockConfig                                                    = mock[AppConfig]
+      val requestBuilder: RequestBuilder                                = mock[RequestBuilder]
+      val connector                                                     = new DefaultIndividualDetailsConnector(mockHttpClientV2, mockConfig)
+      val nino                                                          = "AB123456C"
+      val resolveMerge                                                  = "Y"
+      val dummyJsValue                                                  = Json.obj("test" -> "value")
+      val expectedResponse: Either[UpstreamErrorResponse, HttpResponse] =
+        Right(HttpResponse(OK, dummyJsValue, Map.empty))
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -60,7 +62,7 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
       val result: Either[UpstreamErrorResponse, JsValue] =
         await(connector.getIndividualDetails(nino, resolveMerge).value)
 
-      result mustBe expectedResponse
+      result mustBe Right(dummyJsValue)
     }
   }
 }
