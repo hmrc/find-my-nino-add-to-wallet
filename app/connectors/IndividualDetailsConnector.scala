@@ -72,8 +72,8 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
 @Singleton
 class CachingIndividualDetailsConnector @Inject() (
   underlying: DefaultIndividualDetailsConnector,
-  sessionCacheRepository: FMNSessionCacheRepository // ,
-//  sensitiveFormatService: SensitiveFormatService
+  sessionCacheRepository: FMNSessionCacheRepository,
+  sensitiveFormatService: SensitiveFormatService
 )(implicit ec: ExecutionContext)
     extends IndividualDetailsConnector
     with Logging {
@@ -100,5 +100,5 @@ class CachingIndividualDetailsConnector @Inject() (
   ): EitherT[Future, UpstreamErrorResponse, JsValue] =
     cache(s"getIndividualDetails-$nino") {
       underlying.getIndividualDetails(nino, resolveMerge)
-    } // (sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+    }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
 }
