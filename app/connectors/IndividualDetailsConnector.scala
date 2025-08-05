@@ -71,9 +71,9 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
 
 @Singleton
 class CachingIndividualDetailsConnector @Inject() (
-  @Named("default") underlying: IndividualDetailsConnector,
-  sessionCacheRepository: FMNSessionCacheRepository,
-  sensitiveFormatService: SensitiveFormatService
+  underlying: DefaultIndividualDetailsConnector,
+  sessionCacheRepository: FMNSessionCacheRepository // ,
+//  sensitiveFormatService: SensitiveFormatService
 )(implicit ec: ExecutionContext)
     extends IndividualDetailsConnector
     with Logging {
