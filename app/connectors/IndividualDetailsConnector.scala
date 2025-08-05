@@ -28,10 +28,11 @@ import services.SensitiveFormatService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[DefaultIndividualDetailsConnector])
+@ImplementedBy(classOf[CachingIndividualDetailsConnector])
 trait IndividualDetailsConnector {
   def getIndividualDetails(nino: String, resolveMerge: String)(implicit
     ec: ExecutionContext,
@@ -68,36 +69,36 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
   }
 }
 
-//@Singleton
-//class CachingIndividualDetailsConnector @Inject() (
-//  @Named("default") underlying: IndividualDetailsConnector,
-//  sessionCacheRepository: FMNSessionCacheRepository,
-//  sensitiveFormatService: SensitiveFormatService
-//)(implicit ec: ExecutionContext)
-//    extends IndividualDetailsConnector
-//    with Logging {
-//
-//  private def cache[L, A: Format](
-//    key: String
-//  )(f: => EitherT[Future, L, A])(implicit hc: HeaderCarrier): EitherT[Future, L, A] = {
-//    def fetchAndCache: EitherT[Future, L, A] = for {
-//      result <- f
-//      _      <- EitherT.liftF(sessionCacheRepository.putSession[A](DataKey[A](key), result))
-//    } yield result
-//
-//    EitherT {
-//      sessionCacheRepository.getFromSession[A](DataKey[A](key)).flatMap {
-//        case Some(value) => Future.successful(Right(value))
-//        case None        => fetchAndCache.value
-//      }
-//    }
-//  }
-//
-//  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
-//    ec: ExecutionContext,
-//    headerCarrier: HeaderCarrier
-//  ): Future[HttpResponse] =
-//    cache(s"getIndividualDetails-$nino") {
-//      underlying.getIndividualDetails(nino, resolveMerge)
-//    }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
-//}
+@Singleton
+class CachingIndividualDetailsConnector @Inject() (
+  @Named("default") underlying: IndividualDetailsConnector,
+  sessionCacheRepository: FMNSessionCacheRepository,
+  sensitiveFormatService: SensitiveFormatService
+)(implicit ec: ExecutionContext)
+    extends IndividualDetailsConnector
+    with Logging {
+
+  private def cache[L, A: Format](
+    key: String
+  )(f: => EitherT[Future, L, A])(implicit hc: HeaderCarrier): EitherT[Future, L, A] = {
+    def fetchAndCache: EitherT[Future, L, A] = for {
+      result <- f
+      _      <- EitherT.liftF(sessionCacheRepository.putSession[A](DataKey[A](key), result))
+    } yield result
+
+    EitherT {
+      sessionCacheRepository.getFromSession[A](DataKey[A](key)).flatMap {
+        case Some(value) => Future.successful(Right(value))
+        case None        => fetchAndCache.value
+      }
+    }
+  }
+
+  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+    ec: ExecutionContext,
+    headerCarrier: HeaderCarrier
+  ): EitherT[Future, UpstreamErrorResponse, JsValue] =
+    cache(s"getIndividualDetails-$nino") {
+      underlying.getIndividualDetails(nino, resolveMerge)
+    } // (sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+}

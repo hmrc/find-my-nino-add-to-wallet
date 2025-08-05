@@ -47,8 +47,6 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
 
-      // when(requestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(expectedResponse))
-
       when(requestBuilder.execute[Either[UpstreamErrorResponse, HttpResponse]](any(), any()))
         .thenReturn(Future.successful(expectedResponse))
       when(mockConfig.individualDetailsServiceUrl).thenReturn("http://localhost:14011")
