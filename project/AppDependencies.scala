@@ -16,6 +16,7 @@ object AppDependencies {
     "com.google.api-client"         % "google-api-client"                          % "2.8.0",
     "org.typelevel"                %% "cats-core"                                  % "2.13.0",
     "com.google.auth"               % "google-auth-library-oauth2-http"            % "1.37.1",
+    "com.google.guava"              % "guava"                                      % "33.4.8-jre",
     "com.auth0"                     % "java-jwt"                                   % "4.5.0",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"                       % "2.19.2",
     "uk.gov.hmrc"                  %% s"crypto-json-$playVersion"                  % "8.2.0",
