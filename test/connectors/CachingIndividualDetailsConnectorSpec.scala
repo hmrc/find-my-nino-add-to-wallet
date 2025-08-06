@@ -39,9 +39,9 @@ import scala.util.Random
 class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(20, Seconds))
 
-  val mockUnderlying: IndividualDetailsConnector = mock[IndividualDetailsConnector]
-  val mockCacheRepo: FMNSessionCacheRepository   = mock[FMNSessionCacheRepository]
-  val mockFormatService: SensitiveFormatService  = mock[SensitiveFormatService]
+  val mockUnderlying: DefaultIndividualDetailsConnector = mock[DefaultIndividualDetailsConnector]
+  val mockCacheRepo: FMNSessionCacheRepository          = mock[FMNSessionCacheRepository]
+  val mockFormatService: SensitiveFormatService         = mock[SensitiveFormatService]
 
   override implicit val hc: HeaderCarrier                       = HeaderCarrier()
   override lazy implicit val ec: ExecutionContext               = scala.concurrent.ExecutionContext.global
@@ -49,18 +49,17 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .overrides(
-      bind(classOf[IndividualDetailsConnector])
-        .qualifiedWith("default")
-        .toInstance(mockUnderlying),
+      bind[DefaultIndividualDetailsConnector].toInstance(mockUnderlying),
       bind[FMNSessionCacheRepository].toInstance(mockCacheRepo),
       bind[SensitiveFormatService].toInstance(mockFormatService)
     )
     .build()
 
-  val nino: Nino          = Nino(new Generator(new Random()).nextNino.nino)
-  val jsonResult: JsValue = Json.obj("person" -> "test")
+  private val nino                = Nino(new Generator(new Random()).nextNino.nino).nino
+  private val resolveMerge        = ""
+  private val jsonResult: JsValue = Json.obj("person" -> "test")
 
-  def connector: CachingIndividualDetailsConnector = inject[CachingIndividualDetailsConnector]
+  private def connector: CachingIndividualDetailsConnector = app.injector.instanceOf[CachingIndividualDetailsConnector]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -77,27 +76,27 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(Some(jsonResult)))
 
-      val result = connector.personDetails(nino).value.futureValue
+      val result = connector.getIndividualDetails(nino, resolveMerge).value.futureValue
 
       result mustBe Right(jsonResult)
-      verify(mockUnderlying, times(0)).personDetails(any())(any(), any(), any())
+      verify(mockUnderlying, times(0)).getIndividualDetails(any(), any())(any(), any())
     }
 
     "fetch person details and cache result if not present in session cache" in {
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      when(mockUnderlying.personDetails(eqTo(nino))(any(), any(), any()))
+      when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(resolveMerge))(any(), any()))
         .thenReturn(EitherT.rightT[Future, UpstreamErrorResponse](jsonResult))
 
       when(
         mockCacheRepo.putSession(any(), any())(any(), any(), any())
       ).thenReturn(Future.successful("sessionId" -> "updated"))
 
-      val result = connector.personDetails(nino).value.futureValue
+      val result = connector.getIndividualDetails(nino, resolveMerge).value.futureValue
 
       result mustBe Right(jsonResult)
-      verify(mockUnderlying).personDetails(eqTo(nino))(any(), any(), any())
+      verify(mockUnderlying, times(1)).getIndividualDetails(eqTo(nino), eqTo(resolveMerge))(any(), any())
       verify(mockCacheRepo).putSession(
         any(),
         any()
@@ -114,10 +113,9 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      when(mockUnderlying.personDetails(eqTo(nino))(any(), any(), any()))
+      when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(resolveMerge))(any(), any()))
         .thenReturn(EitherT.leftT[Future, JsValue](error))
-
-      val result = connector.personDetails(nino).value.futureValue
+      val result = connector.getIndividualDetails(nino, resolveMerge).value.futureValue
 
       result mustBe Left(error)
     }
