@@ -17,12 +17,10 @@
 package connectors
 
 import cats.data.EitherT
-import com.google.inject.name.Named
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.AppConfig
 import models.CorrelationId
 import play.api.Logging
-import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, UNPROCESSABLE_ENTITY}
 import play.api.libs.json.{Format, JsValue}
 import repositories.cache.FMNSessionCacheRepository
 import services.SensitiveFormatService

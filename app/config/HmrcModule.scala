@@ -16,7 +16,6 @@
 
 package config
 
-import connectors.{CachingIndividualDetailsConnector, DefaultIndividualDetailsConnector, IndividualDetailsConnector}
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
 import repositories.*
@@ -31,11 +30,8 @@ class HmrcModule extends Module {
 
     Seq(
       bind[ApplicationStartUp].toSelf.eagerly(),
-      // bind[AppConfig].toSelf.eagerly(),
       bind[AuthConnector].to(classOf[DefaultAuthConnector]),
       bind[Encrypter with Decrypter].toProvider[CryptoProvider] // ,
-//      bind[IndividualDetailsConnector].qualifiedWith("default").to[DefaultIndividualDetailsConnector],
-//      bind[IndividualDetailsConnector].to[CachingIndividualDetailsConnector]
     ) ++ {
       if (encryptionEnabled) {
         Seq(

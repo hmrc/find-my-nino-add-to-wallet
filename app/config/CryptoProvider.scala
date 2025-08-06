@@ -20,12 +20,14 @@ import play.api.Configuration
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
 
 import javax.inject.{Inject, Provider, Singleton}
+import scala.annotation.nowarn
 
 @Singleton
 class CryptoProvider @Inject() (
   configuration: Configuration
 ) extends Provider[Encrypter with Decrypter] {
 
+  @nowarn("cat=deprecation")
   override def get(): Encrypter with Decrypter =
     new ApplicationCrypto(configuration.underlying).JsonCrypto
 }

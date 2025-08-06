@@ -19,7 +19,7 @@ lazy val microservice = Project(appName, file("."))
     ),
     PlayKeys.playDefaultPort := 14005,
     scalacOptions ++= Seq(
-  //    "-Werror",
+      "-Werror",
       "-unchecked",
       "-feature",
       "-language:noAutoTupling",
