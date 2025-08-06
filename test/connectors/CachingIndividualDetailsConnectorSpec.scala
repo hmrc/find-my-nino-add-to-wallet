@@ -70,7 +70,7 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
     ()
   }
 
-  "CachingIndividualDetailsConnector.personDetails" should {
+  "getIndividualDetails" should {
 
     "return cached value if present in session cache" in {
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))

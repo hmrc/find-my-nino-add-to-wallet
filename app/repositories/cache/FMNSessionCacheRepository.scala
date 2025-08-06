@@ -31,7 +31,7 @@ class FMNSessionCacheRepository @Inject() (
 )(implicit ec: ExecutionContext)
     extends SessionCacheRepository(
       mongoComponent = mongoComponent,
-      collectionName = "fmnSessionCache",
+      collectionName = "session-cache",
       ttl = Duration(appConfig.sessionCacheTTLInSeconds, TimeUnit.SECONDS),
       timestampSupport = new CurrentTimestampSupport()
     )

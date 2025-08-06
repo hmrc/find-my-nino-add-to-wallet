@@ -102,11 +102,13 @@ class CachingIndividualDetailsConnector @Inject() (
     }
   }
 
+  private def cachingKey(nino: String) = s"getIndividualDetails-$nino"
+
   override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, JsValue] =
-    cache(s"getIndividualDetails-$nino") {
+    cache(cachingKey(nino)) {
       underlying.getIndividualDetails(nino, resolveMerge)
     }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
 
@@ -114,6 +116,6 @@ class CachingIndividualDetailsConnector @Inject() (
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, Unit] =
-    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey(s"getIndividualDetails-$nino")))
+    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey(cachingKey(nino))))
 
 }

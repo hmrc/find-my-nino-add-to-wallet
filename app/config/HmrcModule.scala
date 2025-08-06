@@ -31,7 +31,7 @@ class HmrcModule extends Module {
     Seq(
       bind[ApplicationStartUp].toSelf.eagerly(),
       bind[AuthConnector].to(classOf[DefaultAuthConnector]),
-      bind[Encrypter with Decrypter].toProvider[CryptoProvider] // ,
+      bind[Encrypter with Decrypter].toProvider[CryptoProvider]
     ) ++ {
       if (encryptionEnabled) {
         Seq(
