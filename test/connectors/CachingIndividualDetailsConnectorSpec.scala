@@ -120,4 +120,17 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       result mustBe Left(error)
     }
   }
+
+  "deleteIndividualDetailsIfCached" should {
+
+    "return unit when successful" in {
+      when(mockCacheRepo.deleteFromSession[JsValue](any())(any()))
+        .thenReturn(Future.successful((): Unit))
+
+      val result = connector.deleteIndividualDetailsIfCached(nino).value.futureValue
+
+      result mustBe Right((): Unit)
+    }
+  }
+
 }

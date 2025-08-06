@@ -22,6 +22,7 @@ import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.AppConfig
 import models.CorrelationId
 import play.api.Logging
+import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, UNPROCESSABLE_ENTITY}
 import play.api.libs.json.{Format, JsValue}
 import repositories.cache.FMNSessionCacheRepository
 import services.SensitiveFormatService
@@ -38,6 +39,10 @@ trait IndividualDetailsConnector {
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, JsValue]
+  def deleteIndividualDetailsIfCached(nino: String)(implicit
+    ec: ExecutionContext,
+    headerCarrier: HeaderCarrier
+  ): EitherT[Future, UpstreamErrorResponse, Unit]
 }
 
 @Singleton
@@ -67,6 +72,11 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
       .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw))
     EitherT(apiResponse).map(_.json)
   }
+
+  override def deleteIndividualDetailsIfCached(nino: String)(implicit
+    ec: ExecutionContext,
+    headerCarrier: HeaderCarrier
+  ): EitherT[Future, UpstreamErrorResponse, Unit] = EitherT(Future.successful(Right((): Unit)))
 }
 
 @Singleton
@@ -101,4 +111,11 @@ class CachingIndividualDetailsConnector @Inject() (
     cache(s"getIndividualDetails-$nino") {
       underlying.getIndividualDetails(nino, resolveMerge)
     }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+
+  override def deleteIndividualDetailsIfCached(nino: String)(implicit
+    ec: ExecutionContext,
+    headerCarrier: HeaderCarrier
+  ): EitherT[Future, UpstreamErrorResponse, Unit] =
+    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey(s"getIndividualDetails-$nino")))
+
 }

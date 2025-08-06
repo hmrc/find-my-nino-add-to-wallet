@@ -10,4 +10,5 @@ POST        /create-google-pass-with-credentials            controllers.GooglePa
 
 
 GET         /individuals/details/NINO/:nino/:resolveMerge   controllers.IndividualsDetailsController.getIndividualDetails(nino: String, resolveMerge: String)
+DELETE      /individuals/details/cache/NINO/:nino           controllers.IndividualsDetailsController.deleteCachedIndividualDetails(nino: String)
 PUT         /adult-registration/:identifier                 controllers.NPSController.upliftCRN(identifier: String)

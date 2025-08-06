@@ -53,6 +53,24 @@ class IndividualsDetailsController @Inject() (
     }
   }
 
+  def deleteCachedIndividualDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { authContext =>
+      implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+      val ninoLengthWithoutSuffix    = 8
+      if (authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
+        logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
+        Future(Results.Unauthorized("You are not authorised to access this resource"))
+      } else {
+
+        individualDetailsService
+          .deleteIndividualDetails(nino)
+          .bimap(errorToResponse, _ => Ok)
+          .merge
+
+      }
+    }
+  }
+
   private def resultFromStatus(response: EitherT[Future, UpstreamErrorResponse, JsValue]): Future[Result] =
     response
       .bimap(

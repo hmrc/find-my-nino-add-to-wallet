@@ -93,7 +93,6 @@ class IndividualsDetailsControllerSpec
     ()
   }
 
-  private val validApiResponsePayload: String                                   = apiIndividualDetailsJsonOneNameOneAddress.toString
   private val validApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] = EitherT(
     Future.successful(Right(apiIndividualDetailsJsonOneNameOneAddress))
   )
