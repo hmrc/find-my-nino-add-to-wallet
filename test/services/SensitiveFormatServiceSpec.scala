@@ -25,6 +25,7 @@ import play.api.libs.json.*
 import services.SensitiveFormatService.SensitiveJsValue
 import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText}
 import _root_.util.SpecBase
+import config.AppConfig
 
 class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
   private trait EncrypterDecrypter extends Encrypter with Decrypter
@@ -40,7 +41,9 @@ class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
   private val sensitiveJsObject: SensitiveJsValue                 = SensitiveJsValue(unencryptedJsObject)
   private val sensitiveJsString: SensitiveJsValue                 = SensitiveJsValue(unencryptedJsString)
 
-  private val sensitiveFormatService = new SensitiveFormatService(mockEncrypterDecrypter)
+  private val mockAppConfig: AppConfig = mock[AppConfig]
+
+  private val sensitiveFormatService = new SensitiveFormatService(mockEncrypterDecrypter, mockAppConfig)
 
   private val fakeJsonPayload: String =
     """
@@ -70,6 +73,10 @@ class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockEncrypterDecrypter)
+    reset(mockAppConfig)
+    when(mockAppConfig.encryptionEnabled).thenReturn(true)
+
+    ()
   }
 
   "sensitiveFormatJsValue" must {
@@ -135,7 +142,7 @@ class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
   }
 
   "sensitiveFormatFromReadsWrites" must {
-    "write encrypted array, calling encrypt" in {
+    "write encrypted value, calling encrypt" in {
       when(mockEncrypterDecrypter.encrypt(any())).thenReturn(encryptedValue)
       val result: JsValue =
         Json
@@ -144,6 +151,17 @@ class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
       result mustBe JsString(encryptedValueAsString)
 
       verify(mockEncrypterDecrypter, times(1)).encrypt(any())
+    }
+    "write unencrypted value, calling encrypt when encryption off" in {
+      when(mockAppConfig.encryptionEnabled).thenReturn(false)
+      when(mockEncrypterDecrypter.encrypt(any())).thenReturn(encryptedValue)
+      val result: JsValue =
+        Json
+          .toJson(Json.parse(fakeJsonPayload))(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+
+      result mustBe Json.parse(fakeJsonPayload)
+
+      verify(mockEncrypterDecrypter, times(0)).encrypt(any())
     }
 
     "read encrypted value, calling decrypt" in {
@@ -157,6 +175,19 @@ class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
       result mustBe Json.parse(fakeJsonPayload)
 
       verify(mockEncrypterDecrypter, times(1)).decrypt(any())
+    }
+    "read encrypted value, calling decrypt when encryption off" in {
+      when(mockAppConfig.encryptionEnabled).thenReturn(false)
+      when(mockEncrypterDecrypter.decrypt(any()))
+        .thenReturn(PlainText(fakeJsonPayload))
+
+      val result = JsString(encryptedValueAsString).as[JsValue](
+        sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue]
+      )
+
+      result mustBe JsString(encryptedValueAsString)
+
+      verify(mockEncrypterDecrypter, times(0)).decrypt(any())
     }
 
     "read unencrypted JsObject, not calling decrypt at all" in {

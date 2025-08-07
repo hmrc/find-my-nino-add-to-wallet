@@ -17,13 +17,15 @@
 package services
 
 import com.google.inject.Inject
+import config.AppConfig
 import play.api.libs.json.*
 import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText, Sensitive}
 
 import scala.util.{Failure, Success, Try}
 
 class SensitiveFormatService @Inject() (
-  encrypterDecrypter: Encrypter with Decrypter
+  encrypterDecrypter: Encrypter with Decrypter,
+  appConfig: AppConfig
 ) {
   import SensitiveFormatService.*
 
@@ -67,10 +69,14 @@ class SensitiveFormatService @Inject() (
     reads: Reads[A],
     writes: Writes[A]
   ): Format[A] =
-    Format[A](
-      sensitiveReadsJsObject[A](reads),
-      sensitiveWritesJsValue[A](writes)
-    )
+    if (appConfig.encryptionEnabled) {
+      Format[A](
+        sensitiveReadsJsObject[A](reads),
+        sensitiveWritesJsValue[A](writes)
+      )
+    } else {
+      Format(reads, writes)
+    }
 
 }
 

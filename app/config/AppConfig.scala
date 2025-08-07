@@ -60,7 +60,8 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
   val cacheTtl: Long                = config.get[Int]("mongodb.timeToLiveInSeconds")
   val sessionCacheTTLInSeconds: Int = config.get[Int]("mongodb.session-cache.timeToLiveInSeconds")
 
-  val encryptionKey: String = config.get[String]("mongodb.encryption.key")
+  val encryptionKey: String      = config.get[String]("mongodb.encryption.key")
+  val encryptionEnabled: Boolean = config.get[Boolean]("mongodb.encryption.enabled")
 
   lazy val individualDetailsToken: String        = config.get[String]("external-url.individual-details.auth-token")
   lazy val individualDetailsEnvironment: String  = config.get[String]("external-url.individual-details.environment")
