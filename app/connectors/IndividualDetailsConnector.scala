@@ -103,7 +103,7 @@ class CachingIndividualDetailsConnector @Inject() (
     }
   }
 
-  private def cachingKey(credentials: Credentials): String = s"cred-id-${credentials.providerId}"
+  private def cachingKey(credentials: Credentials): String = s"individual-details-cred-id-${credentials.providerId}"
 
   override def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
     ec: ExecutionContext,
