@@ -29,8 +29,9 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import repositories.cache.FMNSessionCacheRepository
 import services.SensitiveFormatService
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.domain.{Generator, Nino}
-import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, SessionId, UpstreamErrorResponse}
 import util.{SpecBase, WireMockHelper}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,11 +40,11 @@ import scala.util.Random
 class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(20, Seconds))
 
-  val mockUnderlying: DefaultIndividualDetailsConnector = mock[DefaultIndividualDetailsConnector]
-  val mockCacheRepo: FMNSessionCacheRepository          = mock[FMNSessionCacheRepository]
-  val mockFormatService: SensitiveFormatService         = mock[SensitiveFormatService]
+  private val mockUnderlying: DefaultIndividualDetailsConnector = mock[DefaultIndividualDetailsConnector]
+  private val mockCacheRepo: FMNSessionCacheRepository          = mock[FMNSessionCacheRepository]
+  private val mockFormatService: SensitiveFormatService         = mock[SensitiveFormatService]
 
-  override implicit val hc: HeaderCarrier                       = HeaderCarrier()
+  override implicit val hc: HeaderCarrier                       = HeaderCarrier(sessionId = Some(SessionId("id")))
   override lazy implicit val ec: ExecutionContext               = scala.concurrent.ExecutionContext.global
   implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
@@ -56,6 +57,7 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
     .build()
 
   private val nino                = Nino(new Generator(new Random()).nextNino.nino).nino
+  private val credentials         = Credentials("providerId", "providerType")
   private val resolveMerge        = ""
   private val jsonResult: JsValue = Json.obj("person" -> "test")
 
@@ -76,27 +78,28 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(Some(jsonResult)))
 
-      val result = connector.getIndividualDetails(nino, resolveMerge).value.futureValue
+      val result = connector.getIndividualDetails(nino, credentials, resolveMerge).value.futureValue
 
       result mustBe Right(jsonResult)
-      verify(mockUnderlying, times(0)).getIndividualDetails(any(), any())(any(), any())
+      verify(mockUnderlying, times(0)).getIndividualDetails(any(), any(), any())(any(), any())
     }
 
     "fetch person details and cache result if not present in session cache" in {
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(resolveMerge))(any(), any()))
+      when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(credentials), eqTo(resolveMerge))(any(), any()))
         .thenReturn(EitherT.rightT[Future, UpstreamErrorResponse](jsonResult))
 
       when(
         mockCacheRepo.putSession(any(), any())(any(), any(), any())
       ).thenReturn(Future.successful("sessionId" -> "updated"))
 
-      val result = connector.getIndividualDetails(nino, resolveMerge).value.futureValue
+      val result = connector.getIndividualDetails(nino, credentials, resolveMerge).value.futureValue
 
       result mustBe Right(jsonResult)
-      verify(mockUnderlying, times(1)).getIndividualDetails(eqTo(nino), eqTo(resolveMerge))(any(), any())
+      verify(mockUnderlying, times(1))
+        .getIndividualDetails(eqTo(nino), eqTo(credentials), eqTo(resolveMerge))(any(), any())
       verify(mockCacheRepo).putSession(
         any(),
         any()
@@ -113,9 +116,9 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(resolveMerge))(any(), any()))
+      when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(credentials), eqTo(resolveMerge))(any(), any()))
         .thenReturn(EitherT.leftT[Future, JsValue](error))
-      val result = connector.getIndividualDetails(nino, resolveMerge).value.futureValue
+      val result = connector.getIndividualDetails(nino, credentials, resolveMerge).value.futureValue
 
       result mustBe Left(error)
     }
@@ -127,7 +130,7 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       when(mockCacheRepo.deleteFromSession[JsValue](any())(any()))
         .thenReturn(Future.successful((): Unit))
 
-      val result = connector.deleteIndividualDetailsIfCached(nino).value.futureValue
+      val result = connector.deleteIndividualDetailsIfCached(nino, credentials).value.futureValue
 
       result mustBe Right((): Unit)
     }

@@ -24,6 +24,7 @@ import play.api.Logging
 import play.api.libs.json.{Format, JsValue}
 import repositories.cache.FMNSessionCacheRepository
 import services.SensitiveFormatService
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -33,11 +34,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[CachingIndividualDetailsConnector])
 trait IndividualDetailsConnector {
-  def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+  def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, JsValue]
-  def deleteIndividualDetailsIfCached(nino: String)(implicit
+  def deleteIndividualDetailsIfCached(nino: String, credentials: Credentials)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, Unit]
@@ -56,7 +57,7 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
     "OriginatorId"  -> appConfig.individualDetailsOriginatorId
   )
 
-  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+  override def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, JsValue] = {
@@ -71,7 +72,7 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
     EitherT(apiResponse).map(_.json)
   }
 
-  override def deleteIndividualDetailsIfCached(nino: String)(implicit
+  override def deleteIndividualDetailsIfCached(nino: String, credentials: Credentials)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, Unit] = EitherT(Future.successful(Right((): Unit)))
@@ -102,20 +103,23 @@ class CachingIndividualDetailsConnector @Inject() (
     }
   }
 
-  private def cachingKey(nino: String) = s"getIndividualDetails-$nino"
+  private def cachingKey(credentials: Credentials)(implicit hc: HeaderCarrier): String =
+    hc.sessionId
+      .map(_.value)
+      .getOrElse(throw new RuntimeException("Session key missing from header carrier")) + credentials.providerId
 
-  override def getIndividualDetails(nino: String, resolveMerge: String)(implicit
+  override def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, JsValue] =
-    cache(cachingKey(nino)) {
-      underlying.getIndividualDetails(nino, resolveMerge)
+    cache(cachingKey(credentials)) {
+      underlying.getIndividualDetails(nino, credentials, resolveMerge)
     }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
 
-  override def deleteIndividualDetailsIfCached(nino: String)(implicit
+  override def deleteIndividualDetailsIfCached(nino: String, credentials: Credentials)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, Unit] =
-    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey(cachingKey(nino))))
+    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey(cachingKey(credentials))))
 
 }

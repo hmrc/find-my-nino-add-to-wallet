@@ -23,6 +23,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.*
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.*
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
@@ -40,6 +41,7 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
       val requestBuilder: RequestBuilder                                = mock[RequestBuilder]
       val connector                                                     = new DefaultIndividualDetailsConnector(mockHttpClientV2, mockConfig)
       val nino                                                          = "AB123456C"
+      val credentials                                                   = Credentials("providerId", "providerType")
       val resolveMerge                                                  = "Y"
       val dummyJsValue                                                  = Json.obj("test" -> "value")
       val expectedResponse: Either[UpstreamErrorResponse, HttpResponse] =
@@ -58,7 +60,7 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
         .thenReturn(requestBuilder)
 
       val result: Either[UpstreamErrorResponse, JsValue] =
-        await(connector.getIndividualDetails(nino, resolveMerge).value)
+        await(connector.getIndividualDetails(nino, credentials, resolveMerge).value)
 
       result mustBe Right(dummyJsValue)
     }

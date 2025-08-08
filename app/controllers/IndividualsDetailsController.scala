@@ -48,7 +48,7 @@ class IndividualsDetailsController @Inject() (
         logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
         Future(Results.Unauthorized("You are not authorised to access this resource"))
       } else {
-        resultFromStatus(individualDetailsService.getIndividualDetails(nino, resolveMerge))
+        resultFromStatus(individualDetailsService.getIndividualDetails(nino, authContext.credentials, resolveMerge))
       }
     }
   }
@@ -63,7 +63,7 @@ class IndividualsDetailsController @Inject() (
       } else {
 
         individualDetailsService
-          .deleteIndividualDetails(nino)
+          .deleteIndividualDetails(nino, authContext.credentials)
           .bimap(errorToResponse, _ => Ok)
           .merge
 
