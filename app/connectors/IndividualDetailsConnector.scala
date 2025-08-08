@@ -103,10 +103,7 @@ class CachingIndividualDetailsConnector @Inject() (
     }
   }
 
-  private def cachingKey(credentials: Credentials)(implicit hc: HeaderCarrier): String =
-    hc.sessionId
-      .map(_.value)
-      .getOrElse(throw new RuntimeException("Session key missing from header carrier")) + credentials.providerId
+  private def cachingKey(credentials: Credentials): String = s"cred-id-${credentials.providerId}"
 
   override def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
     ec: ExecutionContext,

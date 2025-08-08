@@ -74,7 +74,7 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
 
   "getIndividualDetails" should {
 
-    "return cached value if present in session cache" in {
+    "return cached value if present in session cache with correct key value" in {
       when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
         .thenReturn(Future.successful(Some(jsonResult)))
 
