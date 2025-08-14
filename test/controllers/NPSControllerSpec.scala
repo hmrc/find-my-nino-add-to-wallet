@@ -32,7 +32,7 @@ import play.api.test.*
 import play.api.{Application, Configuration, Environment}
 import services.NPSService
 import uk.gov.hmrc.auth.core.*
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.global
@@ -46,7 +46,8 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
   implicit val env: Environment                 = mock[Environment]
   implicit val cc: MessagesControllerComponents = mock[MessagesControllerComponents]
 
-  val identifier = "AB123456Q"
+  private val identifier  = "AB123456Q"
+  private val credentials = Credentials("providerId", "providerType")
 
   private val mockAuthConnector  = mock[AuthConnector]
   private val mockNPSService     = mock[NPSService]
@@ -57,13 +58,13 @@ class NPSControllerSpec extends PlaySpec with Results with MockitoSugar {
   )
   when(cc.actionBuilder).thenReturn(actionBuilder)
 
-  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new ~(new ~(Some(identifier), Some(User)), Some("id")))
+  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
+    Future.successful(new ~(new ~(new ~(Some(identifier), Some(User)), Some("id")), Some(credentials)))
 
   when(
-    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
+    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]](
       eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]]]
     )(any[HeaderCarrier], any[ExecutionContext])
   )
     .thenReturn(retrievalResult)

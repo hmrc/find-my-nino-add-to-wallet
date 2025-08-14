@@ -19,13 +19,12 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
 import models.apple.ApplePass
+import models.encryption.EncryptedApplePass
+import models.encryption.EncryptedApplePass.*
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
-import org.mongodb.scala.SingleObservableFuture
 import play.api.Logging
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import models.encryption.EncryptedApplePass._
-import models.encryption.EncryptedApplePass
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}

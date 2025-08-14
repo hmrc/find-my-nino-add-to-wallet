@@ -21,9 +21,9 @@ import play.api.Logging
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc.*
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, internalId, nino}
-import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisationException, AuthorisedFunctions, User}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, credentials, internalId, nino}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
+import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisationException, AuthorisedFunctions, CredentialRole, User}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -33,13 +33,15 @@ final case class AuthContext[A](
   nino: String,
   isUser: Boolean,
   internalId: String,
+  credentials: Credentials,
   request: Request[A]
 )
 
 trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions with Logging {
   protected type FMNAction[A] = AuthContext[A] => Future[Result]
-  val AuthPredicate = AuthProviders(GovernmentGateway)
-  val FMNRetrievals = nino and credentialRole and internalId
+  val AuthPredicate                                                                                            = AuthProviders(GovernmentGateway)
+  val FMNRetrievals: Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
+    nino and credentialRole and internalId and credentials
 
   def authorisedAsFMNUser(
     body: FMNAction[Any]
@@ -72,13 +74,19 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[A]): Future[Result] =
     authorised(AuthPredicate)
       .retrieve(FMNRetrievals) {
-        case Some(nino) ~ Some(User) ~ Some(internalId) =>
+        case Some(nino) ~ Some(User) ~ Some(internalId) ~ Some(credentials) =>
           fandFConnector.getTrustedHelper().flatMap { helper =>
             block(
-              AuthContext(helper.fold(nino)(helper => helper.principalNino.get), isUser = true, internalId, request)
+              AuthContext(
+                helper.fold(nino)(helper => helper.principalNino.get),
+                isUser = true,
+                internalId,
+                credentials,
+                request
+              )
             )
           }
-        case _                                          =>
+        case _                                                              =>
           logger.warn("user was not authenticated with required credentials")
           Future successful Unauthorized
       }

@@ -18,13 +18,13 @@ package controllers
 
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.should
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Application
 import play.api.inject.bind
@@ -34,8 +34,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.GooglePassService
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
-import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.UUID
@@ -44,22 +44,23 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfter {
 
-  import GooglePassControllerSpec._
+  import GooglePassControllerSpec.*
 
   // setup before each test
   before {
     reset(mockAuthConnector, mockGooglePassService)
 
-    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-      Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
+    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
+      Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), Some(credentials)))
 
     when(
-      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
-        any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]](
+        eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]]]
       )(any[HeaderCarrier], any[ExecutionContext])
     )
       .thenReturn(retrievalResult)
+
   }
 
   "getPassCardByPassId" must {
@@ -170,9 +171,9 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 }
 
 object GooglePassControllerSpec {
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-  private val passId             = UUID.randomUUID().toString
-
+  implicit val hc: HeaderCarrier  = HeaderCarrier()
+  private val passId              = UUID.randomUUID().toString
+  private val credentials         = Credentials("providerId", "providerType")
   private val fakeRequestWithAuth =
     FakeRequest("GET", "/").withHeaders("Content-Type" -> "application/json", "Authorization" -> "Bearer 123")
 

@@ -21,9 +21,11 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.*
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.*
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,17 +36,21 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
   "IndividualDetailsConnector" should {
 
     "return the expected result from getIndividualDetails" in {
-      val mockHttpClientV2               = mock[HttpClientV2]
-      val mockConfig                     = mock[AppConfig]
-      val requestBuilder: RequestBuilder = mock[RequestBuilder]
-      val connector                      = new IndividualDetailsConnector(mockHttpClientV2, mockConfig)
-      val nino                           = "AB123456C"
-      val resolveMerge                   = "Y"
-      val expectedResponse               = HttpResponse(OK, "response body")
+      val mockHttpClientV2                                              = mock[HttpClientV2]
+      val mockConfig                                                    = mock[AppConfig]
+      val requestBuilder: RequestBuilder                                = mock[RequestBuilder]
+      val connector                                                     = new DefaultIndividualDetailsConnector(mockHttpClientV2, mockConfig)
+      val nino                                                          = "AB123456C"
+      val credentials                                                   = Credentials("providerId", "providerType")
+      val resolveMerge                                                  = "Y"
+      val dummyJsValue                                                  = Json.obj("test" -> "value")
+      val expectedResponse: Either[UpstreamErrorResponse, HttpResponse] =
+        Right(HttpResponse(OK, dummyJsValue, Map.empty))
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
 
-      when(requestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(expectedResponse))
+      when(requestBuilder.execute[Either[UpstreamErrorResponse, HttpResponse]](any(), any()))
+        .thenReturn(Future.successful(expectedResponse))
       when(mockConfig.individualDetailsServiceUrl).thenReturn("http://localhost:14011")
       val expectedUrl = new URL(
         s"http://localhost:14011/individuals/details/NINO/${nino.take(8)}?resolveMerge=$resolveMerge"
@@ -53,9 +59,10 @@ class IndividualDetailsConnectorSpec extends PlaySpec with MockitoSugar {
       when(mockHttpClientV2.get(eqTo(expectedUrl))(any()))
         .thenReturn(requestBuilder)
 
-      val result = await(connector.getIndividualDetails(nino, resolveMerge))
+      val result: Either[UpstreamErrorResponse, JsValue] =
+        await(connector.getIndividualDetails(nino, credentials, resolveMerge).value)
 
-      result mustBe expectedResponse
+      result mustBe Right(dummyJsValue)
     }
   }
 }

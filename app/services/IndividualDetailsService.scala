@@ -15,8 +15,11 @@
  */
 
 package services
+import cats.data.EitherT
 import connectors.IndividualDetailsConnector
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import play.api.libs.json.JsValue
+import uk.gov.hmrc.auth.core.retrieve.Credentials
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,7 +28,14 @@ class IndividualDetailsService @Inject() (individualDetailsConnector: Individual
   val ec: ExecutionContext
 ) {
 
-  def getIndividualDetails(nino: String, resolveMerge: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    individualDetailsConnector.getIndividualDetails(nino, resolveMerge)
+  def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
+    hc: HeaderCarrier
+  ): EitherT[Future, UpstreamErrorResponse, JsValue] =
+    individualDetailsConnector.getIndividualDetails(nino, credentials, resolveMerge)
+
+  def deleteIndividualDetails(nino: String, credentials: Credentials)(implicit
+    hc: HeaderCarrier
+  ): EitherT[Future, UpstreamErrorResponse, Unit] =
+    individualDetailsConnector.deleteIndividualDetailsIfCached(nino, credentials)
 
 }

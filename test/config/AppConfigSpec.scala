@@ -16,6 +16,7 @@
 
 package config
 
+import _root_.util.SpecBase
 import models.admin.ApplePassCertificates2
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -23,15 +24,17 @@ import play.api.Application
 import play.api.inject.bind
 import repositories.{ApplePassRepoTrait, ApplePassRepository, GooglePassRepoTrait, GooglePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlag
 import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
-import util.SpecBase
 
 import scala.concurrent.Future
 
 class AppConfigSpec extends SpecBase {
-  lazy val mockFeatureFlagService: FeatureFlagService = mock[FeatureFlagService]
+  private lazy val mockFeatureFlagService: FeatureFlagService     = mock[FeatureFlagService]
+  private trait EncrypterDecrypter extends Encrypter with Decrypter
+  private implicit val mockEncrypterDecrypter: EncrypterDecrypter = mock[EncrypterDecrypter]
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure(
@@ -46,7 +49,8 @@ class AppConfigSpec extends SpecBase {
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),
       bind(classOf[ApplePassRepoTrait]).to(classOf[ApplePassRepository]),
       bind(classOf[GooglePassRepoTrait]).to(classOf[GooglePassRepository]),
-      bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector])
+      bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]),
+      bind[Encrypter with Decrypter].toInstance(mockEncrypterDecrypter)
     )
     .disable[HmrcModule]
     .build()

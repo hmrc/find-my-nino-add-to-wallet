@@ -16,12 +16,17 @@
 
 package controllers
 
+import cats.data.EitherT
 import connectors.FandFConnector
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result, Results}
+import play.api.http.Status.{NOT_FOUND, UNAUTHORIZED}
+import play.api.libs.json.{JsError, JsResultException, JsSuccess, JsValue}
+import play.api.mvc.*
+import play.api.mvc.Results.{InternalServerError, NotFound, Unauthorized}
 import play.api.{Configuration, Environment}
 import services.IndividualDetailsService
+import transformations.IndividualDetails
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
@@ -43,19 +48,51 @@ class IndividualsDetailsController @Inject() (
         logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
         Future(Results.Unauthorized("You are not authorised to access this resource"))
       } else {
-        individualDetailsService.getIndividualDetails(nino, resolveMerge).map(resultFromStatus)
+        resultFromStatus(individualDetailsService.getIndividualDetails(nino, authContext.credentials, resolveMerge))
       }
     }
   }
 
-  private def resultFromStatus(response: HttpResponse): Result =
-    response.status match {
-      case OK                    => Results.Ok(response.body)
-      case BAD_REQUEST           => Results.BadRequest(response.body)
-      case UNAUTHORIZED          => Results.Unauthorized(response.body)
-      case NOT_FOUND             => Results.NotFound(response.body)
-      case INTERNAL_SERVER_ERROR => Results.InternalServerError(response.body)
-      case NOT_IMPLEMENTED       => Results.NotImplemented(response.body)
-      case status                => Results.Status(status)(response.body)
+  def deleteCachedIndividualDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedAsFMNUser { authContext =>
+      implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+      val ninoLengthWithoutSuffix    = 8
+      if (authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
+        logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
+        Future(Results.Unauthorized("You are not authorised to access this resource"))
+      } else {
+
+        individualDetailsService
+          .deleteIndividualDetails(nino, authContext.credentials)
+          .bimap(errorToResponse, _ => Ok)
+          .merge
+
+      }
+    }
+  }
+
+  private def resultFromStatus(response: EitherT[Future, UpstreamErrorResponse, JsValue]): Future[Result] =
+    response
+      .bimap(
+        errorToResponse,
+        jsValue =>
+          jsValue.transform(IndividualDetails.reads) match {
+            case JsSuccess(jsObject, _) => Ok(jsObject)
+            case JsError(errors)        =>
+              val ex = JsResultException(errors)
+              logger.error("Json transformation failure", ex)
+              Results.InternalServerError(ex.getMessage)
+          }
+      )
+      .merge
+
+  private def errorToResponse(error: UpstreamErrorResponse): Result =
+    error match {
+      case UpstreamErrorResponse(erMesssage, BAD_REQUEST, _, _)           => BadRequest(erMesssage)
+      case UpstreamErrorResponse(erMesssage, UNAUTHORIZED, _, _)          => Unauthorized(erMesssage)
+      case UpstreamErrorResponse(erMesssage, NOT_FOUND, _, _)             => NotFound(erMesssage)
+      case UpstreamErrorResponse(erMesssage, INTERNAL_SERVER_ERROR, _, _) => InternalServerError(erMesssage)
+      case UpstreamErrorResponse(erMesssage, NOT_IMPLEMENTED, _, _)       => NotImplemented(erMesssage)
+      case UpstreamErrorResponse(erMesssage, status, _, _)                => Results.Status(status)
     }
 }

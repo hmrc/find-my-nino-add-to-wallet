@@ -16,29 +16,37 @@
 
 package controllers
 
+import cats.data.EitherT
 import connectors.FandFConnector
+import helper.ApiPayloadHelper
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.*
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.*
-import play.api.test.Helpers.*
 import play.api.test.*
+import play.api.test.Helpers.*
 import play.api.{Application, Configuration, Environment}
 import services.IndividualDetailsService
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualsDetailsControllerSpec extends PlaySpec with Results with MockitoSugar with BeforeAndAfterEach {
+class IndividualsDetailsControllerSpec
+    extends PlaySpec
+    with Results
+    with MockitoSugar
+    with BeforeAndAfterEach
+    with ApiPayloadHelper {
 
   implicit val hc: HeaderCarrier                = HeaderCarrier()
   implicit val ec: ExecutionContext             = global
@@ -46,8 +54,9 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
   implicit val env: Environment                 = mock[Environment]
   implicit val cc: MessagesControllerComponents = mock[MessagesControllerComponents]
 
-  val testNino     = "AB123456Q"
-  val resolveMerge = "Y"
+  private val testNino     = "AB123456Q"
+  private val credentials  = Credentials("providerId", "providerType")
+  private val resolveMerge = "Y"
 
   private val mockAuthConnector            = mock[AuthConnector]
   private val mockIndividualDetailsService = mock[IndividualDetailsService]
@@ -58,8 +67,8 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
   )
   when(cc.actionBuilder).thenReturn(actionBuilder)
 
-  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new ~(new ~(Some(testNino), Some(User)), Some("id")))
+  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
+    Future.successful(new ~(new ~(new ~(Some(testNino), Some(User)), Some("id")), Some(credentials)))
 
   val modules: Seq[GuiceableModule] =
     Seq(
@@ -85,19 +94,19 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     ()
   }
 
+  private val validApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] = EitherT(
+    Future.successful(Right(apiIndividualDetailsJsonOneNameOneAddress))
+  )
+
   "IndividualsDetailsController" must {
 
     "return OK for getIndividualDetails" in {
-
-      val controller =
+      val controller             =
         new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
-
-      when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-        .thenReturn(Future.successful(HttpResponse(OK, "")))
-
+      when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any)).thenReturn(validApiResponse)
       val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
-
+      Json.parse(contentAsString(result)) mustBe apiTransformedIndividualDetailsJsonOneNameOneAddress
     }
 
     "return OK for getIndividualDetails when trusted helper user calls using helpee nino" in {
@@ -108,13 +117,12 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
 
       when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(Some(trustedHelper)))
 
-      when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-        .thenReturn(Future.successful(HttpResponse(OK, "")))
+      when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any)).thenReturn(validApiResponse)
 
       val result: Future[Result] =
         controller.getIndividualDetails(trustedHelper.principalNino.get, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
-
+      Json.parse(contentAsString(result)) mustBe apiTransformedIndividualDetailsJsonOneNameOneAddress
     }
 
     "return Unauthorized for getIndividualDetails when user is not authorized" in {
@@ -151,12 +159,16 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
       status(result) mustBe UNAUTHORIZED
     }
   }
+
   "return BAD_REQUEST for getIndividualDetails" in {
     val controller =
       new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
-    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-      .thenReturn(Future.successful(HttpResponse(BAD_REQUEST, "")))
+    val invalidApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] =
+      EitherT(Future.successful(Left(UpstreamErrorResponse("", BAD_REQUEST))))
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any))
+      .thenReturn(invalidApiResponse)
 
     val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
     status(result) mustBe BAD_REQUEST
@@ -165,8 +177,11 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     val controller =
       new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
-    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-      .thenReturn(Future.successful(HttpResponse(UNAUTHORIZED, "")))
+    val invalidApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] =
+      EitherT(Future.successful(Left(UpstreamErrorResponse("", UNAUTHORIZED))))
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any))
+      .thenReturn(invalidApiResponse)
 
     val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
     status(result) mustBe UNAUTHORIZED
@@ -175,8 +190,11 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     val controller =
       new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
-    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-      .thenReturn(Future.successful(HttpResponse(NOT_FOUND, "")))
+    val invalidApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] =
+      EitherT(Future.successful(Left(UpstreamErrorResponse("", NOT_FOUND))))
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any))
+      .thenReturn(invalidApiResponse)
 
     val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
     status(result) mustBe NOT_FOUND
@@ -185,8 +203,11 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     val controller =
       new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
-    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-      .thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, "")))
+    val invalidApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] =
+      EitherT(Future.successful(Left(UpstreamErrorResponse("", INTERNAL_SERVER_ERROR))))
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any))
+      .thenReturn(invalidApiResponse)
 
     val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
     status(result) mustBe INTERNAL_SERVER_ERROR
@@ -195,8 +216,11 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     val controller =
       new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
-    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-      .thenReturn(Future.successful(HttpResponse(NOT_IMPLEMENTED, "")))
+    val invalidApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] =
+      EitherT(Future.successful(Left(UpstreamErrorResponse("", NOT_IMPLEMENTED))))
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any))
+      .thenReturn(invalidApiResponse)
 
     val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
     status(result) mustBe NOT_IMPLEMENTED
@@ -205,8 +229,11 @@ class IndividualsDetailsControllerSpec extends PlaySpec with Results with Mockit
     val controller =
       new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
 
-    when(mockIndividualDetailsService.getIndividualDetails(any, any)(any))
-      .thenReturn(Future.successful(HttpResponse(IM_A_TEAPOT, "")))
+    val invalidApiResponse: EitherT[Future, UpstreamErrorResponse, JsValue] =
+      EitherT(Future.successful(Left(UpstreamErrorResponse("", IM_A_TEAPOT))))
+
+    when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any))
+      .thenReturn(invalidApiResponse)
 
     val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
     status(result) mustBe IM_A_TEAPOT

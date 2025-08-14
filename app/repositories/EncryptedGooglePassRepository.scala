@@ -19,11 +19,10 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import config.AppConfig
 import models.encryption.EncryptedGooglePass
+import models.encryption.EncryptedGooglePass.*
 import models.google.GooglePass
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
-import org.mongodb.scala.SingleObservableFuture
 import play.api.Logging
-import EncryptedGooglePass._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

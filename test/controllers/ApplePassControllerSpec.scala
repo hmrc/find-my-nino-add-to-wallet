@@ -21,12 +21,12 @@ import cats.implicits.*
 import connectors.FandFConnector
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.should
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Application
 import play.api.inject.bind
@@ -35,9 +35,9 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.ApplePassService
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
-import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, User}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.UUID
@@ -46,18 +46,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfter {
 
-  import ApplePassControllerSpec._
+  import ApplePassControllerSpec.*
 
   before {
     reset(mockAuthConnector, mockFandFConnector)
 
-    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-      Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
+    val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
+      Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), Some(credentials)))
 
     when(
-      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
-        any[Predicate],
-        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
+      mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]](
+        eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
+        any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]]]
       )(any[HeaderCarrier], any[ExecutionContext])
     )
       .thenReturn(retrievalResult)
@@ -176,6 +176,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 object ApplePassControllerSpec {
   implicit val hc: HeaderCarrier          = HeaderCarrier()
   private val passId                      = UUID.randomUUID().toString
+  private val credentials                 = Credentials("providerId", "providerType")
   private val createPassRequest: JsObject = Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q")
 
   private val fakeRequestWithAuth =

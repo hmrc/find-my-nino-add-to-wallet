@@ -16,13 +16,16 @@
 
 package services
 
+import cats.data.EitherT
 import connectors.IndividualDetailsConnector
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.*
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.*
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.auth.core.retrieve.Credentials
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,19 +39,24 @@ class IndividualDetailsServiceSpec extends PlaySpec with MockitoSugar {
       val service       = new IndividualDetailsService(mockConnector)
 
       val nino         = "AB123456C"
+      val credentials  = Credentials("providerId", "providerType")
       val resolveMerge = "true"
 
-      val expectedResponse = HttpResponse(OK, "response body")
+      val exp: EitherT[Future, UpstreamErrorResponse, JsValue] = EitherT(Future.successful(Right(Json.obj())))
+
+      val expectedResponse: Either[UpstreamErrorResponse, JsValue] = Right(Json.obj())
       when(
         mockConnector.getIndividualDetails(
           org.mockito.ArgumentMatchers.eq(nino),
+          org.mockito.ArgumentMatchers.eq(credentials),
           org.mockito.ArgumentMatchers.eq(resolveMerge)
         )(any[ExecutionContext], any[HeaderCarrier])
       )
-        .thenReturn(Future.successful(expectedResponse))
+        .thenReturn(exp)
 
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(service.getIndividualDetails(nino, resolveMerge))
+      implicit val hc: HeaderCarrier                     = HeaderCarrier()
+      val result: Either[UpstreamErrorResponse, JsValue] =
+        await(service.getIndividualDetails(nino, credentials, resolveMerge).value)
 
       result mustBe expectedResponse
     }
