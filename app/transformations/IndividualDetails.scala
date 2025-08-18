@@ -345,7 +345,6 @@ object IndividualDetails {
       (__ \ "addressSequenceNumber").json.copyFrom((__ \ "addressSequenceNumber").json.pick) and
         (__ \ "countryCode").json.copyFrom((__ \ "countryCode").json.pick) and
         (__ \ "addressType").json.copyFrom((__ \ "addressType").json.pick) and
-        (__ \ "addressStatus").json.copyFrom((__ \ "addressStatus").json.pick) and
         (__ \ "addressStartDate").json.copyFrom((__ \ "addressStartDate").json.pick) and
         (__ \ "addressLine1").json.copyFrom((__ \ "addressLine1").json.pick) and
         (__ \ "addressLine2").json.copyFrom((__ \ "addressLine2").json.pick) and

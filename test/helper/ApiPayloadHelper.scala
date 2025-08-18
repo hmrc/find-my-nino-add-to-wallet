@@ -58,7 +58,6 @@ trait ApiPayloadHelper {
   protected def individualDetailsApiAddressSection(
     seqNo: Int,
     addressType: Int,
-    addressStatus: Int,
     addr1: String,
     addr2: String,
     addr3: Option[String] = None,
@@ -69,7 +68,6 @@ trait ApiPayloadHelper {
     "addressSequenceNumber" -> seqNo,
     "countryCode"           -> 1,
     "addressType"           -> addressType,
-    "addressStatus"         -> addressStatus,
     "addressStartDate"      -> "2018-03-10",
     "addressLine1"          -> addr1,
     "addressLine2"          -> addr2
@@ -185,7 +183,6 @@ trait ApiPayloadHelper {
       individualDetailsApiAddressSection(
         seqNo = 1,
         addressType = AddressTypeResidential,
-        addressStatus = 6,
         addr1 = "addr11",
         addr2 = "addr12",
         addr3 = Some("addr13"),
@@ -196,7 +193,6 @@ trait ApiPayloadHelper {
       individualDetailsApiAddressSection(
         seqNo = 2,
         addressType = AddressTypeCorrespondance,
-        addressStatus = 6,
         addr1 = "addr21",
         addr2 = "addr22",
         addr3 = Some("addr23"),
@@ -207,7 +203,6 @@ trait ApiPayloadHelper {
       individualDetailsApiAddressSection(
         seqNo = 3,
         addressType = AddressTypeCorrespondance,
-        addressStatus = 6,
         addr1 = "addr31",
         addr2 = "addr32",
         addr3 = Some("addr33"),
@@ -241,7 +236,6 @@ trait ApiPayloadHelper {
       individualDetailsApiAddressSection(
         seqNo = 1,
         addressType = AddressTypeResidential,
-        addressStatus = 6,
         addr1 = "addr11",
         addr2 = "addr12",
         addr3 = Some("addr13"),
@@ -252,7 +246,6 @@ trait ApiPayloadHelper {
       individualDetailsApiAddressSection(
         seqNo = 2,
         addressType = AddressTypeCorrespondance,
-        addressStatus = 6,
         addr1 = "addr21",
         addr2 = "addr22",
         addr3 = Some("addr23"),
@@ -280,7 +273,6 @@ trait ApiPayloadHelper {
       individualDetailsApiAddressSection(
         seqNo = 1,
         addressType = AddressTypeResidential,
-        addressStatus = 6,
         addr1 = "addr11",
         addr2 = "addr12"
       )
