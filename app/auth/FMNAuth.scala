@@ -62,7 +62,7 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
         authContext: AuthContext[A] => Future[Result]
       ): Future[Result] = {
         implicit val req = request
-        implicit val hc  = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+        implicit val hc  = HeaderCarrierConverter.fromRequest(request)
 
         authorisedUser(authContext)
       }
