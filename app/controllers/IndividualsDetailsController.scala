@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,19 @@ class IndividualsDetailsController @Inject() (
 )(implicit config: Configuration, env: Environment, cc: MessagesControllerComponents, ec: ExecutionContext)
     extends FMNBaseController(authConnector, fandFConnector) {
 
+  private val NinoPrefixLength                        = 8
+  private def sameNino(a: String, b: String): Boolean =
+    a.take(NinoPrefixLength).equalsIgnoreCase(b.take(NinoPrefixLength))
+
+  private def hcFrom(implicit r: RequestHeader): HeaderCarrier =
+    HeaderCarrierConverter.fromRequest(r)
+
   def getIndividualDetails(nino: String, resolveMerge: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext =>
-      implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-      val ninoLengthWithoutSuffix    = 8
-      if (authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
+      implicit val hc: HeaderCarrier = hcFrom
+      if (!sameNino(authContext.nino, nino)) {
         logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
-        Future(Results.Unauthorized("You are not authorised to access this resource"))
+        Future.successful(Unauthorized("You are not authorised to access this resource"))
       } else {
         resultFromStatus(individualDetailsService.getIndividualDetails(nino, authContext.credentials, resolveMerge))
       }
@@ -55,18 +61,15 @@ class IndividualsDetailsController @Inject() (
 
   def deleteCachedIndividualDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext =>
-      implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-      val ninoLengthWithoutSuffix    = 8
-      if (authContext.nino.take(ninoLengthWithoutSuffix) != nino.take(ninoLengthWithoutSuffix)) {
+      implicit val hc: HeaderCarrier = hcFrom
+      if (!sameNino(authContext.nino, nino)) {
         logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
-        Future(Results.Unauthorized("You are not authorised to access this resource"))
+        Future.successful(Unauthorized("You are not authorised to access this resource"))
       } else {
-
         individualDetailsService
           .deleteIndividualDetails(nino, authContext.credentials)
           .bimap(errorToResponse, _ => Ok)
           .merge
-
       }
     }
   }
@@ -81,7 +84,7 @@ class IndividualsDetailsController @Inject() (
             case JsError(errors)        =>
               val ex = JsResultException(errors)
               logger.error("Json transformation failure", ex)
-              Results.InternalServerError(ex.getMessage)
+              InternalServerError(ex.getMessage)
           }
       )
       .merge
@@ -93,6 +96,6 @@ class IndividualsDetailsController @Inject() (
       case UpstreamErrorResponse(erMesssage, NOT_FOUND, _, _)             => NotFound(erMesssage)
       case UpstreamErrorResponse(erMesssage, INTERNAL_SERVER_ERROR, _, _) => InternalServerError(erMesssage)
       case UpstreamErrorResponse(erMesssage, NOT_IMPLEMENTED, _, _)       => NotImplemented(erMesssage)
-      case UpstreamErrorResponse(erMesssage, status, _, _)                => Results.Status(status)
+      case UpstreamErrorResponse(_, status, _, _)                         => Results.Status(status)
     }
 }
