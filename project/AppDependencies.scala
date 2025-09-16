@@ -21,7 +21,7 @@ object AppDependencies {
     "com.fasterxml.jackson.module" %% "jackson-module-scala"                       % "2.20.0",
     "uk.gov.hmrc"                  %% s"crypto-json-$playVersion"                  % "8.3.0",
     "uk.gov.hmrc"                  %% s"mongo-feature-toggles-client-$playVersion" % mongoToggleVersion,
-    "uk.gov.hmrc"                  %% "domain-play-30"                             % "13.0.0"
+    "uk.gov.hmrc"                  %% "domain-play-30"                             % "12.1.0"
   )
 
   val test: Seq[ModuleID] = Seq(
