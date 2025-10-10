@@ -98,6 +98,10 @@ class IndividualsDetailsControllerSpec
     Future.successful(Right(apiIndividualDetailsJsonOneNameOneAddress))
   )
 
+  private val apiResponseNoNameAddress: EitherT[Future, UpstreamErrorResponse, JsValue] = EitherT(
+    Future.successful(Right(apiIndividualDetailsMinimalFields))
+  )
+
   "IndividualsDetailsController" must {
 
     "return OK for getIndividualDetails" in {
@@ -123,6 +127,17 @@ class IndividualsDetailsControllerSpec
         controller.getIndividualDetails(trustedHelper.principalNino.get, resolveMerge).apply(FakeRequest())
       status(result) mustBe OK
       Json.parse(contentAsString(result)) mustBe apiTransformedIndividualDetailsJsonOneNameOneAddress
+    }
+
+    "return OK when name fields and address are null/missing" in {
+      val controller =
+        new IndividualsDetailsController(mockAuthConnector, mockFandFConnector, mockIndividualDetailsService)
+
+      when(mockIndividualDetailsService.getIndividualDetails(any, any, any)(any)).thenReturn(apiResponseNoNameAddress)
+
+      val result: Future[Result] = controller.getIndividualDetails(testNino, resolveMerge).apply(FakeRequest())
+      status(result) mustBe OK
+      Json.parse(contentAsString(result)) mustBe apiTransformedIndividualDetailsJsonMinimalFields
     }
 
     "return Unauthorized for getIndividualDetails when user is not authorized" in {

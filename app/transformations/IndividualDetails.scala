@@ -318,17 +318,18 @@ object IndividualDetails {
 
   private val readsName: Reads[JsObject] =
     (
-      (__ \ "nameSequenceNumber").json.copyFrom((__ \ "nameSequenceNumber").json.pick) and
-        (__ \ "nameType").json.copyFrom((__ \ "nameType").json.pick) and
-        (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick) and
-        (__ \ "firstForename").json.copyFrom((__ \ "firstForename").json.pick) and
+      (__ \ "nameSequenceNumber").json.copyFrom((__ \ "nameSequenceNumber").json.pick).orElse(doNothing) and
+        (__ \ "nameType").json.copyFrom((__ \ "nameType").json.pick).orElse(doNothing) and
+        (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick).orElse(doNothing) and
+        (__ \ "firstForename").json.copyFrom((__ \ "firstForename").json.pick).orElse(doNothing) and
         (__ \ "secondForename").json.copyFrom((__ \ "secondForename").json.pick).orElse(doNothing) and
-        (__ \ "surname").json.copyFrom((__ \ "surname").json.pick) and
+        (__ \ "surname").json.copyFrom((__ \ "surname").json.pick).orElse(doNothing) and
         (__ \ "honours").json.copyFrom((__ \ "honours").json.pick).orElse(doNothing) and
-        (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick)
+        (__ \ "titleType").json.copyFrom((__ \ "titleType").json.pick).orElse(doNothing)
     ).reduce
 
-  private val readsAllNames: Reads[Seq[JsObject]] = (__ \ "nameList" \ "name").read(Reads.seq(readsName))
+  private val readsAllNames: Reads[Seq[JsObject]] =
+    (__ \ "nameList" \ "name").readNullable(Reads.seq(readsName)).map(_.getOrElse(Seq.empty))
 
   private val readsPreferredName: Reads[JsObject] = readsAllNames.map { seqJsObject =>
     def maxNameType(nameType: Int): Option[JsObject] = seqJsObject
@@ -355,17 +356,19 @@ object IndividualDetails {
         (__ \ "addressPostcode").json.copyFrom((__ \ "addressPostcode").json.pick).orElse(doNothing)
     ).reduce
 
-  private val readsAllAddresses: Reads[Seq[JsObject]] = (__ \ "addressList" \ "address").read(Reads.seq(readsAddress))
+  private val readsAllAddresses: Reads[Seq[JsObject]] =
+    (__ \ "addressList" \ "address").readNullable(Reads.seq(readsAddress)).map(_.getOrElse(Seq.empty))
 
-  private val readsPreferredAddress: Reads[JsObject] = readsAllAddresses.map { seqJsObject =>
-    def maxAddressType(addressType: Int): Option[JsObject] = seqJsObject
-      .filter(jsObject => (jsObject \ "addressType").as[Int] == addressType)
-      .maxByOption(jsObject => (jsObject \ "addressSequenceNumber").as[Int])
+  private val readsPreferredAddress: Reads[JsObject] = readsAllAddresses
+    .map { seqJsObject =>
+      def maxAddressType(addressType: Int): Option[JsObject] = seqJsObject
+        .filter(jsObject => (jsObject \ "addressType").as[Int] == addressType)
+        .maxByOption(jsObject => (jsObject \ "addressSequenceNumber").as[Int])
 
-    maxAddressType(AddressTypeCorrespondance).fold(maxAddressType(AddressTypeResidential).getOrElse(Json.obj()))(
-      identity
-    )
-  }
+      maxAddressType(AddressTypeCorrespondance).fold(maxAddressType(AddressTypeResidential).getOrElse(Json.obj()))(
+        identity
+      )
+    }
 
   private val readsTitleType: Reads[JsString] =
     Reads {
@@ -393,9 +396,13 @@ object IndividualDetails {
   private val readsPreferredNameDetails: Reads[JsObject] =
     readsPreferredName.flatMap { preferredNameJsObject =>
       (
-        (__ \ "title").json.put((preferredNameJsObject \ "titleType").as[JsString](readsTitleType)) and
-          (__ \ "firstForename").json.put((preferredNameJsObject \ "firstForename").as[JsString]) and
-          (__ \ "surname").json.put((preferredNameJsObject \ "surname").as[JsString])
+        (__ \ "title").json.put(
+          (preferredNameJsObject \ "titleType").asOpt[JsString](readsTitleType).getOrElse(JsNull)
+        ) and
+          (__ \ "firstForename").json.put(
+            (preferredNameJsObject \ "firstForename").asOpt[JsString].getOrElse(JsNull)
+          ) and
+          (__ \ "surname").json.put((preferredNameJsObject \ "surname").asOpt[JsString].getOrElse(JsNull))
       ).reduce
         .pipe(addOptionalField(_, "honours", (preferredNameJsObject \ "honours").asOpt[String]))
         .pipe(addOptionalField(_, "secondForename", (preferredNameJsObject \ "secondForename").asOpt[String]))
@@ -403,21 +410,25 @@ object IndividualDetails {
 
   private val readsPreferredAddressDetails: Reads[JsObject] =
     readsPreferredAddress.map { preferredAddressJsObject =>
-
       def addOptional(fieldName: String): JsObject =
         (preferredAddressJsObject \ fieldName).asOpt[String].fold(Json.obj())(s => Json.obj(fieldName -> s))
 
-      val addr = Json.obj(
-        "addressLine1"     -> (preferredAddressJsObject \ "addressLine1").as[String],
-        "addressLine2"     -> (preferredAddressJsObject \ "addressLine2").as[String],
-        "addressStartDate" -> (preferredAddressJsObject \ "addressStartDate").as[String],
-        "addressCountry"   -> convertCodeToCountryName((preferredAddressJsObject \ "countryCode").as[Int]),
-        "addressType"      -> (preferredAddressJsObject \ "addressType").as[Int]
-      ) ++ addOptional("addressLine3")
-        ++ addOptional("addressLine4")
-        ++ addOptional("addressLine5")
-        ++ addOptional("addressPostcode")
-
+      val addr = if (preferredAddressJsObject.fields.isEmpty) {
+        JsNull
+      } else {
+        Json.obj(
+          "addressLine1"     -> (preferredAddressJsObject \ "addressLine1").asOpt[String],
+          "addressLine2"     -> (preferredAddressJsObject \ "addressLine2").asOpt[String],
+          "addressStartDate" -> (preferredAddressJsObject \ "addressStartDate").asOpt[String],
+          "addressCountry"   -> (preferredAddressJsObject \ "countryCode")
+            .asOpt[Int]
+            .fold(None)(code => Some(convertCodeToCountryName(code))),
+          "addressType"      -> (preferredAddressJsObject \ "addressType").asOpt[Int]
+        ) ++ addOptional("addressLine3")
+          ++ addOptional("addressLine4")
+          ++ addOptional("addressLine5")
+          ++ addOptional("addressPostcode")
+      }
       Json.obj(
         "address" -> addr
       )

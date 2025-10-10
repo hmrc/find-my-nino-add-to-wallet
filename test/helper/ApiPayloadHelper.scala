@@ -41,9 +41,9 @@ trait ApiPayloadHelper {
     seqNo: Int,
     nameType: Int,
     titleType: Int,
-    name1: String,
+    name1: Option[String],
     name2: Option[String] = None,
-    surname: String,
+    surname: Option[String],
     honours: Option[String] = None
   ): JsObject = Json.obj(
     "nameSequenceNumber" -> seqNo,
@@ -160,25 +160,25 @@ trait ApiPayloadHelper {
         seqNo = 1,
         nameType = NameTypeReal,
         titleType = 5,
-        name1 = "name11",
+        name1 = Some("name11"),
         name2 = Some("name12"),
-        surname = "surname1"
+        surname = Some("surname1")
       ),
       individualDetailsApiNameSection(
         seqNo = 2,
         nameType = NameTypeKnownAs,
         titleType = 1,
-        name1 = "name21",
+        name1 = Some("name21"),
         name2 = Some("name22"),
-        surname = "surname2"
+        surname = Some("surname2")
       ),
       individualDetailsApiNameSection(
         seqNo = 3,
         nameType = NameTypeKnownAs,
         titleType = 1,
-        name1 = "name31",
+        name1 = Some("name31"),
         name2 = Some("name32"),
-        surname = "surname3"
+        surname = Some("surname3")
       )
     ),
     Seq(
@@ -225,16 +225,16 @@ trait ApiPayloadHelper {
         seqNo = 1,
         nameType = NameTypeReal,
         titleType = 5,
-        name1 = "name11",
+        name1 = Some("name11"),
         name2 = Some("name12"),
-        surname = "surname1"
+        surname = Some("surname1")
       ),
       individualDetailsApiNameSection(
         seqNo = 2,
         nameType = NameTypeKnownAs,
         titleType = 1,
-        name1 = "name21",
-        surname = "surname2"
+        name1 = Some("name21"),
+        surname = Some("surname2")
       )
     ),
     Seq(
@@ -270,9 +270,9 @@ trait ApiPayloadHelper {
         seqNo = 1,
         nameType = NameTypeReal,
         titleType = 5,
-        name1 = "name11",
+        name1 = Some("name11"),
         name2 = Some("name12"),
-        surname = "surname1",
+        surname = Some("surname1"),
         honours = Some("BA")
       )
     ),
@@ -285,6 +285,12 @@ trait ApiPayloadHelper {
         addr2 = "addr12"
       )
     )
+  )
+
+  protected lazy val apiIndividualDetailsMinimalFields: JsObject = individualDetailsApiFull(
+    individualDetailsApiResponseMain(crnIndicator = 0, generatedNinoWithoutSuffix, generatedNinoSuffix),
+    Seq.empty,
+    Seq.empty
   )
 
   protected def apiTransformedIndividualDetailsJsonOneNameOneAddress: JsObject = Json
@@ -307,4 +313,15 @@ trait ApiPayloadHelper {
                 |}""".stripMargin)
     .as[JsObject]
 
+  protected def apiTransformedIndividualDetailsJsonMinimalFields: JsObject = Json
+    .parse(s"""{
+         |   "title":null,
+         |   "firstForename":null,
+         |   "surname":null,
+         |   "dateOfBirth":"1990-07-20",
+         |   "nino":"$generatedNinoWithoutSuffix$generatedNinoSuffix",
+         |   "address":null,
+         |   "crnIndicator":"false"
+         |}""".stripMargin)
+    .as[JsObject]
 }
