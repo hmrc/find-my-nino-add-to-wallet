@@ -349,7 +349,7 @@ object IndividualDetails {
         (__ \ "addressStatus").json.copyFrom((__ \ "addressStatus").json.pick) and
         (__ \ "addressStartDate").json.copyFrom((__ \ "addressStartDate").json.pick) and
         (__ \ "addressLine1").json.copyFrom((__ \ "addressLine1").json.pick) and
-        (__ \ "addressLine2").json.copyFrom((__ \ "addressLine2").json.pick) and
+        (__ \ "addressLine2").json.copyFrom((__ \ "addressLine2").json.pick).orElse(doNothing) and
         (__ \ "addressLine3").json.copyFrom((__ \ "addressLine3").json.pick).orElse(doNothing) and
         (__ \ "addressLine4").json.copyFrom((__ \ "addressLine4").json.pick).orElse(doNothing) and
         (__ \ "addressLine5").json.copyFrom((__ \ "addressLine5").json.pick).orElse(doNothing) and
@@ -417,13 +417,11 @@ object IndividualDetails {
         JsNull
       } else {
         Json.obj(
-          "addressLine1"     -> (preferredAddressJsObject \ "addressLine1").asOpt[String],
+          "addressLine1"     -> (preferredAddressJsObject \ "addressLine1").as[String],
           "addressLine2"     -> (preferredAddressJsObject \ "addressLine2").asOpt[String],
-          "addressStartDate" -> (preferredAddressJsObject \ "addressStartDate").asOpt[String],
-          "addressCountry"   -> (preferredAddressJsObject \ "countryCode")
-            .asOpt[Int]
-            .fold(None)(code => Some(convertCodeToCountryName(code))),
-          "addressType"      -> (preferredAddressJsObject \ "addressType").asOpt[Int]
+          "addressStartDate" -> (preferredAddressJsObject \ "addressStartDate").as[String],
+          "addressCountry"   -> convertCodeToCountryName((preferredAddressJsObject \ "countryCode").as[Int]),
+          "addressType"      -> (preferredAddressJsObject \ "addressType").as[Int]
         ) ++ addOptional("addressLine3")
           ++ addOptional("addressLine4")
           ++ addOptional("addressLine5")
