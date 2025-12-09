@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,71 +16,67 @@
 
 package controllers
 
-import com.google.auth.oauth2.GoogleCredentials
-import config.AppConfig
 import connectors.FandFConnector
 import models.google.GooglePassDetails
-import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
 import services.GooglePassService
 import uk.gov.hmrc.auth.core.AuthConnector
 
-import java.io.ByteArrayInputStream
 import java.time.{ZoneId, ZonedDateTime}
-import java.util.{Base64, Collections}
+import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class GooglePassController @Inject() (
   authConnector: AuthConnector,
-  fandFConnector: FandFConnector,
+  fandfConnector: FandFConnector,
   passService: GooglePassService
 )(implicit
   config: Configuration,
   env: Environment,
   cc: MessagesControllerComponents,
-  appConfig: AppConfig,
   ec: ExecutionContext
-) extends FMNBaseController(authConnector, fandFConnector)
+) extends FMNBaseController(authConnector, fandfConnector)
     with Logging {
 
   implicit val passRequestFormatter: OFormat[GooglePassDetails] = Json.format[GooglePassDetails]
-
-  implicit val writes: Writes[GooglePassDetails] = Json.writes[GooglePassDetails]
+  implicit val writes: Writes[GooglePassDetails]                = Json.writes[GooglePassDetails]
 
   // shall we configure it in application.conf file
-  private val DEFAULT_EXPIRATION_YEARS              = 100
+  private val DEFAULT_EXPIRATION_YEARS = 100
+
   // $COVERAGE-OFF$
   def createPassWithCredentials: Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext =>
-      val passRequest    = request.body.asJson.get.as[GooglePassDetails]
-      val expirationDate = ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS)
+    authorisedAsFMNUser { _ =>
+      request.body.asJson match {
+        case Some(json) =>
+          val passRequest    = json.as[GooglePassDetails]
+          val expirationDate = ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString
 
-      val scope                                = "https://www.googleapis.com/auth/wallet_object.issuer"
-      val keyAsStream                          = new ByteArrayInputStream(Base64.getDecoder.decode(appConfig.googleKey))
-      val googleCredentials: GoogleCredentials =
-        GoogleCredentials.fromStream(keyAsStream).createScoped(Collections.singletonList(scope))
+          logger.info(
+            s"[GooglePassController] Creating Google Pass for nino=${passRequest.nino}, expiry=$expirationDate"
+          )
 
-      Future(
-        passService.createPassWithCredentials(
-          passRequest.fullName,
-          passRequest.nino,
-          expirationDate.toString,
-          googleCredentials
-        ) match {
-          case Right(value) => Ok(value)
-          case Left(exp)    =>
-            InternalServerError(
-              Json.obj(
-                "status"  -> "500",
-                "message" -> exp.getMessage
+          passService.createPass(passRequest.fullName, passRequest.nino, expirationDate) match {
+            case Right(value) => Future.successful(Ok(value))
+            case Left(exp)    =>
+              logger.error("[GooglePassController] Error creating Google Pass", exp)
+              Future.successful(
+                InternalServerError(
+                  Json.obj(
+                    "status"  -> "500",
+                    "message" -> exp.getMessage
+                  )
+                )
               )
-            )
-        }
-      )
+          }
+
+        case None =>
+          Future.successful(BadRequest("Expected JSON body"))
+      }
     }
   }
   // $COVERAGE-ON$

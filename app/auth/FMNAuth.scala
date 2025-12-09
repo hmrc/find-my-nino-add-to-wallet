@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,12 @@ final case class AuthContext[A](
 )
 
 trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions with Logging {
-  protected type FMNAction[A] = AuthContext[A] => Future[Result]
-  val AuthPredicate                                                                                            = AuthProviders(GovernmentGateway)
-  val FMNRetrievals: Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
+
+  private type FMNAction[A] = AuthContext[A] => Future[Result]
+
+  private val AuthPredicate: AuthProviders = AuthProviders(GovernmentGateway)
+
+  private val FMNRetrievals: Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
     nino and credentialRole and internalId and credentials
 
   def authorisedAsFMNUser(
@@ -61,8 +64,8 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
         request: Request[A],
         authContext: AuthContext[A] => Future[Result]
       ): Future[Result] = {
-        implicit val req = request
-        implicit val hc  = HeaderCarrierConverter.fromRequest(request)
+        implicit val req: Request[A]   = request
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
         authorisedUser(authContext)
       }
@@ -76,9 +79,11 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
       .retrieve(FMNRetrievals) {
         case Some(nino) ~ Some(User) ~ Some(internalId) ~ Some(credentials) =>
           fandFConnector.getTrustedHelper().flatMap { helper =>
+            val effectiveNino = helper.fold(nino)(h => h.principalNino.getOrElse(nino))
+
             block(
               AuthContext(
-                helper.fold(nino)(helper => helper.principalNino.get),
+                effectiveNino,
                 isUser = true,
                 internalId,
                 credentials,
@@ -88,7 +93,7 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
           }
         case _                                                              =>
           logger.warn("user was not authenticated with required credentials")
-          Future successful Unauthorized
+          Future.successful(Unauthorized)
       }
       .recover {
         case ex: AuthorisationException =>

@@ -20,9 +20,9 @@ import com.google.auth.oauth2.GoogleCredentials
 import config.AppConfig
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import services.googlepass.{CreateGenericPrivatePass, GooglePassUtil}
 class GooglePassUtilSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
@@ -30,7 +30,7 @@ class GooglePassUtilSpec extends AsyncWordSpec with Matchers with MockitoSugar {
   val mockCreateGenericPrivatePass: CreateGenericPrivatePass = mock[CreateGenericPrivatePass]
   val mockGoogleCredentials: GoogleCredentials               = mock[GoogleCredentials]
 
-  when(mockConfig.googleAddUrl).thenReturn("https://pay.google.com/gp/v/save/")
+  when(mockConfig.googlePassAddUrl).thenReturn("https://pay.google.com/gp/v/save/")
   when(mockCreateGenericPrivatePass.createJwtWithCredentials(any, any, any, any, any)).thenReturn("testJwt")
 
   lazy val googlePassUtil: GooglePassUtil = new GooglePassUtil(mockConfig, mockCreateGenericPrivatePass)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.google.zxing.{BarcodeFormat, EncodeHintType}
 import java.awt.image.BufferedImage
 import java.awt.{Color, Graphics2D}
 import java.io.ByteArrayOutputStream
+import java.util
 import java.util.Hashtable
 import javax.imageio.ImageIO
 import javax.inject.Inject
@@ -29,12 +30,12 @@ import scala.util.{Success, Try}
 
 class QrCodeService @Inject() () {
 
-  import QrCodeService._
+  import QrCodeService.*
 
   def createQRCode(qrText: String, imageSize: Int = DEFAULT_BARCODE_SIZE): Option[Array[Byte]] =
     Try {
       val margin       = 4
-      val hintMap      = new Hashtable[EncodeHintType, Any]
+      val hintMap      = new util.Hashtable[EncodeHintType, Any]
       hintMap.put(EncodeHintType.CHARACTER_SET, UTF_8)
       hintMap.put(EncodeHintType.MARGIN, margin)
       val qrCodeWriter = new QRCodeWriter
@@ -43,7 +44,7 @@ class QrCodeService @Inject() () {
       // Make the BufferedImage that are to hold the QRCode
       val matrixWidth = byteMatrix.getWidth
       val image       = new BufferedImage(matrixWidth, matrixWidth, BufferedImage.TYPE_INT_RGB)
-      image.createGraphics
+      image.createGraphics()
       val graphics    = image.getGraphics.asInstanceOf[Graphics2D]
       graphics.setColor(Color.WHITE)
       graphics.fillRect(0, 0, matrixWidth, matrixWidth)
@@ -52,9 +53,13 @@ class QrCodeService @Inject() () {
       graphics.setColor(Color.BLACK)
       for (i <- 0 until matrixWidth)
         for (j <- 0 until matrixWidth)
-          if (byteMatrix.get(i, j)) graphics.fillRect(i, j, 1, 1)
-      val byteArrayOStream = new ByteArrayOutputStream();
-      ImageIO.write(image, FILE_TYPE, byteArrayOStream);
+          if (byteMatrix.get(i, j))
+            graphics.fillRect(i, j, 1, 1)
+
+      val byteArrayOStream = new ByteArrayOutputStream()
+      ImageIO.write(image, FILE_TYPE, byteArrayOStream)
+      graphics.dispose()
+
       byteArrayOStream.toByteArray
     } match {
       case Success(value) => Some(value)
@@ -63,7 +68,7 @@ class QrCodeService @Inject() () {
 }
 
 object QrCodeService {
-  val FILE_TYPE            = "png"
-  val DEFAULT_BARCODE_SIZE = 200
-  val UTF_8                = "utf-8"
+  private val FILE_TYPE            = "png"
+  private val DEFAULT_BARCODE_SIZE = 200
+  val UTF_8                        = "utf-8"
 }

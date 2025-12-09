@@ -38,12 +38,39 @@ class AppConfigSpec extends SpecBase {
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure(
-      "applePass.appleWWDRCA"                 -> "appleWWDRCA",
-      "applePass.privateCertificate"          -> "privateCertificate",
-      "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
-      "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
-      "applePass.privateCertificate2"         -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2"
+      "applePass.appleWWDRCA"                                     -> "appleWWDRCA",
+      "applePass.privateCertificate"                              -> "privateCertificate",
+      "applePass.privateCertificatePassword"                      -> "privateCertificatePassword",
+      "applePass.appleWWDRCA2"                                    -> "appleWWDRCA2",
+      "applePass.privateCertificate2"                             -> "privateCertificate2",
+      "applePass.privateCertificatePassword2"                     -> "privateCertificatePassword2",
+      "appName"                                                   -> "find-my-nino-add-to-wallet",
+      "frontendServiceUrl"                                        -> "http://localhost:14006/save-your-national-insurance-number",
+      "googlePass.issuerId"                                       -> "issuer-id-123",
+      "googlePass.key"                                            -> "dummy-google-key",
+      "googlePass.expiry"                                         -> 10,
+      "googlePass.url"                                            -> "https://pay.google.com/gp/v/save/",
+      "googlePass.origins"                                        -> "localhost:14006",
+      "mongodb.timeToLiveInSeconds"                               -> 900,
+      "mongodb.session-cache.timeToLiveInSeconds"                 -> 3600,
+      "mongodb.encryption.key"                                    -> "encryption-key-123",
+      "mongodb.encryption.enabled"                                -> true,
+      "external-url.individual-details.auth-token"                -> "Bearer 1234567890",
+      "external-url.individual-details.environment"               -> "ist0",
+      "external-url.individual-details.originator-id"             -> "originatorId",
+      "external-url.individual-details.protocol"                  -> "http",
+      "external-url.individual-details.host"                      -> "localhost",
+      "external-url.individual-details.port"                      -> "14011",
+      "microservice.services.nps-crn-api.protocol"                -> "http",
+      "microservice.services.nps-crn-api.host"                    -> "localhost",
+      "microservice.services.nps-crn-api.port"                    -> "14011",
+      "microservice.services.nps-crn-api.token"                   -> "dummy",
+      "microservice.services.nps-crn-api.correlationId.key"       -> "correlationId",
+      "microservice.services.nps-crn-api.govUkOriginatorId.key"   -> "gov-uk-originator-id",
+      "microservice.services.nps-crn-api.govUkOriginatorId.value" -> "originator-value",
+      "microservice.services.fandf.protocol"                      -> "http",
+      "microservice.services.fandf.host"                          -> "localhost",
+      "microservice.services.fandf.port"                          -> "9333"
     )
     .overrides(
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),
@@ -81,6 +108,50 @@ class AppConfigSpec extends SpecBase {
         sut.privateCertificate.futureValue mustBe "privateCertificate2"
         sut.privateCertificatePassword.futureValue mustBe "privateCertificatePassword2"
       }
+    }
+  }
+
+  "googlePass config" must {
+    "expose the configured values" in {
+      sut.googlePassIssuerId mustBe "issuer-id-123"
+      sut.googlePassKey mustBe "dummy-google-key"
+      sut.googlePassExpiryYears mustBe 10
+      sut.googlePassAddUrl mustBe "https://pay.google.com/gp/v/save/"
+      sut.googlePassOrigins mustBe "localhost:14006"
+    }
+  }
+
+  "individual-details config" must {
+    "build the service url correctly" in {
+      sut.individualDetailsToken mustBe "Bearer 1234567890"
+      sut.individualDetailsEnvironment mustBe "ist0"
+      sut.individualDetailsOriginatorId mustBe "originatorId"
+      sut.individualDetailsServiceUrl mustBe "http://localhost:14011"
+    }
+  }
+
+  "nps-crn-api config" must {
+    "build the service url and keys correctly" in {
+      sut.npsCrnCorrelationIdKey mustBe "correlationId"
+      sut.npsCrnOriginatorIdKey mustBe "gov-uk-originator-id"
+      sut.npsCrnOriginatorIdValue mustBe "originator-value"
+      sut.npsCrnToken mustBe "dummy"
+      sut.npsCrnUrl mustBe "http://localhost:14011"
+    }
+  }
+
+  "fandf config" must {
+    "build the service url correctly" in {
+      sut.fandfServiceUrl mustBe "http://localhost:9333"
+    }
+  }
+
+  "mongodb config" must {
+    "expose ttl and encryption settings" in {
+      sut.cacheTtl mustBe 900L
+      sut.sessionCacheTTLInSeconds mustBe 3600
+      sut.encryptionKey mustBe "encryption-key-123"
+      sut.encryptionEnabled mustBe true
     }
   }
 }

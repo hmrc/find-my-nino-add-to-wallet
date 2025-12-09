@@ -17,11 +17,10 @@
 package config
 
 import models.admin.ApplePassCertificates2
-
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -52,40 +51,44 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
   def privateCertificate: Future[String]                   = appleCerts.map(_._2)
   def privateCertificatePassword: Future[String]           = appleCerts.map(_._3)
 
-  val googleIssuerId: String        = config.get[String]("googlePass.issuerId")
-  val googleKey: String             = config.get[String]("googlePass.key")
-  val googleJWTExpiry: Int          = config.get[Int]("googlePass.expiry")
-  val googleAddUrl: String          = config.get[String]("googlePass.url")
-  val googleOrigins: String         = config.get[String]("googlePass.origins")
+  val googlePassIssuerId: String    = config.get[String]("googlePass.issuerId")
+  val googlePassKey: String         = config.get[String]("googlePass.key")
+  val googlePassExpiryYears: Int    = config.get[Int]("googlePass.expiry")
+  val googlePassAddUrl: String      = config.get[String]("googlePass.url")
+  val googlePassOrigins: String     = config.get[String]("googlePass.origins")
   val cacheTtl: Long                = config.get[Int]("mongodb.timeToLiveInSeconds")
   val sessionCacheTTLInSeconds: Int = config.get[Int]("mongodb.session-cache.timeToLiveInSeconds")
 
   val encryptionKey: String      = config.get[String]("mongodb.encryption.key")
   val encryptionEnabled: Boolean = config.get[Boolean]("mongodb.encryption.enabled")
 
-  lazy val individualDetailsToken: String        = config.get[String]("external-url.individual-details.auth-token")
-  lazy val individualDetailsEnvironment: String  = config.get[String]("external-url.individual-details.environment")
-  lazy val individualDetailsOriginatorId: String = config.get[String]("external-url.individual-details.originator-id")
-  lazy val individualDetailsProtocol: String     = config.get[String]("external-url.individual-details.protocol")
-  lazy val individualDetailsHost: String         = config.get[String]("external-url.individual-details.host")
-  lazy val individualDetailsPort: String         = config.get[String]("external-url.individual-details.port")
-  val individualDetailsServiceUrl: String        =
+  private lazy val individualDetailsConfig: Configuration = config.get[Configuration]("external-url.individual-details")
+
+  lazy val individualDetailsToken: String            = individualDetailsConfig.get[String]("auth-token")
+  lazy val individualDetailsEnvironment: String      = individualDetailsConfig.get[String]("environment")
+  lazy val individualDetailsOriginatorId: String     = individualDetailsConfig.get[String]("originator-id")
+  private lazy val individualDetailsProtocol: String = individualDetailsConfig.get[String]("protocol")
+  private lazy val individualDetailsHost: String     = individualDetailsConfig.get[String]("host")
+  private lazy val individualDetailsPort: String     = individualDetailsConfig.get[String]("port")
+  val individualDetailsServiceUrl: String            =
     s"$individualDetailsProtocol://$individualDetailsHost:$individualDetailsPort"
 
-  lazy val npsCrnCorrelationIdKey: String  = config.get[String]("microservice.services.nps-crn-api.correlationId.key")
-  lazy val npsCrnOriginatorIdKey: String   = config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.key")
-  lazy val npsCrnOriginatorIdValue: String =
-    config.get[String]("microservice.services.nps-crn-api.govUkOriginatorId.value")
+  private lazy val npsCrnConfig: Configuration = config.get[Configuration]("microservice.services.nps-crn-api")
 
-  lazy val npsCrnProtocol: String = config.get[String]("microservice.services.nps-crn-api.protocol")
-  lazy val npsCrnHost: String     = config.get[String]("microservice.services.nps-crn-api.host")
-  lazy val npsCrnPort: String     = config.get[String]("microservice.services.nps-crn-api.port")
-  lazy val npsCrnToken: String    = config.get[String]("microservice.services.nps-crn-api.token")
-  val npsCrnUrl: String           = s"$npsCrnProtocol://$npsCrnHost:$npsCrnPort"
+  lazy val npsCrnCorrelationIdKey: String  = npsCrnConfig.get[String]("correlationId.key")
+  lazy val npsCrnOriginatorIdKey: String   = npsCrnConfig.get[String]("govUkOriginatorId.key")
+  lazy val npsCrnOriginatorIdValue: String = npsCrnConfig.get[String]("govUkOriginatorId.value")
 
-  lazy val fandfProtocol: String = config.get[String]("microservice.services.fandf.protocol")
-  lazy val fandfHost: String     = config.get[String]("microservice.services.fandf.host")
-  lazy val fandfPort: String     = config.get[String]("microservice.services.fandf.port")
-  val fandfServiceUrl: String    =
-    s"$fandfProtocol://$fandfHost:$fandfPort"
+  private lazy val npsCrnProtocol: String = npsCrnConfig.get[String]("protocol")
+  private lazy val npsCrnHost: String     = npsCrnConfig.get[String]("host")
+  private lazy val npsCrnPort: String     = npsCrnConfig.get[String]("port")
+  lazy val npsCrnToken: String            = npsCrnConfig.get[String]("token")
+  val npsCrnUrl: String                   = s"$npsCrnProtocol://$npsCrnHost:$npsCrnPort"
+
+  private lazy val fandfConfig: Configuration = config.get[Configuration]("microservice.services.fandf")
+
+  private lazy val fandfProtocol: String = fandfConfig.get[String]("protocol")
+  private lazy val fandfHost: String     = fandfConfig.get[String]("host")
+  private lazy val fandfPort: String     = fandfConfig.get[String]("port")
+  val fandfServiceUrl: String            = s"$fandfProtocol://$fandfHost:$fandfPort"
 }

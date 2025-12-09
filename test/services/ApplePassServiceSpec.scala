@@ -21,7 +21,7 @@ import models.apple.ApplePass
 import org.mockito.ArgumentMatchers.{any, anyString, eq as eqTo}
 import org.mockito.Mockito.{never, reset, times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar.mock
-import repositories.ApplePassRepository
+import repositories.ApplePassRepoTrait
 import util.SpecBase
 
 import java.time.Instant
@@ -207,13 +207,13 @@ class ApplePassServiceSpec extends SpecBase {
 object ApplePassServiceSpec {
   val passId: String = "test-pass-id-001"
 
-  private val mockApplePassRepository = mock[ApplePassRepository]
+  private val mockApplePassRepository = mock[ApplePassRepoTrait]
   private val mockFileService         = mock[FileService]
   private val mockSignatureService    = mock[SignatureService]
   private val mockQrCodeService       = mock[QrCodeService]
   private val mockAppConfig           = mock[AppConfig]
 
-  val applePassService = new ApplePassService(
+  val applePassService: ApplePassService = new RealApplePassService(
     mockAppConfig,
     mockApplePassRepository,
     mockFileService,

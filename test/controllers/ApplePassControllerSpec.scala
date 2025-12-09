@@ -78,11 +78,11 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
 
-    "return UNAUTHORIZED when request body is invalid" in {
-      val result = controller.createPass()(fakeRequestWithAuth.withJsonBody(Json.obj("invalid" -> "invalid")))
+    "return BAD_REQUEST when request body is missing" in {
+      val result = controller.createPass()(fakeRequestWithAuth)
 
       whenReady(result) { _ =>
-        status(result) mustBe UNAUTHORIZED
+        status(result) mustBe BAD_REQUEST
       }
     }
 

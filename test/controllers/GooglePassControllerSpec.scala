@@ -60,7 +60,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       )(any[HeaderCarrier], any[ExecutionContext])
     )
       .thenReturn(retrievalResult)
-
   }
 
   "getPassCardByPassId" must {
@@ -137,13 +136,13 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   }
 
   "createPassWithCredentials" must {
-    "return OK with the uuid of the pass" ignore {
-      when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
+    "return OK with the uuid of the pass" in {
+      when(mockGooglePassService.createPass(any(), any(), any())(any()))
         .thenReturn(Right(passId))
 
       val result = controller.createPassWithCredentials()(
         fakeRequestWithAuth.withJsonBody(
-          Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
+          Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q")
         )
       )
 
@@ -152,13 +151,22 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
         contentAsString(result) mustBe passId
       }
     }
-    "return InternalServerError when request body is invalid" ignore {
-      when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
+
+    "return BAD_REQUEST when request body is missing" in {
+      val result = controller.createPassWithCredentials()(fakeRequestWithAuth)
+
+      whenReady(result) { _ =>
+        status(result) mustBe BAD_REQUEST
+      }
+    }
+
+    "return InternalServerError when there is an error in creating pass" in {
+      when(mockGooglePassService.createPass(any(), any(), any())(any()))
         .thenReturn(Left(new Exception("SomeError")))
 
       val result = controller.createPassWithCredentials()(
         fakeRequestWithAuth.withJsonBody(
-          Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q", "credentials" -> "xxxxxxx")
+          Json.obj("fullName" -> "TestName TestSurname", "nino" -> "AB 12 34 56 Q")
         )
       )
 
