@@ -29,7 +29,6 @@ import repositories.GooglePassRepoTrait
 import services.googlepass.GooglePassUtil
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import java.util.Base64
 import scala.concurrent.Future
 
 class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -41,9 +40,9 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
 
   "findQrCodeByPassId" must {
     "return the QR Code when pass id exist" in {
-      val qrCode = "QRCodeData".getBytes()
+      val qrCode        = "QRCodeData".getBytes()
       val googlePassUrl = "https://pay.google.com/gp/v/save/test"
-      val pass = new GooglePass(
+      val pass          = new GooglePass(
         passId,
         "Test Name",
         "AB 12 34 56 Q",
@@ -72,9 +71,9 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
 
   "findGooglePassByPassId" must {
     "return the Google Pass when pass id exist" in {
-      val qrCode = "QRCodeData".getBytes()
+      val qrCode        = "QRCodeData".getBytes()
       val googlePassUrl = "https://pay.google.com/gp/v/save/test"
-      val pass = new GooglePass(
+      val pass          = new GooglePass(
         passId,
         "Test Name",
         "AB 12 34 56 Q",
@@ -100,16 +99,17 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
       }
     }
   }
+}
 
-  object GooglePassServiceSpec {
-    val passId: String = "test-pass-id-001"
+object GooglePassServiceSpec {
+  val passId: String = "test-pass-id-001"
 
-    private val mockGooglePassRepository = mock[GooglePassRepoTrait]
-    private val mockGooglePassUtil = mock[GooglePassUtil]
-    private val mockQrCodeService = mock[QrCodeService]
-    private val mockAppConfig = mock[AppConfig]
-    private val DEFAULT_EXPIRATION_YEARS = 100
+  private val mockGooglePassRepository = mock[GooglePassRepoTrait]
+  private val mockGooglePassUtil       = mock[GooglePassUtil]
+  private val mockQrCodeService        = mock[QrCodeService]
+  private val mockAppConfig            = mock[AppConfig]
+  private val DEFAULT_EXPIRATION_YEARS = 100
 
-    val googlePassService: GooglePassService =
-      new RealGooglePassService(mockAppConfig, mockGooglePassUtil, mockGooglePassRepository, mockQrCodeService)
-  }
+  val googlePassService: GooglePassService =
+    new RealGooglePassService(mockAppConfig, mockGooglePassUtil, mockGooglePassRepository, mockQrCodeService)
+}
