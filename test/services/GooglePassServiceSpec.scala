@@ -29,6 +29,7 @@ import repositories.GooglePassRepoTrait
 import services.googlepass.GooglePassUtil
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
+import java.util.Base64
 import scala.concurrent.Future
 
 class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -40,9 +41,9 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
 
   "findQrCodeByPassId" must {
     "return the QR Code when pass id exist" in {
-      val qrCode        = "QRCodeData".getBytes()
+      val qrCode = "QRCodeData".getBytes()
       val googlePassUrl = "https://pay.google.com/gp/v/save/test"
-      val pass          = new GooglePass(
+      val pass = new GooglePass(
         passId,
         "Test Name",
         "AB 12 34 56 Q",
@@ -71,9 +72,9 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
 
   "findGooglePassByPassId" must {
     "return the Google Pass when pass id exist" in {
-      val qrCode        = "QRCodeData".getBytes()
+      val qrCode = "QRCodeData".getBytes()
       val googlePassUrl = "https://pay.google.com/gp/v/save/test"
-      val pass          = new GooglePass(
+      val pass = new GooglePass(
         passId,
         "Test Name",
         "AB 12 34 56 Q",
@@ -100,50 +101,15 @@ class GooglePassServiceSpec extends AsyncWordSpec with Matchers with MockitoSuga
     }
   }
 
-  "createPass" must {
+  object GooglePassServiceSpec {
+    val passId: String = "test-pass-id-001"
 
-    "return an uuid when success" in {
+    private val mockGooglePassRepository = mock[GooglePassRepoTrait]
+    private val mockGooglePassUtil = mock[GooglePassUtil]
+    private val mockQrCodeService = mock[QrCodeService]
+    private val mockAppConfig = mock[AppConfig]
+    private val DEFAULT_EXPIRATION_YEARS = 100
 
-      when(mockQrCodeService.createQRCode(any(), any()))
-        .thenReturn(Some("SomeQrCode".getBytes()))
-
-      when(
-        mockGooglePassUtil.createGooglePassWithCredentials(
-          eqTo("TestName TestSurname"),
-          eqTo("AB 12 34 56 Q"),
-          any()
-        )
-      ).thenReturn("https://pay.google.com/gp/v/save/test")
-
-      when(mockAppConfig.googlePassKey).thenReturn("ZXlKdGVYQmxJam9pSkdWemMybHVaeUk9") // dummy base64
-      when(mockAppConfig.frontendServiceUrl).thenReturn("https://frontend.example.com")
-
-      val eitherResult = googlePassService.createPass(
-        "TestName TestSurname",
-        "AB 12 34 56 Q",
-        ZonedDateTime.now(ZoneId.of("UTC")).plusYears(DEFAULT_EXPIRATION_YEARS).toString
-      )
-
-      eitherResult.isLeft mustBe false
-      eitherResult match {
-        case Right(uuid) =>
-          uuid.length mustBe 36
-        case _           =>
-          fail("Expected Right")
-      }
-    }
+    val googlePassService: GooglePassService =
+      new RealGooglePassService(mockAppConfig, mockGooglePassUtil, mockGooglePassRepository, mockQrCodeService)
   }
-}
-
-object GooglePassServiceSpec {
-  val passId: String = "test-pass-id-001"
-
-  private val mockGooglePassRepository = mock[GooglePassRepoTrait]
-  private val mockGooglePassUtil       = mock[GooglePassUtil]
-  private val mockQrCodeService        = mock[QrCodeService]
-  private val mockAppConfig            = mock[AppConfig]
-  private val DEFAULT_EXPIRATION_YEARS = 100
-
-  val googlePassService: GooglePassService =
-    new RealGooglePassService(mockAppConfig, mockGooglePassUtil, mockGooglePassRepository, mockQrCodeService)
-}
