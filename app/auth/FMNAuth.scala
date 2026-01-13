@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package auth
 
 import connectors.FandFConnector
 import play.api.Logging
-import play.api.mvc.Results.Unauthorized
 import play.api.mvc.*
+import play.api.mvc.Results.Unauthorized
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{credentialRole, credentials, internalId, nino}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
-import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisationException, AuthorisedFunctions, CredentialRole, User}
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -76,9 +76,11 @@ trait FMNAuth(val fandFConnector: FandFConnector) extends AuthorisedFunctions wi
       .retrieve(FMNRetrievals) {
         case Some(nino) ~ Some(User) ~ Some(internalId) ~ Some(credentials) =>
           fandFConnector.getTrustedHelper().flatMap { helper =>
+            val effectiveNino = helper.fold(nino)(h => h.principalNino.getOrElse(nino))
+
             block(
               AuthContext(
-                helper.fold(nino)(helper => helper.principalNino.get),
+                effectiveNino,
                 isUser = true,
                 internalId,
                 credentials,

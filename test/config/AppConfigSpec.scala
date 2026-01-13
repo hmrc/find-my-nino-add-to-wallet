@@ -43,7 +43,8 @@ class AppConfigSpec extends SpecBase {
       "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
       "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
       "applePass.privateCertificate2"         -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2"
+      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2",
+      "applePass.signingEnabled"              -> false
     )
     .overrides(
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),
@@ -81,6 +82,10 @@ class AppConfigSpec extends SpecBase {
         sut.privateCertificate.futureValue mustBe "privateCertificate2"
         sut.privateCertificatePassword.futureValue mustBe "privateCertificatePassword2"
       }
+    }
+
+    "read signingEnabled flag" in {
+      sut.applePassSigningEnabled mustBe false
     }
   }
 }

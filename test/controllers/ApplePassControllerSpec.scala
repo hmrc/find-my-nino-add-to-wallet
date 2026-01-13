@@ -49,7 +49,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   import ApplePassControllerSpec.*
 
   before {
-    reset(mockAuthConnector, mockFandFConnector)
+    reset(mockAuthConnector, mockFandFConnector, mockApplePassService)
 
     val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
       Future.successful(new ~(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")), Some(credentials)))
@@ -78,7 +78,15 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
 
-    "return UNAUTHORIZED when request body is invalid" in {
+    "return BadRequest when request body is not JSON" in {
+      val result = controller.createPass()(fakeRequestWithAuth)
+
+      whenReady(result) { _ =>
+        status(result) mustBe BAD_REQUEST
+      }
+    }
+
+    "return Unauthorised when request body JSON is invalid" in {
       val result = controller.createPass()(fakeRequestWithAuth.withJsonBody(Json.obj("invalid" -> "invalid")))
 
       whenReady(result) { _ =>
@@ -186,9 +194,6 @@ object ApplePassControllerSpec {
   private val mockAuthConnector    = mock[AuthConnector]
   private val mockFandFConnector   = mock[FandFConnector]
 
-  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
-
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[ApplePassService].toInstance(mockApplePassService),
@@ -201,5 +206,4 @@ object ApplePassControllerSpec {
     .overrides(modules: _*)
     .build()
   private val controller       = application.injector.instanceOf[ApplePassController]
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import play.api.Logging
 import repositories.ApplePassRepoTrait
 
 import java.util.UUID
-import javax.inject._
+import javax.inject.*
 import scala.concurrent.{ExecutionContext, Future}
 
 class ApplePassService @Inject() (
@@ -33,6 +33,8 @@ class ApplePassService @Inject() (
   val signatureService: SignatureService,
   val qrCodeService: QrCodeService
 ) extends Logging {
+
+  private val signingEnabled: Boolean = config.applePassSigningEnabled
 
   def getPassCardByPassIdAndNINO(passId: String, nino: String)(implicit
     ec: ExecutionContext
@@ -85,12 +87,15 @@ class ApplePassService @Inject() (
           appleWWDRCA
         )
 
-        if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
+        val signatureOk = !signingEnabled || signaturePassInBytes.content.nonEmpty
+
+        if (passFilesInBytes.nonEmpty && signatureOk) {
           val passDataTuple = for {
             pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
             qrCodeByteArray <-
               qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
           } yield (pkPassByteArray, qrCodeByteArray)
+
           passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
           Right(uuid)
 

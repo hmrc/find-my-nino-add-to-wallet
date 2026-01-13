@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,22 +45,28 @@ class ApplePassController @Inject() (
   implicit val writes: Writes[ApplePassDetails]                = Json.writes[ApplePassDetails]
 
   def createPass: Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext =>
-      val passRequest = request.body.asJson.get.as[ApplePassDetails]
+    authorisedAsFMNUser { _ =>
+      request.body.asJson match {
+        case Some(json) =>
+          val passRequest = json.as[ApplePassDetails]
 
-      logger.debug(message = s"[Create Pass Event]$passRequest")
-      passService
-        .createPass(passRequest.fullName, passRequest.nino)
-        .fold(
-          error =>
-            InternalServerError(
-              Json.obj(
-                "status"  -> "500",
-                "message" -> error.getMessage
-              )
-            ),
-          result => Ok(result)
-        )
+          logger.debug(message = s"[Create Pass Event]$passRequest")
+          passService
+            .createPass(passRequest.fullName, passRequest.nino)
+            .fold(
+              error =>
+                InternalServerError(
+                  Json.obj(
+                    "status"  -> "500",
+                    "message" -> error.getMessage
+                  )
+                ),
+              result => Ok(result)
+            )
+
+        case None =>
+          scala.concurrent.Future.successful(BadRequest("Expected JSON body"))
+      }
     }
   }
 

@@ -48,9 +48,13 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
         )
       }
     }
-  def appleWWDRCA: Future[String]                          = appleCerts.map(_._1)
-  def privateCertificate: Future[String]                   = appleCerts.map(_._2)
-  def privateCertificatePassword: Future[String]           = appleCerts.map(_._3)
+
+  def appleWWDRCA: Future[String]                = appleCerts.map(_._1)
+  def privateCertificate: Future[String]         = appleCerts.map(_._2)
+  def privateCertificatePassword: Future[String] = appleCerts.map(_._3)
+
+  lazy val applePassSigningEnabled: Boolean =
+    config.getOptional[Boolean]("applePass.signingEnabled").getOrElse(true)
 
   val googleIssuerId: String        = config.get[String]("googlePass.issuerId")
   val googleKey: String             = config.get[String]("googlePass.key")
