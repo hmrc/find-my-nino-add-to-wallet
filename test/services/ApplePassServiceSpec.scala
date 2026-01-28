@@ -19,7 +19,7 @@ package services
 import config.AppConfig
 import models.apple.ApplePass
 import org.mockito.ArgumentMatchers.{any, anyString, eq as eqTo}
-import org.mockito.Mockito.{never, reset, times, verify, when}
+import org.mockito.Mockito.*
 import org.scalatestplus.mockito.MockitoSugar.mock
 import repositories.ApplePassRepository
 import util.SpecBase
@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 class ApplePassServiceSpec extends SpecBase {
 
-  import ApplePassServiceSpec._
+  import ApplePassServiceSpec.*
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -41,21 +41,26 @@ class ApplePassServiceSpec extends SpecBase {
       val qrCode        = "QRCodeData".getBytes()
       val applePassCard = "ApplePassCard".getBytes()
       val pass          = new ApplePass(passId, "Test Name", "AB 12 34 56 Q", applePassCard, qrCode, Instant.now())
-      when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
-        .thenReturn(Future.successful(Option(pass)))
 
-      applePassService.getQrCodeByPassIdAndNINO(passId, "AB123456Q")(implicitly).map { result =>
-        result mustBe Some(qrCode)
-      }
+      when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
+        .thenReturn(Future.successful(Some(pass)))
+
+      applePassService(signingEnabled = true)
+        .getQrCodeByPassIdAndNINO(passId, "AB123456Q")(implicitly)
+        .map { result =>
+          result mustBe Some(qrCode)
+        }
     }
 
     "return None when pass id NOT exist" in {
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      applePassService.getQrCodeByPassIdAndNINO(passId, "AB123456Q")(implicitly).map { result =>
-        result mustBe None
-      }
+      applePassService(signingEnabled = true)
+        .getQrCodeByPassIdAndNINO(passId, "AB123456Q")(implicitly)
+        .map { result =>
+          result mustBe None
+        }
     }
   }
 
@@ -63,55 +68,45 @@ class ApplePassServiceSpec extends SpecBase {
     "return the Apple Pass when pass id exist" in {
       val qrCode        = "QRCodeData".getBytes()
       val applePassCard = "ApplePassCard".getBytes()
-      val pass          = new ApplePass(
-        passId,
-        "Test Name",
-        "AB 12 34 56 Q",
-        applePassCard,
-        qrCode,
-        Instant.now()
-      )
-      when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
-        .thenReturn(Future.successful(Option(pass)))
+      val pass          = new ApplePass(passId, "Test Name", "AB 12 34 56 Q", applePassCard, qrCode, Instant.now())
 
-      applePassService.getPassCardByPassIdAndNINO(passId, "AB123456Q")(implicitly).map { result =>
-        result mustBe Some(applePassCard)
-      }
+      when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
+        .thenReturn(Future.successful(Some(pass)))
+
+      applePassService(signingEnabled = true)
+        .getPassCardByPassIdAndNINO(passId, "AB123456Q")(implicitly)
+        .map { result =>
+          result mustBe Some(applePassCard)
+        }
     }
 
-    "return Apple Pass when pass id NOT exist" in {
+    "return None when pass id NOT exist" in {
       when(mockApplePassRepository.findByPassId(eqTo(passId))(any()))
         .thenReturn(Future.successful(None))
 
-      applePassService.getPassCardByPassIdAndNINO(passId, "AB123456Q")(implicitly).map { result =>
-        result mustBe None
-      }
+      applePassService(signingEnabled = true)
+        .getPassCardByPassIdAndNINO(passId, "AB123456Q")(implicitly)
+        .map { result =>
+          result mustBe None
+        }
     }
   }
 
   "createPass" must {
 
-    val passFilesGenerated = List(FileAsBytes("", Array.emptyByteArray))
-    val blankFileAsBytes   = FileAsBytes("", Array.emptyByteArray)
+    val passFilesGenerated = List(FileAsBytes("manifest.json", "manifest".getBytes()))
+    val blankSignature     = FileAsBytes(SignatureService.SIGNATURE_FILE_NAME, Array.emptyByteArray)
 
     "should not return an uuid when 'Create File in Bytes for Pass' has failed" in {
       when(mockFileService.createFileBytesForPass(any()))
         .thenReturn(List.empty)
 
-      when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(blankFileAsBytes)
+      val eitherResult =
+        applePassService(signingEnabled = true)
+          .createPass("TestName TestSurname", "AB 12 34 56 Q")
+          .value
+          .futureValue
 
-      when(mockAppConfig.privateCertificate).thenReturn(
-        Future.successful("")
-      )
-      when(mockAppConfig.appleWWDRCA).thenReturn(
-        Future.successful("")
-      )
-      when(mockAppConfig.privateCertificatePassword).thenReturn(
-        Future.successful("")
-      )
-
-      val eitherResult = applePassService.createPass("TestName TestSurname", "AB 12 34 56 Q").value.futureValue
       eitherResult.isRight mustBe false
       eitherResult match {
         case Right(_)                   =>
@@ -121,28 +116,30 @@ class ApplePassServiceSpec extends SpecBase {
           verify(mockQrCodeService, never).createQRCode(any(), any())
           verify(mockApplePassRepository, never)
             .insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
-          exception.getMessage mustBe "Problem occurred while creating Apple Pass. Pass files generated: false, Pass files signed: false"
+          verify(mockSignatureService, never).createSignatureForPass(any(), any(), any(), any())
+          verify(mockAppConfig, never).appleCerts
+          exception.getMessage mustBe
+            "Problem occurred while creating Apple Pass. Pass files generated: false"
       }
     }
 
-    "should not return an uuid when 'Create Signature' failed" in {
+    "should not return an uuid when 'Create Signature' failed (signing enabled)" in {
       when(mockFileService.createFileBytesForPass(any()))
         .thenReturn(passFilesGenerated)
 
+      when(mockAppConfig.appleCerts).thenReturn(
+        Future.successful(mockAppConfig.AppleCerts("wwdrca", "p12", "pwd"))
+      )
+
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(blankFileAsBytes)
+        .thenReturn(blankSignature)
 
-      when(mockAppConfig.privateCertificate).thenReturn(
-        Future.successful("")
-      )
-      when(mockAppConfig.appleWWDRCA).thenReturn(
-        Future.successful("")
-      )
-      when(mockAppConfig.privateCertificatePassword).thenReturn(
-        Future.successful("")
-      )
+      val eitherResult =
+        applePassService(signingEnabled = true)
+          .createPass("TestName TestSurname", "AB 12 34 56 Q")
+          .value
+          .futureValue
 
-      val eitherResult = applePassService.createPass("TestName TestSurname", "AB 12 34 56 Q").value.futureValue
       eitherResult.isRight mustBe false
       eitherResult match {
         case Right(_)                   =>
@@ -152,16 +149,14 @@ class ApplePassServiceSpec extends SpecBase {
           verify(mockQrCodeService, never).createQRCode(any(), any())
           verify(mockApplePassRepository, never)
             .insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
-          exception.getMessage mustBe "Problem occurred while creating Apple Pass. Pass files generated: true, Pass files signed: false"
+          exception.getMessage mustBe
+            "Problem occurred while creating Apple Pass. Pass files generated: true, Pass files signed: false"
       }
     }
 
-    "return an uuid when success" in {
+    "return an uuid when signing is disabled and signature is empty" in {
       when(mockFileService.createFileBytesForPass(any()))
         .thenReturn(passFilesGenerated)
-
-      when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
-        .thenReturn(FileAsBytes("test", "test".getBytes()))
 
       when(mockQrCodeService.createQRCode(any(), any()))
         .thenReturn(Some("SomeQrCode".getBytes()))
@@ -169,35 +164,67 @@ class ApplePassServiceSpec extends SpecBase {
       when(mockFileService.createPkPassZipForPass(any(), any()))
         .thenReturn(Some("SomeZipFile".getBytes()))
 
-      when(mockAppConfig.privateCertificate).thenReturn(
-        Future.successful("")
-      )
+      when(mockApplePassRepository.insert(anyString(), anyString(), anyString(), any(), any())(any()))
+        .thenReturn(Future.successful(()))
 
-      when(mockAppConfig.appleWWDRCA).thenReturn(
-        Future.successful("")
-      )
-      when(mockAppConfig.privateCertificatePassword).thenReturn(
-        Future.successful("")
-      )
-
-      val eitherResult = applePassService
-        .createPass(
-          "TestName TestSurname",
-          "AB 12 34 56 Q"
-        )
-        .value
-        .futureValue
+      val eitherResult =
+        applePassService(signingEnabled = false)
+          .createPass("TestName TestSurname", "AB 12 34 56 Q")
+          .value
+          .futureValue
 
       eitherResult.isLeft mustBe false
       eitherResult match {
         case Right(uuid) =>
+          verify(mockAppConfig, never).appleCerts
+          verify(mockSignatureService, never).createSignatureForPass(any(), any(), any(), any())
           verify(mockFileService, times(1)).createPkPassZipForPass(any(), any())
           verify(mockQrCodeService, times(1)).createQRCode(any(), any())
           verify(mockApplePassRepository, times(1))
             .insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
           uuid.length mustBe 36
+        case Left(_)     =>
+          fail("Should return an uuid when signing is disabled")
+      }
+    }
 
-        case Left(_) =>
+    "return an uuid when success (signing enabled)" in {
+      when(mockFileService.createFileBytesForPass(any()))
+        .thenReturn(passFilesGenerated)
+
+      when(mockAppConfig.appleCerts).thenReturn(
+        Future.successful(mockAppConfig.AppleCerts("wwdrca", "p12", "pwd"))
+      )
+
+      when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
+        .thenReturn(FileAsBytes(SignatureService.SIGNATURE_FILE_NAME, "sig".getBytes()))
+
+      when(mockQrCodeService.createQRCode(any(), any()))
+        .thenReturn(Some("SomeQrCode".getBytes()))
+
+      when(mockFileService.createPkPassZipForPass(any(), any()))
+        .thenReturn(Some("SomeZipFile".getBytes()))
+
+      when(mockApplePassRepository.insert(anyString(), anyString(), anyString(), any(), any())(any()))
+        .thenReturn(Future.successful(()))
+
+      val eitherResult =
+        applePassService(signingEnabled = true)
+          .createPass("TestName TestSurname", "AB 12 34 56 Q")
+          .value
+          .futureValue
+
+      eitherResult.isLeft mustBe false
+      eitherResult match {
+        case Right(uuid) =>
+          verify(mockAppConfig, times(1)).appleCerts
+          verify(mockSignatureService, times(1)).createSignatureForPass(any(), any(), any(), any())
+          verify(mockFileService, times(1)).createPkPassZipForPass(any(), any())
+          verify(mockQrCodeService, times(1)).createQRCode(any(), any())
+          verify(mockApplePassRepository, times(1))
+            .insert(anyString(), eqTo("TestName TestSurname"), eqTo("AB 12 34 56 Q"), any(), any())(any())
+          uuid.length mustBe 36
+        case Left(_)     =>
           fail("Should return an uuid when success")
       }
     }
@@ -213,11 +240,14 @@ object ApplePassServiceSpec {
   private val mockQrCodeService       = mock[QrCodeService]
   private val mockAppConfig           = mock[AppConfig]
 
-  val applePassService = new ApplePassService(
-    mockAppConfig,
-    mockApplePassRepository,
-    mockFileService,
-    mockSignatureService,
-    mockQrCodeService
-  )
+  private def applePassService(signingEnabled: Boolean): ApplePassService = {
+    when(mockAppConfig.applePassSigningEnabled).thenReturn(signingEnabled)
+    new ApplePassService(
+      mockAppConfig,
+      mockApplePassRepository,
+      mockFileService,
+      mockSignatureService,
+      mockQrCodeService
+    )
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package services
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.{BarcodeFormat, EncodeHintType}
 
-import java.awt.image.BufferedImage
-import java.awt.{Color, Graphics2D}
+import java.awt.Color
 import java.io.ByteArrayOutputStream
 import java.util.Hashtable
 import javax.imageio.ImageIO
@@ -29,33 +28,33 @@ import scala.util.{Success, Try}
 
 class QrCodeService @Inject() () {
 
-  import QrCodeService._
+  import QrCodeService.*
 
   def createQRCode(qrText: String, imageSize: Int = DEFAULT_BARCODE_SIZE): Option[Array[Byte]] =
     Try {
-      val margin       = 4
-      val hintMap      = new Hashtable[EncodeHintType, Any]
+      val hintMap = new Hashtable[EncodeHintType, Any]
       hintMap.put(EncodeHintType.CHARACTER_SET, UTF_8)
-      hintMap.put(EncodeHintType.MARGIN, margin)
-      val qrCodeWriter = new QRCodeWriter
-      val byteMatrix   = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, imageSize, imageSize, hintMap)
+      hintMap.put(EncodeHintType.MARGIN, 4)
 
-      // Make the BufferedImage that are to hold the QRCode
+      val byteMatrix = new QRCodeWriter().encode(qrText, BarcodeFormat.QR_CODE, imageSize, imageSize, hintMap)
+
       val matrixWidth = byteMatrix.getWidth
-      val image       = new BufferedImage(matrixWidth, matrixWidth, BufferedImage.TYPE_INT_RGB)
-      image.createGraphics
-      val graphics    = image.getGraphics.asInstanceOf[Graphics2D]
+      val image       = new java.awt.image.BufferedImage(matrixWidth, matrixWidth, java.awt.image.BufferedImage.TYPE_INT_RGB)
+      val graphics    = image.getGraphics.asInstanceOf[java.awt.Graphics2D]
+
       graphics.setColor(Color.WHITE)
       graphics.fillRect(0, 0, matrixWidth, matrixWidth)
 
-      // Paint and save the image using the ByteMatrix
       graphics.setColor(Color.BLACK)
       for (i <- 0 until matrixWidth)
         for (j <- 0 until matrixWidth)
           if (byteMatrix.get(i, j)) graphics.fillRect(i, j, 1, 1)
-      val byteArrayOStream = new ByteArrayOutputStream();
-      ImageIO.write(image, FILE_TYPE, byteArrayOStream);
-      byteArrayOStream.toByteArray
+
+      val out = new ByteArrayOutputStream()
+      ImageIO.write(image, FILE_TYPE, out)
+      graphics.dispose()
+
+      out.toByteArray
     } match {
       case Success(value) => Some(value)
       case _              => None

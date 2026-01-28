@@ -43,7 +43,8 @@ class AppConfigSpec extends SpecBase {
       "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
       "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
       "applePass.privateCertificate2"         -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2"
+      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2",
+      "applePass.signingEnabled"              -> false
     )
     .overrides(
       bind[FeatureFlagService].toInstance(mockFeatureFlagService),
@@ -61,14 +62,16 @@ class AppConfigSpec extends SpecBase {
     reset(mockFeatureFlagService)
 
   "applePass" must {
+
     "use first set of certs" when {
       "ApplePassCertificates2 is disabled" in {
         when(mockFeatureFlagService.get(ArgumentMatchers.eq(ApplePassCertificates2)))
           .thenReturn(Future.successful(FeatureFlag(ApplePassCertificates2, isEnabled = false)))
 
-        sut.appleWWDRCA.futureValue mustBe "appleWWDRCA"
-        sut.privateCertificate.futureValue mustBe "privateCertificate"
-        sut.privateCertificatePassword.futureValue mustBe "privateCertificatePassword"
+        val certs = sut.appleCerts.futureValue
+        certs.wwdrca mustBe "appleWWDRCA"
+        certs.privateCert mustBe "privateCertificate"
+        certs.privateCertPassword mustBe "privateCertificatePassword"
       }
     }
 
@@ -77,10 +80,15 @@ class AppConfigSpec extends SpecBase {
         when(mockFeatureFlagService.get(ArgumentMatchers.eq(ApplePassCertificates2)))
           .thenReturn(Future.successful(FeatureFlag(ApplePassCertificates2, isEnabled = true)))
 
-        sut.appleWWDRCA.futureValue mustBe "appleWWDRCA2"
-        sut.privateCertificate.futureValue mustBe "privateCertificate2"
-        sut.privateCertificatePassword.futureValue mustBe "privateCertificatePassword2"
+        val certs = sut.appleCerts.futureValue
+        certs.wwdrca mustBe "appleWWDRCA2"
+        certs.privateCert mustBe "privateCertificate2"
+        certs.privateCertPassword mustBe "privateCertificatePassword2"
       }
+    }
+
+    "read signingEnabled flag" in {
+      sut.applePassSigningEnabled mustBe false
     }
   }
 }
