@@ -16,6 +16,7 @@
 
 package config
 
+import config.AppConfig.AppleCerts
 import models.admin.ApplePassCertificates2
 import play.api.Configuration
 import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
@@ -27,8 +28,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFlagService)(implicit
   ec: ExecutionContext
 ) {
-
-  final case class AppleCerts(wwdrca: String, privateCert: String, privateCertPassword: String)
 
   val appName: String            = config.get[String]("appName")
   val frontendServiceUrl: String = config.get[String]("frontendServiceUrl")
@@ -88,4 +87,8 @@ class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFla
   lazy val fandfPort: String     = config.get[String]("microservice.services.fandf.port")
   val fandfServiceUrl: String    =
     s"$fandfProtocol://$fandfHost:$fandfPort"
+}
+
+object AppConfig {
+  final case class AppleCerts(wwdrca: String, privateCert: String, privateCertPassword: String)
 }

@@ -19,7 +19,7 @@ package controllers
 import cats.data.EitherT
 import cats.implicits.*
 import connectors.FandFConnector
-import org.mockito.ArgumentMatchers.{any, anyString, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures.whenReady
@@ -120,7 +120,7 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       }
     }
 
-    "return Unauthorised when session NINO does not match required credentials" in {
+    "return NotFound when session NINO does not match required credentials" in {
       val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]] =
         Future.successful(new ~(new ~(new ~(Some("AB123456N"), Some(User)), Some("id")), Some(credentials)))
 
@@ -131,8 +131,8 @@ class ApplePassControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
         )(any[HeaderCarrier], any[ExecutionContext])
       ).thenReturn(retrievalResult)
 
-      when(mockApplePassService.getPassCardByPassIdAndNINO(anyString(), anyString())(any()))
-        .thenReturn(Future.successful(Some("SomePassCodeData".getBytes())))
+      when(mockApplePassService.getPassCardByPassIdAndNINO(eqTo(passId), eqTo("AB123456N"))(any()))
+        .thenReturn(Future.successful(None))
 
       val result = controller.getPassCardByPassId(passId)(fakeRequestWithAuth)
 

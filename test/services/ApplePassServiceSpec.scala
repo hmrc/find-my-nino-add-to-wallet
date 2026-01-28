@@ -127,9 +127,7 @@ class ApplePassServiceSpec extends SpecBase {
       when(mockFileService.createFileBytesForPass(any()))
         .thenReturn(passFilesGenerated)
 
-      when(mockAppConfig.appleCerts).thenReturn(
-        Future.successful(mockAppConfig.AppleCerts("wwdrca", "p12", "pwd"))
-      )
+      when(mockAppConfig.appleCerts).thenReturn(Future.successful(AppConfig.AppleCerts("wwdrca", "p12", "pwd")))
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(blankSignature)
@@ -192,9 +190,7 @@ class ApplePassServiceSpec extends SpecBase {
       when(mockFileService.createFileBytesForPass(any()))
         .thenReturn(passFilesGenerated)
 
-      when(mockAppConfig.appleCerts).thenReturn(
-        Future.successful(mockAppConfig.AppleCerts("wwdrca", "p12", "pwd"))
-      )
+      when(mockAppConfig.appleCerts).thenReturn(Future.successful(AppConfig.AppleCerts("wwdrca", "p12", "pwd")))
 
       when(mockSignatureService.createSignatureForPass(any(), any(), any(), any()))
         .thenReturn(FileAsBytes(SignatureService.SIGNATURE_FILE_NAME, "sig".getBytes()))
@@ -242,6 +238,7 @@ object ApplePassServiceSpec {
 
   private def applePassService(signingEnabled: Boolean): ApplePassService = {
     when(mockAppConfig.applePassSigningEnabled).thenReturn(signingEnabled)
+
     new ApplePassService(
       mockAppConfig,
       mockApplePassRepository,
