@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package controllers
 
 import connectors.FandFConnector
 import models.apple.ApplePassDetails
-import play.api.libs.json.{Json, OFormat, Writes}
+import play.api.libs.json.{JsError, Json, OFormat, Writes}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.{Configuration, Environment, Logging}
 import services.ApplePassService
@@ -26,7 +26,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class ApplePassController @Inject() (
@@ -45,22 +45,31 @@ class ApplePassController @Inject() (
   implicit val writes: Writes[ApplePassDetails]                = Json.writes[ApplePassDetails]
 
   def createPass: Action[AnyContent] = Action.async { implicit request =>
-    authorisedAsFMNUser { authContext =>
-      val passRequest = request.body.asJson.get.as[ApplePassDetails]
+    authorisedAsFMNUser { _ =>
+      request.body.asJson match {
+        case Some(json) =>
+          json
+            .validate[ApplePassDetails]
+            .fold(
+              errs => Future.successful(BadRequest(JsError.toJson(errs))),
+              passRequest =>
+                passService
+                  .createPass(passRequest.fullName, passRequest.nino)
+                  .fold(
+                    error =>
+                      InternalServerError(
+                        Json.obj(
+                          "status"  -> "500",
+                          "message" -> error.getMessage
+                        )
+                      ),
+                    result => Ok(result)
+                  )
+            )
 
-      logger.debug(message = s"[Create Pass Event]$passRequest")
-      passService
-        .createPass(passRequest.fullName, passRequest.nino)
-        .fold(
-          error =>
-            InternalServerError(
-              Json.obj(
-                "status"  -> "500",
-                "message" -> error.getMessage
-              )
-            ),
-          result => Ok(result)
-        )
+        case None =>
+          Future.successful(BadRequest("Expected JSON body"))
+      }
     }
   }
 
