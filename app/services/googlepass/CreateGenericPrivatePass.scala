@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,24 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import config.AppConfig
+import googleModels.{GenericPrivatePass, Image, ImageUri, LocalizedString, TextModuleData, TranslatedString}
 import models.google.{GooglePassCard, GooglePassTextRow}
-import services.googlepass.googleModels.*
 
-import java.io.IOException
+import java.io._
 import java.security.interfaces.RSAPrivateKey
 import java.time.{LocalDateTime, ZoneId}
 import java.util
-import java.util.{Collections, Date, HashMap}
+import java.util._
 import javax.inject.Inject
-import scala.collection.mutable.ArrayBuffer
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
+import collection.mutable._
 
 // $COVERAGE-OFF$
 class CreateGenericPrivatePass @Inject() (config: AppConfig) {
 
-  private val logoImageUrl         =
+  val logoImageUrl         =
     "https://www.tax.service.gov.uk/save-your-national-insurance-number/assets/images/hmrc-logo-tudor-google-pass.png"
-  private val logoImageDescription = "HMRC"
+  val logoImageDiscription = "HMRC"
 
   def createJwtWithCredentials(
     id: String,
@@ -45,13 +45,12 @@ class CreateGenericPrivatePass @Inject() (config: AppConfig) {
     googlePassCard: GooglePassCard,
     googleCredentials: GoogleCredentials,
     expiry: Int
-  ): String =
-    try
-      createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard), expiry)
-    catch {
-      case e: IOException =>
-        throw new RuntimeException("Error saving JWT: " + e)
-    }
+  ): String = try
+    createAndSignJWT(googleCredentials, createGenericPrivatePassObject(id, issuerId, googlePassCard), expiry)
+  catch {
+    case e: IOException =>
+      throw new RuntimeException("Error saving JWT: " + e)
+  }
 
   /** Creates the generic private pass object
     *
@@ -70,11 +69,10 @@ class CreateGenericPrivatePass @Inject() (config: AppConfig) {
     googlePassCard: GooglePassCard
   ): GenericPrivatePass = {
 
-    val image = new Image().setSourceUri(
-      new ImageUri()
-        .setDescription(logoImageDescription)
-        .setUri(logoImageUrl)
-    )
+    val imageUri = new ImageUri()
+      .setDescription(logoImageDiscription)
+      .setUri(logoImageUrl)
+    val image    = new Image().setSourceUri(imageUri)
 
     val textModulesData = ArrayBuffer[TextModuleData]()
     for (row: GooglePassTextRow <- googlePassCard.rows.get)
@@ -83,17 +81,17 @@ class CreateGenericPrivatePass @Inject() (config: AppConfig) {
         .setId(row.id.getOrElse(""))
         .setHeader(row.header.getOrElse(""))
 
-    val title = new LocalizedString().setDefaultValue(
-      new TranslatedString()
-        .setValue(googlePassCard.title)
-        .setLanguage(googlePassCard.language)
-    )
+    val translatedTitleString: TranslatedString = new TranslatedString()
+      .setValue(googlePassCard.title)
+      .setLanguage(googlePassCard.language)
+    val title                                   = new LocalizedString()
+      .setDefaultValue(translatedTitleString)
 
-    val header = new LocalizedString().setDefaultValue(
-      new TranslatedString()
-        .setValue(googlePassCard.header)
-        .setLanguage(googlePassCard.language)
-    )
+    val translatedHeaderString = new TranslatedString()
+      .setValue(googlePassCard.header)
+      .setLanguage(googlePassCard.language)
+    val header                 = new LocalizedString()
+      .setDefaultValue(translatedHeaderString)
 
     new GenericPrivatePass()
       .setId(issuerId + "." + id)
@@ -119,25 +117,24 @@ class CreateGenericPrivatePass @Inject() (config: AppConfig) {
     genericPrivatePass: GenericPrivatePass,
     expiry: Int
   ): String = {
-    val creds   = googleCredentials.asInstanceOf[ServiceAccountCredentials]
-    val expires = Date.from(LocalDateTime.now().plusMinutes(expiry).atZone(ZoneId.systemDefault()).toInstant)
+    // Create the JWT as a HashMap object
+    val claims: util.HashMap[String, Object] = new util.HashMap[String, Object]()
 
-    val payload = new util.HashMap[String, Object]()
-    payload.put("genericPrivatePasses", java.util.Arrays.asList(genericPrivatePass))
-
-    val claims = new util.HashMap[String, Object]()
-    claims.put("iss", creds.getClientEmail)
+    claims.put("iss", googleCredentials.asInstanceOf[ServiceAccountCredentials].getClientEmail())
     claims.put("aud", "google")
     claims.put("origins", Collections.singletonList(config.googleOrigins))
     claims.put("typ", "savetowallet")
+    // Create the Google Wallet payload and add to the JWT
+    val payload: util.HashMap[String, Object] = new util.HashMap[String, Object]()
+    payload.put("genericPrivatePasses", util.Arrays.asList(genericPrivatePass))
     claims.put("payload", payload)
-
-    val algorithm = Algorithm.RSA256(
+    val JWTExpiryDate                         = Date.from(LocalDateTime.now().plusMinutes(expiry).atZone(ZoneId.systemDefault()).toInstant)
+    // The service account credentials are used to sign the JWT
+    val algorithm: Algorithm                  = Algorithm.RSA256(
       null,
-      creds.getPrivateKey.asInstanceOf[RSAPrivateKey]
+      googleCredentials.asInstanceOf[ServiceAccountCredentials].getPrivateKey().asInstanceOf[RSAPrivateKey]
     )
-
-    JWT.create.withExpiresAt(expires).withPayload(claims).sign(algorithm)
+    JWT.create.withExpiresAt(JWTExpiryDate).withPayload(claims).sign(algorithm)
   }
 }
 // $COVERAGE-ON$
