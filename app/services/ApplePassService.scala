@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import play.api.Logging
 import repositories.ApplePassRepoTrait
 
 import java.util.UUID
-import javax.inject._
+import javax.inject.*
 import scala.concurrent.{ExecutionContext, Future}
 
 class ApplePassService @Inject() (
@@ -34,36 +34,39 @@ class ApplePassService @Inject() (
   val qrCodeService: QrCodeService
 ) extends Logging {
 
+  private val signingEnabled: Boolean = config.applePassSigningEnabled
+
+  private def ninoMatches(storedNino: String, sessionNino: String): Boolean =
+    storedNino.replace(" ", "").take(8) == sessionNino.take(8)
+
   def getPassCardByPassIdAndNINO(passId: String, nino: String)(implicit
     ec: ExecutionContext
   ): Future[Option[Array[Byte]]] =
-    for {
-      ap <- applePassRepository.findByPassId(passId)
-    } yield ap match {
-      case Some(applePass) =>
-        if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
-          Some(applePass.applePassCard)
-        } else {
-          logger.warn("Pass NINO does not match session NINO")
-          None
-        }
-      case _               => None
+    applePassRepository.findByPassId(passId).map {
+      case Some(applePass) if ninoMatches(applePass.nino, nino) =>
+        Some(applePass.applePassCard)
+
+      case Some(_) =>
+        logger.warn("Pass NINO does not match session NINO")
+        None
+
+      case None =>
+        None
     }
 
   def getQrCodeByPassIdAndNINO(passId: String, nino: String)(implicit
     ec: ExecutionContext
   ): Future[Option[Array[Byte]]] =
-    for {
-      aQrCode <- applePassRepository.findByPassId(passId)
-    } yield aQrCode match {
-      case Some(applePass) =>
-        if (applePass.nino.replace(" ", "").take(8).equals(nino.take(8))) {
-          Some(applePass.qrCode)
-        } else {
-          logger.warn("Pass NINO does not match session NINO")
-          None
-        }
-      case _               => None
+    applePassRepository.findByPassId(passId).map {
+      case Some(applePass) if ninoMatches(applePass.nino, nino) =>
+        Some(applePass.qrCode)
+
+      case Some(_) =>
+        logger.warn("Pass NINO does not match session NINO")
+        None
+
+      case None =>
+        None
     }
 
   def createPass(name: String, nino: String)(implicit ec: ExecutionContext): EitherT[Future, Exception, String] =
@@ -73,38 +76,73 @@ class ApplePassService @Inject() (
 
       val passFilesInBytes = fileService.createFileBytesForPass(pass)
 
-      for {
-        privateCertificate         <- config.privateCertificate
-        privateCertificatePassword <- config.privateCertificatePassword
-        appleWWDRCA                <- config.appleWWDRCA
-      } yield {
-        val signaturePassInBytes = signatureService.createSignatureForPass(
-          passFilesInBytes,
-          privateCertificate,
-          privateCertificatePassword,
-          appleWWDRCA
+      if (passFilesInBytes.isEmpty) {
+        Future.successful(
+          Left(new Exception("Problem occurred while creating Apple Pass. Pass files generated: false"))
         )
+      } else {
 
-        if (passFilesInBytes.nonEmpty && signaturePassInBytes.content.nonEmpty) {
-          val passDataTuple = for {
-            pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signaturePassInBytes)
-            qrCodeByteArray <-
-              qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
-          } yield (pkPassByteArray, qrCodeByteArray)
-          passDataTuple.map(tuple => applePassRepository.insert(uuid, name, nino, tuple._1, tuple._2))
-          Right(uuid)
+        val signatureF: Future[FileAsBytes] =
+          if (!signingEnabled) {
+            Future.successful(FileAsBytes(SignatureService.SIGNATURE_FILE_NAME, Array.emptyByteArray))
+          } else {
+            config.appleCerts.map { certs =>
+              signatureService.createSignatureForPass(
+                passFilesInBytes,
+                certs.privateCert,
+                certs.privateCertPassword,
+                certs.wwdrca
+              )
+            }
+          }
 
-        } else {
-          logger.error(
-            s"[Creating Apple Pass] Zip and Qr Code Failed. " +
-              s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signaturePassInBytes.content.nonEmpty}"
-          )
-          Left(
-            new Exception(
-              s"Problem occurred while creating Apple Pass. "
-                + s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signaturePassInBytes.content.nonEmpty}"
+        signatureF.flatMap { signature =>
+          val signatureOk = !signingEnabled || signature.content.nonEmpty
+
+          if (!signatureOk) {
+            logger.error(
+              s"[Creating Apple Pass] Signature failed. isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: false"
             )
-          )
+            Future.successful(
+              Left(
+                new Exception(
+                  s"Problem occurred while creating Apple Pass. Pass files generated: true, Pass files signed: false"
+                )
+              )
+            )
+          } else {
+
+            val passDataOpt =
+              for {
+                pkPassByteArray <- fileService.createPkPassZipForPass(passFilesInBytes, signature)
+                qrCodeByteArray <-
+                  qrCodeService.createQRCode(s"${config.frontendServiceUrl}/get-pass-card?passId=$uuid&qr-code=true")
+              } yield (pkPassByteArray, qrCodeByteArray)
+
+            passDataOpt match {
+              case Some((pkPass, qrCode)) =>
+                applePassRepository
+                  .insert(uuid, name, nino, pkPass, qrCode)
+                  .map(_ => Right(uuid))
+                  .recover { case e =>
+                    Left(new Exception("Problem occurred while storing Apple Pass.", e))
+                  }
+
+              case None =>
+                logger.error(
+                  s"[Creating Apple Pass] Zip/QRCode generation failed. " +
+                    s"isPassFilesGenerated: ${passFilesInBytes.nonEmpty} || isPassSigned: ${signature.content.nonEmpty}"
+                )
+                Future.successful(
+                  Left(
+                    new Exception(
+                      s"Problem occurred while creating Apple Pass. " +
+                        s"Pass files generated: ${passFilesInBytes.nonEmpty}, Pass files signed: ${signature.content.nonEmpty}"
+                    )
+                  )
+                )
+            }
+          }
         }
       }
     }
