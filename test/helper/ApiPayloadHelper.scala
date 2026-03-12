@@ -279,11 +279,54 @@ trait ApiPayloadHelper {
     )
   )
 
+  protected lazy val apiIndividualDetailsJson_WithTitleType_0: JsObject = individualDetailsApiFull(
+    individualDetailsApiResponseMain(crnIndicator = 0, generatedNinoWithoutSuffix, generatedNinoSuffix),
+    Seq(
+      individualDetailsApiNameSection(
+        seqNo = 1,
+        nameType = NameTypeReal,
+        titleType = 0,
+        name1 = Some("name11"),
+        name2 = Some("name12"),
+        surname = Some("surname1"),
+        honours = Some("BA")
+      )
+    ),
+    Seq(
+      individualDetailsApiAddressSection(
+        seqNo = 1,
+        addressType = AddressTypeResidential,
+        addr1 = "addr11",
+        addr2 = "addr12"
+      )
+    )
+  )
+
   protected lazy val apiIndividualDetailsMinimalFields: JsObject = individualDetailsApiFull(
     individualDetailsApiResponseMain(crnIndicator = 0, generatedNinoWithoutSuffix, generatedNinoSuffix),
     Seq.empty,
     Seq.empty
   )
+
+  protected def apiTransformedIndividualDetailsJson_WithTitleType_0: JsObject = Json
+    .parse(s"""{
+         |   "title":"",
+         |   "firstForename":"name11",
+         |   "secondForename":"name12",
+         |   "surname":"surname1",
+         |   "honours":"BA",
+         |   "dateOfBirth":"1990-07-20",
+         |   "nino":"$generatedNinoWithoutSuffix$generatedNinoSuffix",
+         |   "address":{
+         |      "addressLine1":"addr11",
+         |      "addressCountry":"GREAT BRITAIN",
+         |      "addressLine2":"addr12",
+         |      "addressType":$AddressTypeResidential,
+         |      "addressStartDate":"2018-03-10"
+         |   },
+         |   "crnIndicator":"false"
+         |}""".stripMargin)
+    .as[JsObject]
 
   protected def apiTransformedIndividualDetailsJsonOneNameOneAddress: JsObject = Json
     .parse(s"""{
