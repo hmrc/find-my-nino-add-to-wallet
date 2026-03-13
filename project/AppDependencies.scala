@@ -2,9 +2,9 @@ import sbt.*
 
 object AppDependencies {
 
-  private val mongoToggleVersion = "2.3.0"
+  private val mongoToggleVersion = "2.5.0"
   private val playVersion        = "play-30"
-  private val bootstrapVersion   = "10.1.0"
+  private val bootstrapVersion   = "10.7.0"
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                  %% s"bootstrap-backend-$playVersion"            % bootstrapVersion,
@@ -19,7 +19,7 @@ object AppDependencies {
     "com.google.guava"              % "guava"                                      % "33.4.8-jre",
     "com.auth0"                     % "java-jwt"                                   % "4.5.0",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"                       % "2.20.0",
-    "uk.gov.hmrc"                  %% s"crypto-json-$playVersion"                  % "8.3.0",
+    "uk.gov.hmrc"                  %% s"crypto-json-$playVersion"                  % "8.4.0",
     "uk.gov.hmrc"                  %% s"mongo-feature-toggles-client-$playVersion" % mongoToggleVersion,
     "uk.gov.hmrc"                  %% "domain-play-30"                             % "12.1.0"
   )
