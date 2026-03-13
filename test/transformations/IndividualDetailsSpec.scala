@@ -77,5 +77,11 @@ class IndividualDetailsSpec extends SpecBase with ApiPayloadHelper {
         apiIndividualDetailsJsonOneNameOneAddress.validate[JsObject](IndividualDetails.reads)
       result mustBe JsSuccess(apiTransformedIndividualDetailsJsonOneNameOneAddress)
     }
+
+    "transform correctly - when the title type is 0 (NotKnown)" in {
+      val result: JsResult[JsObject] =
+        apiIndividualDetailsJson_WithTitleType_0.validate[JsObject](IndividualDetails.reads)
+      result mustBe JsSuccess(apiTransformedIndividualDetailsJson_WithTitleType_0)
+    }
   }
 }

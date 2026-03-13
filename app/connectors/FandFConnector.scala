@@ -18,9 +18,9 @@ package connectors
 
 import com.google.inject.Inject
 import config.AppConfig
+import models.TrustedHelper
 import play.api.Logging
 import play.api.http.Status.{NOT_FOUND, OK}
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -43,7 +43,7 @@ class FandFConnector @Inject() (
         httpResponse.status match {
           case NOT_FOUND => None
           case OK        =>
-            Try(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads)) match {
+            Try(httpResponse.json.as[TrustedHelper](TrustedHelper.reads)) match {
               case Success(trustedHelper) => Some(trustedHelper)
               case Failure(ex)            =>
                 logger.error(s"Failed to parse TrustedHelper", ex)
