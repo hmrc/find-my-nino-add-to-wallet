@@ -19,6 +19,7 @@ package controllers
 import cats.data.EitherT
 import connectors.FandFConnector
 import helper.ApiPayloadHelper
+import models.TrustedHelper
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -34,7 +35,6 @@ import play.api.{Application, Configuration, Environment}
 import services.IndividualDetailsService
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 

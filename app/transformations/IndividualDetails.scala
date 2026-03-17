@@ -371,7 +371,7 @@ object IndividualDetails {
 
   private val readsTitleType: Reads[JsString] =
     Reads {
-      case JsNumber(0) => JsSuccess(JsString("NotKnown"))
+      case JsNumber(0) => JsSuccess(JsString(""))
       case JsNumber(1) => JsSuccess(JsString("Mr"))
       case JsNumber(2) => JsSuccess(JsString("Mrs"))
       case JsNumber(3) => JsSuccess(JsString("Miss"))
