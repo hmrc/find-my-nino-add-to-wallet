@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,22 @@ import javax.inject.Inject
 
 class GooglePassUtil @Inject() (config: AppConfig, createGenericPrivatePass: CreateGenericPrivatePass) {
 
-  val issuerId: String     = config.googleIssuerId
-  val id: String           = s"hmrc-${UUID.randomUUID()}"
-  val key: String          = config.googleKey
-  val expiry: Int          = config.googleJWTExpiry
-  val googleAddUrl: String = config.googleAddUrl
+  private val issuerId: String     = config.googleIssuerId
+  private val expiry: Int          = config.googleJWTExpiry
+  private val googleAddUrl: String = config.googleAddUrl
 
   def createGooglePassWithCredentials(name: String, nino: String, googleCredentials: GoogleCredentials): String = {
+    val id = s"hmrc-${UUID.randomUUID()}"
 
     val googlePassCardContent = createGooglePassCardContent(name, nino)
     val jwt                   =
       createGenericPrivatePass.createJwtWithCredentials(id, issuerId, googlePassCardContent, googleCredentials, expiry)
-    val saveUrl               = googleAddUrl + jwt
-    saveUrl
+
+    googleAddUrl + jwt
   }
 
-  private def createGooglePassCardContent(name: String, nino: String): GooglePassCard = {
-    val pass: GooglePassCard = GooglePassCard(
+  private def createGooglePassCardContent(name: String, nino: String): GooglePassCard =
+    GooglePassCard(
       header = "HM Revenue & Customs",
       title = "National Insurance number",
       rows = Some(
@@ -98,6 +97,4 @@ class GooglePassUtil @Inject() (config: AppConfig, createGenericPrivatePass: Cre
       hexBackgroundColour = "#008985",
       language = "en"
     )
-    pass
-  }
 }

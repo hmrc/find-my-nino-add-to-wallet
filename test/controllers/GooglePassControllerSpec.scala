@@ -33,9 +33,9 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.GooglePassService
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
-import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.UUID
@@ -46,7 +46,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
   import GooglePassControllerSpec.*
 
-  // setup before each test
   before {
     reset(mockAuthConnector, mockGooglePassService)
 
@@ -58,13 +57,11 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
         eqTo(AuthProviders(AuthProvider.GovernmentGateway)),
         any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String] ~ Option[Credentials]]]
       )(any[HeaderCarrier], any[ExecutionContext])
-    )
-      .thenReturn(retrievalResult)
-
+    ).thenReturn(retrievalResult)
   }
 
-  "getPassCardByPassId" must {
-    "return OK with the byte data of pass" in {
+  "getPassUrlByPassId" must {
+    "return OK with the url" in {
       when(mockGooglePassService.getPassUrlByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomePassCodeData")))
 
@@ -72,7 +69,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
 
       whenReady(result) { _ =>
         status(result) mustBe OK
-        contentAsBytes(result).length should be > 1
+        contentAsString(result) should include("SomePassCodeData")
       }
     }
 
@@ -111,8 +108,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
           any[Predicate],
           any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
         )(any[HeaderCarrier], any[ExecutionContext])
-      )
-        .thenReturn(retrievalResult)
+      ).thenReturn(retrievalResult)
 
       when(mockGooglePassService.getQrCodeByPassIdAndNINO(eqTo(passId), eqTo("AB123456Q"))(any()))
         .thenReturn(Future.successful(Some("SomeQrCodeData".getBytes())))
@@ -137,6 +133,14 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
   }
 
   "createPassWithCredentials" must {
+    "return BadRequest when request body is not JSON" in {
+      val result = controller.createPassWithCredentials()(fakeRequestWithAuth)
+
+      whenReady(result) { _ =>
+        status(result) mustBe BAD_REQUEST
+      }
+    }
+
     "return OK with the uuid of the pass" ignore {
       when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
         .thenReturn(Right(passId))
@@ -152,6 +156,7 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
         contentAsString(result) mustBe passId
       }
     }
+
     "return InternalServerError when request body is invalid" ignore {
       when(mockGooglePassService.createPassWithCredentials(any(), any(), any(), any())(any()))
         .thenReturn(Left(new Exception("SomeError")))
@@ -167,7 +172,6 @@ class GooglePassControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       }
     }
   }
-
 }
 
 object GooglePassControllerSpec {
@@ -180,17 +184,6 @@ object GooglePassControllerSpec {
   private val mockGooglePassService = mock[GooglePassService]
   private val mockAuthConnector     = mock[AuthConnector]
 
-  val retrievalResult: Future[Option[String] ~ Option[CredentialRole] ~ Option[String]] =
-    Future.successful(new ~(new ~(Some("AB123456Q"), Some(User)), Some("id")))
-
-  when(
-    mockAuthConnector.authorise[Option[String] ~ Option[CredentialRole] ~ Option[String]](
-      any[Predicate],
-      any[Retrieval[Option[String] ~ Option[CredentialRole] ~ Option[String]]]
-    )(any[HeaderCarrier], any[ExecutionContext])
-  )
-    .thenReturn(retrievalResult)
-
   val modules: Seq[GuiceableModule] =
     Seq(
       bind[GooglePassService].toInstance(mockGooglePassService),
@@ -202,5 +195,4 @@ object GooglePassControllerSpec {
     .overrides(modules: _*)
     .build()
   private val controller       = application.injector.instanceOf[GooglePassController]
-
 }
