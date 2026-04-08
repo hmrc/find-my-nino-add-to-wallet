@@ -18,10 +18,8 @@ package controllers
 
 import cats.data.EitherT
 import connectors.FandFConnector
-import play.api.http.Status.{NOT_FOUND, UNAUTHORIZED}
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, JsValue}
 import play.api.mvc.*
-import play.api.mvc.Results.{InternalServerError, NotFound, Unauthorized}
 import play.api.{Configuration, Environment}
 import services.IndividualDetailsService
 import transformations.IndividualDetails
