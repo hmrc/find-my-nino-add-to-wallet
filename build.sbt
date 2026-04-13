@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "find-my-nino-add-to-wallet"
 
 ThisBuild / majorVersion := 1
-ThisBuild / scalaVersion := "3.3.5"
+ThisBuild / scalaVersion := "3.3.7"
 ThisBuild / scalafmtOnCompile := true
 
 addCommandAlias("report", ";clean; coverage; test; it/test; coverageReport")

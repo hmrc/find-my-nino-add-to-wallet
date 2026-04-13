@@ -16,16 +16,14 @@
 
 package services
 
+import _root_.util.SpecBase
+import config.AppConfig
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.must.Matchers.must
-import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.*
 import services.SensitiveFormatService.SensitiveJsValue
 import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText}
-import _root_.util.SpecBase
-import config.AppConfig
 
 class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
   private trait EncrypterDecrypter extends Encrypter with Decrypter

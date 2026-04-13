@@ -27,7 +27,7 @@ import java.io.IOException
 import java.security.interfaces.RSAPrivateKey
 import java.time.{LocalDateTime, ZoneId}
 import java.util
-import java.util.{Collections, Date, HashMap}
+import java.util.{Collections, Date}
 import javax.inject.Inject
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.*

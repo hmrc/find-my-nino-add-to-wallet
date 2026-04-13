@@ -20,7 +20,6 @@ import cats.data.EitherT
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.concurrent.Futures.PatienceConfig
 import org.scalatest.time.{Seconds, Span}
 import play.api.Application
 import play.api.inject.bind
