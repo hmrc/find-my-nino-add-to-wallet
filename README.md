@@ -2,12 +2,13 @@
 # find-my-nino-add-to-wallet
 
 ## About
-This repository is the backend for the Save your National Insurance number frontend service (find-my-nino-add-to-wallet-frontend).
-It provides the endpoints to create and retrieve the generated digital wallet card.
+This repository is the backend for the Save your National Insurance number frontend service (`find-my-nino-add-to-wallet-frontend`).
+It provides endpoints to create and retrieve generated digital wallet cards.
 
 This repository also fetches individual details from NPS and integrates with NPS for the purpose of upgrading a CRN (Child Reference Number) to a NINO.
 
 ## Endpoints
+
 There are a total of 8 endpoints in use in the backend microservice:
 
 - GET         /get-pass-card?passId=${passId}
@@ -20,55 +21,49 @@ There are a total of 8 endpoints in use in the backend microservice:
 - GET         /individuals/details/NINO/:nino/:resolveMerge   
   PUT         /adult-registration/:identifier                 
 
-Local development (Apple and Google Wallet)
+## Local development
 
-For local development, Apple and Google Wallet credentials must not be committed to the repository.
+For local development, no Apple or Google Wallet certificates need to be downloaded.
 
-A helper script is provided to set up the required local environment variables:
+The application uses:
+- dummy base64 values in configuration for local placeholders
+- Apple Wallet signing disabled locally
 
-scripts/setup-local-wallet-env.sh
+### Apple Wallet
 
-The script:
+Apple Wallet signing is disabled for local development:
 
-Creates a local secrets directory outside the repository
+applePass.signingEnabled = false
 
-Generates Apple Wallet development certificates automatically (self-signed)
+Because signing is disabled locally:
 
-Base64-encodes the generated certificates
+no Apple certificates are required
+no .p12 files are required
+no local certificate generation is required
 
-Generates a local environment file used by the service
+Signing remains enabled by default in other environments unless explicitly disabled.
 
-Validates the presence of Google Wallet credentials
+### Google Wallet
 
-The script is idempotent and can be run multiple times safely.
+For local development, the application uses the dummy base64 Google key already present in configuration.
 
-Google Wallet (local setup)
+Because of this:
 
-Google Wallet requires a service account JSON key from a Google Cloud dev or sandbox project.
+no Google service account key needs to be downloaded for local development
+no extra local setup is required for wallet credentials
 
-This file must be downloaded manually from the Google Cloud Console and saved locally as:
-
-~/.hmrc/find-my-nino-add-to-wallet/google-wallet-dev.json
-
-This file must not be committed to git.
+This local setup is intended for development and flow testing only.
 
 Running locally
 
-Before starting the service locally, run:
+Start the service as usual, for example:
 
-scripts/setup-local-wallet-env.sh
-source target/wallet-local/wallet-local.env
+sbt run
 
-Then start the service as usual (for example, using sbt).
+The local wallet configuration is intended only for development.
 
-Apple Wallet signing
-
-Apple Wallet signing is enforced by default.
-
-For local development, signing is disabled via configuration to allow passes to be generated using self-signed development certificates.
-
-Signing remains enforced in all other environments.
+Real Apple signing certificates and real Google credentials are still required for non-local environments where genuine wallet signing and integration are needed.
 
 ### License
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+This code is open source software licensed under the Apache 2.0 License.
