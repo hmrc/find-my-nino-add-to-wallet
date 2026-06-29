@@ -52,20 +52,21 @@ class IndividualsDetailsController @Inject() (
         logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
         Future.successful(Unauthorized("You are not authorised to access this resource"))
       } else {
-        resultFromStatus(individualDetailsService.getIndividualDetails(nino, authContext.credentials, resolveMerge))
+        resultFromStatus(
+          individualDetailsService.getIndividualDetails(authContext.nino, authContext.credentials, resolveMerge)
+        )
       }
     }
   }
 
   def deleteCachedIndividualDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
     authorisedAsFMNUser { authContext =>
-      implicit val hc: HeaderCarrier = hcFrom
       if (!sameNino(authContext.nino, nino)) {
         logger.warn(s"User with NINO ${authContext.nino} is trying to access NINO $nino")
         Future.successful(Unauthorized("You are not authorised to access this resource"))
       } else {
         individualDetailsService
-          .deleteIndividualDetails(nino, authContext.credentials)
+          .deleteIndividualDetails(authContext.nino, authContext.credentials)
           .bimap(errorToResponse, _ => Ok)
           .merge
       }

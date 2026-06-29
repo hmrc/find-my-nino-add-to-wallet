@@ -33,9 +33,7 @@ class IndividualDetailsService @Inject() (individualDetailsConnector: Individual
   ): EitherT[Future, UpstreamErrorResponse, JsValue] =
     individualDetailsConnector.getIndividualDetails(nino, credentials, resolveMerge)
 
-  def deleteIndividualDetails(nino: String, credentials: Credentials)(implicit
-    hc: HeaderCarrier
-  ): EitherT[Future, UpstreamErrorResponse, Unit] =
+  def deleteIndividualDetails(nino: String, credentials: Credentials): EitherT[Future, UpstreamErrorResponse, Unit] =
     individualDetailsConnector.deleteIndividualDetailsIfCached(nino, credentials)
 
 }

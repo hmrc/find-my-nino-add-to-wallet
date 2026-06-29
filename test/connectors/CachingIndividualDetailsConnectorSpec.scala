@@ -74,25 +74,26 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
   "getIndividualDetails" should {
 
     "return cached value if present in session cache with correct key value" in {
-      when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
+      when(mockCacheRepo.getFromSession[JsValue](any(), any())(any()))
         .thenReturn(Future.successful(Some(jsonResult)))
 
       val result = connector.getIndividualDetails(nino, credentials, resolveMerge).value.futureValue
 
       result mustBe Right(jsonResult)
+      verify(mockCacheRepo).getFromSession(any(), eqTo(Nino(nino)))(any())
       verify(mockUnderlying, times(0)).getIndividualDetails(any(), any(), any())(any(), any())
     }
 
     "fetch person details and cache result if not present in session cache" in {
-      when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
+      when(mockCacheRepo.getFromSession[JsValue](any(), any())(any()))
         .thenReturn(Future.successful(None))
 
       when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(credentials), eqTo(resolveMerge))(any(), any()))
         .thenReturn(EitherT.rightT[Future, UpstreamErrorResponse](jsonResult))
 
       when(
-        mockCacheRepo.putSession(any(), any())(any(), any(), any())
-      ).thenReturn(Future.successful("sessionId" -> "updated"))
+        mockCacheRepo.putSession(any(), any(), any())(any(), any())
+      ).thenReturn(Future.successful("nino" -> "updated"))
 
       val result = connector.getIndividualDetails(nino, credentials, resolveMerge).value.futureValue
 
@@ -101,10 +102,10 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
         .getIndividualDetails(eqTo(nino), eqTo(credentials), eqTo(resolveMerge))(any(), any())
       verify(mockCacheRepo).putSession(
         any(),
-        any()
+        any(),
+        eqTo(Nino(nino))
       )(
         any[Format[JsValue]],
-        any[HeaderCarrier],
         any[ExecutionContext]
       )
     }
@@ -112,7 +113,7 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
     "return error if connector fails and nothing in cache" in {
       val error = UpstreamErrorResponse("Something went wrong", 500)
 
-      when(mockCacheRepo.getFromSession[JsValue](any())(any(), any()))
+      when(mockCacheRepo.getFromSession[JsValue](any(), any())(any()))
         .thenReturn(Future.successful(None))
 
       when(mockUnderlying.getIndividualDetails(eqTo(nino), eqTo(credentials), eqTo(resolveMerge))(any(), any()))
@@ -120,18 +121,20 @@ class CachingIndividualDetailsConnectorSpec extends SpecBase with WireMockHelper
       val result = connector.getIndividualDetails(nino, credentials, resolveMerge).value.futureValue
 
       result mustBe Left(error)
+      verify(mockCacheRepo).getFromSession(any(), eqTo(Nino(nino)))(any())
     }
   }
 
   "deleteIndividualDetailsIfCached" should {
 
     "return unit when successful" in {
-      when(mockCacheRepo.deleteFromSession[JsValue](any())(any()))
+      when(mockCacheRepo.deleteFromSession[JsValue](any(), any()))
         .thenReturn(Future.successful((): Unit))
 
       val result = connector.deleteIndividualDetailsIfCached(nino, credentials).value.futureValue
 
       result mustBe Right((): Unit)
+      verify(mockCacheRepo).deleteFromSession(any(), eqTo(Nino(nino)))
     }
   }
 
