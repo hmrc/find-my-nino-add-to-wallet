@@ -25,6 +25,7 @@ import play.api.libs.json.{Format, JsValue}
 import repositories.cache.FMNSessionCacheRepository
 import services.SensitiveFormatService
 import uk.gov.hmrc.auth.core.retrieve.Credentials
+import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -39,8 +40,7 @@ trait IndividualDetailsConnector {
     headerCarrier: HeaderCarrier
   ): EitherT[Future, UpstreamErrorResponse, JsValue]
   def deleteIndividualDetailsIfCached(nino: String, credentials: Credentials)(implicit
-    ec: ExecutionContext,
-    headerCarrier: HeaderCarrier
+    ec: ExecutionContext
   ): EitherT[Future, UpstreamErrorResponse, Unit]
 }
 
@@ -73,8 +73,7 @@ class DefaultIndividualDetailsConnector @Inject() (val httpClientV2: HttpClientV
   }
 
   override def deleteIndividualDetailsIfCached(nino: String, credentials: Credentials)(implicit
-    ec: ExecutionContext,
-    headerCarrier: HeaderCarrier
+    ec: ExecutionContext
   ): EitherT[Future, UpstreamErrorResponse, Unit] = EitherT(Future.successful(Right((): Unit)))
 }
 
@@ -88,35 +87,40 @@ class CachingIndividualDetailsConnector @Inject() (
     with Logging {
 
   private def cache[L, A: Format](
-    key: String
-  )(f: => EitherT[Future, L, A])(implicit hc: HeaderCarrier): EitherT[Future, L, A] = {
+    key: String,
+    nino: Nino
+  )(f: => EitherT[Future, L, A]): EitherT[Future, L, A] = {
     def fetchAndCache: EitherT[Future, L, A] = for {
       result <- f
-      _      <- EitherT.liftF(sessionCacheRepository.putSession[A](DataKey[A](key), result))
+      _      <- EitherT.liftF(sessionCacheRepository.putSession[A](DataKey[A](key), result, nino))
     } yield result
 
     EitherT {
-      sessionCacheRepository.getFromSession[A](DataKey[A](key)).flatMap {
+      sessionCacheRepository.getFromSession[A](DataKey[A](key), nino).flatMap {
         case Some(value) => Future.successful(Right(value))
         case None        => fetchAndCache.value
       }
     }
   }
 
-  private def cachingKey(credentials: Credentials): String = s"individual-details-cred-id-${credentials.providerId}"
+  private def cachingKey(nino: Nino): String = s"individual-details-nino-${nino.nino}"
 
   override def getIndividualDetails(nino: String, credentials: Credentials, resolveMerge: String)(implicit
     ec: ExecutionContext,
     headerCarrier: HeaderCarrier
-  ): EitherT[Future, UpstreamErrorResponse, JsValue] =
-    cache(cachingKey(credentials)) {
+  ): EitherT[Future, UpstreamErrorResponse, JsValue] = {
+    val ninoObject = Nino(nino)
+
+    cache(cachingKey(ninoObject), ninoObject) {
       underlying.getIndividualDetails(nino, credentials, resolveMerge)
     }(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+  }
 
   override def deleteIndividualDetailsIfCached(nino: String, credentials: Credentials)(implicit
-    ec: ExecutionContext,
-    headerCarrier: HeaderCarrier
-  ): EitherT[Future, UpstreamErrorResponse, Unit] =
-    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey(cachingKey(credentials))))
+    ec: ExecutionContext
+  ): EitherT[Future, UpstreamErrorResponse, Unit] = {
+    val ninoObject = Nino(nino)
+    EitherT.liftF(sessionCacheRepository.deleteFromSession(DataKey[JsValue](cachingKey(ninoObject)), ninoObject))
+  }
 
 }
