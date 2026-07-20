@@ -17,26 +17,28 @@
 package services
 
 import com.google.inject.Inject
-import config.AppConfig
+import config.{AppConfig, CryptoProvider}
 import play.api.libs.json.*
 import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText, Sensitive}
 
 import scala.util.{Failure, Success, Try}
 
 class SensitiveFormatService @Inject() (
-  encrypterDecrypter: Encrypter with Decrypter,
+  cryptoProvider: CryptoProvider,
   appConfig: AppConfig
 ) {
   import SensitiveFormatService.*
 
+  val crypto: Encrypter & Decrypter = cryptoProvider.get()
+
   private def writeJsValueWithEncryption(jsValue: JsValue): JsValue =
-    JsString(encrypterDecrypter.encrypt(PlainText(Json.stringify(jsValue))).value)
+    JsString(crypto.encrypt(PlainText(Json.stringify(jsValue))).value)
 
   private def sensitiveReadsJsValue[A <: JsValue: Format]: Reads[SensitiveJsValue] = {
     case JsString(s) =>
-      Try(encrypterDecrypter.decrypt(Crypted(s))) match {
+      Try(crypto.decrypt(Crypted(s)).value) match {
         case Success(plainText) =>
-          JsSuccess(SensitiveJsValue(Json.parse(plainText.value).as[A]))
+          JsSuccess(SensitiveJsValue(Json.parse(plainText).as[A]))
 
         /*
             Both of the below cases cater for two scenarios where the value is not encrypted:-

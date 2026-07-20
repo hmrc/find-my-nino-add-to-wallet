@@ -26,6 +26,19 @@ class CryptoProvider @Inject() (
   configuration: Configuration
 ) extends Provider[Encrypter with Decrypter] {
 
-  override def get(): Encrypter with Decrypter =
+  private def gcmPrimary: Boolean =
+    configuration.getOptional[Boolean]("mongodb.encryption.gcm.primary").getOrElse(false)
+
+  private def legacy: Encrypter with Decrypter =
     SymmetricCryptoFactory.aesCryptoFromConfig(baseConfigKey = "mongodb.encryption", configuration.underlying)
+
+  private def latest: Encrypter with Decrypter =
+    SymmetricCryptoFactory.aesGcmCryptoFromConfig(baseConfigKey = "mongodb.encryption.gcm", configuration.underlying)
+
+  override def get(): Encrypter with Decrypter =
+    if (gcmPrimary) {
+      SymmetricCryptoFactory.composeCrypto(currentCrypto = latest, previousDecrypters = Seq(legacy))
+    } else {
+      SymmetricCryptoFactory.composeCrypto(currentCrypto = legacy, previousDecrypters = Seq(latest))
+    }
 }
