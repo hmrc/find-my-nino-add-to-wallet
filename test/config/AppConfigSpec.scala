@@ -17,37 +17,25 @@
 package config
 
 import _root_.util.SpecBase
-import models.admin.ApplePassCertificates2
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.{reset, when}
 import play.api.Application
 import play.api.inject.bind
 import repositories.{ApplePassRepoTrait, ApplePassRepository, GooglePassRepoTrait, GooglePassRepository}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
-import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlag
-import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
-import scala.concurrent.Future
-
 class AppConfigSpec extends SpecBase {
-  private lazy val mockFeatureFlagService: FeatureFlagService     = mock[FeatureFlagService]
   private trait EncrypterDecrypter extends Encrypter with Decrypter
   private implicit val mockEncrypterDecrypter: EncrypterDecrypter = mock[EncrypterDecrypter]
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure(
-      "applePass.appleWWDRCA"                 -> "appleWWDRCA",
-      "applePass.privateCertificate"          -> "privateCertificate",
-      "applePass.privateCertificatePassword"  -> "privateCertificatePassword",
-      "applePass.appleWWDRCA2"                -> "appleWWDRCA2",
-      "applePass.privateCertificate2"         -> "privateCertificate2",
-      "applePass.privateCertificatePassword2" -> "privateCertificatePassword2",
-      "applePass.signingEnabled"              -> false
+      "applePass.appleWWDRCA"                -> "appleWWDRCA",
+      "applePass.privateCertificate"         -> "privateCertificate",
+      "applePass.privateCertificatePassword" -> "privateCertificatePassword",
+      "applePass.signingEnabled"             -> false
     )
     .overrides(
-      bind[FeatureFlagService].toInstance(mockFeatureFlagService),
       bind(classOf[ApplePassRepoTrait]).to(classOf[ApplePassRepository]),
       bind(classOf[GooglePassRepoTrait]).to(classOf[GooglePassRepository]),
       bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]),
@@ -58,33 +46,13 @@ class AppConfigSpec extends SpecBase {
 
   lazy val sut: AppConfig = app.injector.instanceOf[AppConfig]
 
-  override def beforeEach(): Unit =
-    reset(mockFeatureFlagService)
-
   "applePass" must {
 
-    "use first set of certs" when {
-      "ApplePassCertificates2 is disabled" in {
-        when(mockFeatureFlagService.get(ArgumentMatchers.eq(ApplePassCertificates2)))
-          .thenReturn(Future.successful(FeatureFlag(ApplePassCertificates2, isEnabled = false)))
-
-        val certs = sut.appleCerts.futureValue
-        certs.wwdrca mustBe "appleWWDRCA"
-        certs.privateCert mustBe "privateCertificate"
-        certs.privateCertPassword mustBe "privateCertificatePassword"
-      }
-    }
-
-    "use second set of certs" when {
-      "ApplePassCertificates2 is enabled" in {
-        when(mockFeatureFlagService.get(ArgumentMatchers.eq(ApplePassCertificates2)))
-          .thenReturn(Future.successful(FeatureFlag(ApplePassCertificates2, isEnabled = true)))
-
-        val certs = sut.appleCerts.futureValue
-        certs.wwdrca mustBe "appleWWDRCA2"
-        certs.privateCert mustBe "privateCertificate2"
-        certs.privateCertPassword mustBe "privateCertificatePassword2"
-      }
+    "read the configured certificate values" in {
+      val certs = sut.appleCerts.futureValue
+      certs.wwdrca mustBe "appleWWDRCA"
+      certs.privateCert mustBe "privateCertificate"
+      certs.privateCertPassword mustBe "privateCertificatePassword"
     }
 
     "read signingEnabled flag" in {
