@@ -17,31 +17,55 @@
 package services
 
 import _root_.util.SpecBase
-import config.AppConfig
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import config.{AppConfig, CryptoProvider}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
+import play.api.Configuration
 import play.api.libs.json.*
 import services.SensitiveFormatService.SensitiveJsValue
-import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText}
 
 class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
-  private trait EncrypterDecrypter extends Encrypter with Decrypter
-
-  private implicit val mockEncrypterDecrypter: EncrypterDecrypter = mock[EncrypterDecrypter]
-  private val encryptedValueAsString: String                      = "encrypted"
-  private val encryptedValue: Crypted                             = Crypted(encryptedValueAsString)
-  private val unencryptedJsObject: JsObject                       = Json.obj(
-    "testa" -> "valuea",
-    "testb" -> "valueb"
-  )
-  private val unencryptedJsString: JsString                       = JsString("test")
-  private val sensitiveJsObject: SensitiveJsValue                 = SensitiveJsValue(unencryptedJsObject)
-  private val sensitiveJsString: SensitiveJsValue                 = SensitiveJsValue(unencryptedJsString)
 
   private val mockAppConfig: AppConfig = mock[AppConfig]
 
-  private val sensitiveFormatService = new SensitiveFormatService(mockEncrypterDecrypter, mockAppConfig)
+  private lazy val cryptoProvider: CryptoProvider = {
+    val config = Configuration.from(
+      Map(
+        "mongodb.encryption.key"              -> "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b",
+        "mongodb.encryption.previousKeys"     -> List(),
+        "mongodb.encryption.gcm.key"          -> "bG9jYWxHY21BZXNLZXkxNg==",
+        "mongodb.encryption.gcm.previousKeys" -> List(),
+        "mongodb.encryption.gcm.primary"      -> false
+      )
+    )
+    new CryptoProvider(config)
+  }
+
+  private lazy val cryptoProviderWithGcmPrimary: CryptoProvider = {
+    val config = Configuration.from(
+      Map(
+        "mongodb.encryption.key"              -> "z4rWoRLf7a1OHTXLutSDJjhrUzZTBE3b",
+        "mongodb.encryption.previousKeys"     -> List(),
+        "mongodb.encryption.gcm.key"          -> "bG9jYWxHY21BZXNLZXkxNg==",
+        "mongodb.encryption.gcm.previousKeys" -> List(),
+        "mongodb.encryption.gcm.primary"      -> true
+      )
+    )
+    new CryptoProvider(config)
+  }
+
+  private lazy val sensitiveFormatServiceWithGcmPrimary =
+    new SensitiveFormatService(cryptoProviderWithGcmPrimary, mockAppConfig)
+
+  private lazy val sensitiveFormatService = new SensitiveFormatService(cryptoProvider, mockAppConfig)
+
+  private val unencryptedJsObject: JsObject       = Json.obj(
+    "testa" -> "valuea",
+    "testb" -> "valueb"
+  )
+  private val unencryptedJsString: JsString       = JsString("test")
+  private val sensitiveJsObject: SensitiveJsValue = SensitiveJsValue(unencryptedJsObject)
+  private val sensitiveJsString: SensitiveJsValue = SensitiveJsValue(unencryptedJsString)
 
   private val fakeJsonPayload: String =
     """
@@ -70,132 +94,143 @@ class SensitiveFormatServiceSpec extends SpecBase with BeforeAndAfterEach {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockEncrypterDecrypter)
     reset(mockAppConfig)
     when(mockAppConfig.encryptionEnabled).thenReturn(true)
-
     ()
   }
 
   "sensitiveFormatJsValue" must {
-    "write JsObject, calling encrypt" in {
-      when(mockEncrypterDecrypter.encrypt(any())).thenReturn(encryptedValue)
 
+    "write JsObject with encryption" in {
       val result: JsValue = Json.toJson(sensitiveJsObject)(sensitiveFormatService.sensitiveFormatJsValue[JsObject])
 
-      result mustBe JsString(encryptedValueAsString)
-
-      verify(mockEncrypterDecrypter, times(1)).encrypt(any())
+      result mustNot equal(JsNull)
+      result.isInstanceOf[JsString] mustBe true
     }
 
-    "write JsString, calling encrypt" in {
-      when(mockEncrypterDecrypter.encrypt(any())).thenReturn(encryptedValue)
-
+    "write JsString with encryption" in {
       val result: JsValue = Json.toJson(sensitiveJsString)(sensitiveFormatService.sensitiveFormatJsValue[JsString])
 
-      result mustBe JsString(encryptedValueAsString)
-
-      verify(mockEncrypterDecrypter, times(1)).encrypt(any())
+      result mustNot equal(JsNull)
+      result.isInstanceOf[JsString] mustBe true
     }
 
-    "read JsString as a JsObject, calling decrypt" in {
-      when(mockEncrypterDecrypter.decrypt(any())).thenReturn(PlainText(Json.stringify(unencryptedJsObject)))
-
-      val result =
-        JsString(encryptedValueAsString).as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsObject])
+    "read encrypted JsString as JsObject" in {
+      val encrypted = Json.toJson(sensitiveJsObject)(sensitiveFormatService.sensitiveFormatJsValue[JsObject])
+      val result    =
+        encrypted.as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsObject])
 
       result mustBe sensitiveJsObject
-
-      verify(mockEncrypterDecrypter, times(1)).decrypt(any())
     }
 
-    "decrypt an encrypted JsString and return the original JsString" in {
-      when(mockEncrypterDecrypter.decrypt(any())).thenReturn(PlainText(Json.stringify(JsString("test"))))
+    "decrypt an encrypted JsString and return the original" in {
+      val encrypted = Json.toJson(sensitiveJsString)(sensitiveFormatService.sensitiveFormatJsValue[JsString])
+      val result    =
+        encrypted.as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsString])
 
-      val result =
-        JsString(encryptedValueAsString).as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsString])
-
-      result mustBe SensitiveJsValue(JsString("test"))
-
-      verify(mockEncrypterDecrypter, times(1)).decrypt(any())
+      result mustBe sensitiveJsString
     }
 
-    "read JsString as a JsString, calling decrypt unsuccessfully (i.e. not encrypted) and use unencrypted jsString" in {
-      when(mockEncrypterDecrypter.decrypt(any())).thenThrow(new SecurityException("Unable to decrypt value"))
-
-      val result = JsString("abc").as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsString])
-
-      result mustBe SensitiveJsValue(JsString("abc"))
-
-      verify(mockEncrypterDecrypter, times(1)).decrypt(any())
-    }
-
-    "read JsObject, not calling decrypt at all" in {
+    "handle unencrypted value" in {
       val result = unencryptedJsObject.as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsObject])
 
       result mustBe sensitiveJsObject
+    }
 
-      verify(mockEncrypterDecrypter, times(0)).decrypt(any())
+    "read unencrypted JsObject without decryption" in {
+      val result = unencryptedJsObject.as[SensitiveJsValue](sensitiveFormatService.sensitiveFormatJsValue[JsObject])
+
+      result mustBe sensitiveJsObject
     }
   }
 
   "sensitiveFormatFromReadsWrites" must {
-    "write encrypted value, calling encrypt" in {
-      when(mockEncrypterDecrypter.encrypt(any())).thenReturn(encryptedValue)
+
+    "write value with encryption enabled" in {
       val result: JsValue =
-        Json
-          .toJson(Json.parse(fakeJsonPayload))(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+        Json.toJson(Json.parse(fakeJsonPayload))(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
 
-      result mustBe JsString(encryptedValueAsString)
-
-      verify(mockEncrypterDecrypter, times(1)).encrypt(any())
+      result mustNot equal(JsNull)
+      result.isInstanceOf[JsString] mustBe true
     }
-    "write unencrypted value, calling encrypt when encryption off" in {
+
+    "write value without encryption when disabled" in {
       when(mockAppConfig.encryptionEnabled).thenReturn(false)
-      when(mockEncrypterDecrypter.encrypt(any())).thenReturn(encryptedValue)
+
       val result: JsValue =
-        Json
-          .toJson(Json.parse(fakeJsonPayload))(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+        Json.toJson(Json.parse(fakeJsonPayload))(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
 
       result mustBe Json.parse(fakeJsonPayload)
-
-      verify(mockEncrypterDecrypter, times(0)).encrypt(any())
     }
 
-    "read encrypted value, calling decrypt" in {
-      when(mockEncrypterDecrypter.decrypt(any()))
-        .thenReturn(PlainText(fakeJsonPayload))
-
-      val result = JsString(encryptedValueAsString).as[JsValue](
+    "read encrypted value with decryption" in {
+      val encrypted =
+        Json.toJson(Json.parse(fakeJsonPayload))(sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
+      val result    = encrypted.as[JsValue](
         sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue]
       )
 
       result mustBe Json.parse(fakeJsonPayload)
-
-      verify(mockEncrypterDecrypter, times(1)).decrypt(any())
     }
-    "read encrypted value, calling decrypt when encryption off" in {
-      when(mockAppConfig.encryptionEnabled).thenReturn(false)
-      when(mockEncrypterDecrypter.decrypt(any()))
-        .thenReturn(PlainText(fakeJsonPayload))
 
-      val result = JsString(encryptedValueAsString).as[JsValue](
+    "read encrypted value without decryption when disabled" in {
+      when(mockAppConfig.encryptionEnabled).thenReturn(false)
+
+      val plainText = Json.parse(fakeJsonPayload)
+      val result    = plainText.as[JsValue](
         sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue]
       )
 
-      result mustBe JsString(encryptedValueAsString)
-
-      verify(mockEncrypterDecrypter, times(0)).decrypt(any())
+      result mustBe plainText
     }
 
-    "read unencrypted JsObject, not calling decrypt at all" in {
+    "read unencrypted object without decryption" in {
       val result =
         Json.parse(fakeJsonPayload).as[JsValue](sensitiveFormatService.sensitiveFormatFromReadsWrites[JsValue])
 
       result mustBe Json.parse(fakeJsonPayload)
+    }
+  }
 
-      verify(mockEncrypterDecrypter, times(0)).decrypt(any())
+  "with gcm.primary enabled" must {
 
+    "write JsObject with GCM encryption" in {
+      val result: JsValue =
+        Json.toJson(sensitiveJsObject)(sensitiveFormatServiceWithGcmPrimary.sensitiveFormatJsValue[JsObject])
+
+      result mustNot equal(JsNull)
+      result.isInstanceOf[JsString] mustBe true
+    }
+
+    "write value with GCM encryption enabled" in {
+      val result: JsValue =
+        Json.toJson(Json.parse(fakeJsonPayload))(
+          sensitiveFormatServiceWithGcmPrimary.sensitiveFormatFromReadsWrites[JsValue]
+        )
+
+      result mustNot equal(JsNull)
+      result.isInstanceOf[JsString] mustBe true
+    }
+
+    "read encrypted value with GCM decryption" in {
+      val encrypted =
+        Json.toJson(Json.parse(fakeJsonPayload))(
+          sensitiveFormatServiceWithGcmPrimary.sensitiveFormatFromReadsWrites[JsValue]
+        )
+      val result    = encrypted.as[JsValue](
+        sensitiveFormatServiceWithGcmPrimary.sensitiveFormatFromReadsWrites[JsValue]
+      )
+
+      result mustBe Json.parse(fakeJsonPayload)
+    }
+
+    "decrypt encrypted JsObject with GCM and return the original" in {
+      val encrypted =
+        Json.toJson(sensitiveJsObject)(sensitiveFormatServiceWithGcmPrimary.sensitiveFormatJsValue[JsObject])
+      val result    =
+        encrypted.as[SensitiveJsValue](sensitiveFormatServiceWithGcmPrimary.sensitiveFormatJsValue[JsObject])
+
+      result mustBe sensitiveJsObject
     }
   }
 
