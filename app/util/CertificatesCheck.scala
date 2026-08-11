@@ -30,17 +30,17 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class CertificatesCheck @Inject() (config: AppConfig)(implicit ec: ExecutionContext) {
 
-  def getAppleWWDRCADetails: Future[(Date, String, String)] =
-    config.appleCerts.map { certs =>
-      val decodedPublicCertificate = Base64.getDecoder.decode(certs.wwdrca)
-      val appleCertificate         = X509CertUtils.parse(decodedPublicCertificate)
+  def getAppleWWDRCADetails: Future[(Date, String, String)] = Future {
+    val certs                    = config.appleCerts
+    val decodedPublicCertificate = Base64.getDecoder.decode(certs.wwdrca)
+    val appleCertificate         = X509CertUtils.parse(decodedPublicCertificate)
 
-      (
-        appleCertificate.getNotAfter,
-        appleCertificate.getIssuerX500Principal.getName,
-        appleCertificate.getSubjectX500Principal.getName
-      )
-    }
+    (
+      appleCertificate.getNotAfter,
+      appleCertificate.getIssuerX500Principal.getName,
+      appleCertificate.getSubjectX500Principal.getName
+    )
+  }
 
   def getPrivateCertificateDetails: Future[(Date, String, String)] = {
 
@@ -50,7 +50,8 @@ class CertificatesCheck @Inject() (config: AppConfig)(implicit ec: ExecutionCont
         cert <- Try(keyStore.getCertificate(alias).asInstanceOf[X509Certificate])
       } yield (key, cert)
 
-    config.appleCerts.map { certs =>
+    Future {
+      val certs                 = config.appleCerts
       val keyStore              = KeyStore.getInstance("PKCS12")
       val decodedPrivateCertP12 = Base64.getDecoder.decode(certs.privateCert)
       val privateCertPassword   = certs.privateCertPassword

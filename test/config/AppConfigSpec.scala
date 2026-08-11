@@ -49,7 +49,7 @@ class AppConfigSpec extends SpecBase {
   "applePass" must {
 
     "read the configured certificate values" in {
-      val certs = sut.appleCerts.futureValue
+      val certs = sut.appleCerts
       certs.wwdrca mustBe "appleWWDRCA"
       certs.privateCert mustBe "privateCertificate"
       certs.privateCertPassword mustBe "privateCertificatePassword"

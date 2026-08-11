@@ -86,7 +86,8 @@ class ApplePassService @Inject() (
           if (!signingEnabled) {
             Future.successful(FileAsBytes(SignatureService.SIGNATURE_FILE_NAME, Array.emptyByteArray))
           } else {
-            config.appleCerts.map { certs =>
+            Future {
+              val certs = config.appleCerts
               signatureService.createSignatureForPass(
                 passFilesInBytes,
                 certs.privateCert,

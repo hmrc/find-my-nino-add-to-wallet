@@ -20,7 +20,6 @@ import config.AppConfig.AppleCerts
 import play.api.Configuration
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
@@ -30,13 +29,11 @@ class AppConfig @Inject() (config: Configuration) {
 
   lazy val applePassSigningEnabled: Boolean = config.getOptional[Boolean]("applePass.signingEnabled").getOrElse(true)
 
-  def appleCerts: Future[AppleCerts] =
-    Future.successful(
-      AppleCerts(
-        config.get[String]("applePass.appleWWDRCA"),
-        config.get[String]("applePass.privateCertificate"),
-        config.get[String]("applePass.privateCertificatePassword")
-      )
+  def appleCerts: AppleCerts =
+    AppleCerts(
+      config.get[String]("applePass.appleWWDRCA"),
+      config.get[String]("applePass.privateCertificate"),
+      config.get[String]("applePass.privateCertificatePassword")
     )
 
   val googleIssuerId: String        = config.get[String]("googlePass.issuerId")
