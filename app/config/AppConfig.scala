@@ -17,39 +17,24 @@
 package config
 
 import config.AppConfig.AppleCerts
-import models.admin.ApplePassCertificates2
 import play.api.Configuration
-import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AppConfig @Inject() (config: Configuration, featureFlagService: FeatureFlagService)(implicit
-  ec: ExecutionContext
-) {
+class AppConfig @Inject() (config: Configuration) {
 
   val appName: String            = config.get[String]("appName")
   val frontendServiceUrl: String = config.get[String]("frontendServiceUrl")
 
   lazy val applePassSigningEnabled: Boolean = config.getOptional[Boolean]("applePass.signingEnabled").getOrElse(true)
 
-  def appleCerts: Future[AppleCerts] =
-    featureFlagService.get(ApplePassCertificates2).map { featureFlag =>
-      if (featureFlag.isEnabled) {
-        AppleCerts(
-          config.get[String]("applePass.appleWWDRCA2"),
-          config.get[String]("applePass.privateCertificate2"),
-          config.get[String]("applePass.privateCertificatePassword2")
-        )
-      } else {
-        AppleCerts(
-          config.get[String]("applePass.appleWWDRCA"),
-          config.get[String]("applePass.privateCertificate"),
-          config.get[String]("applePass.privateCertificatePassword")
-        )
-      }
-    }
+  def appleCerts: AppleCerts =
+    AppleCerts(
+      config.get[String]("applePass.appleWWDRCA"),
+      config.get[String]("applePass.privateCertificate"),
+      config.get[String]("applePass.privateCertificatePassword")
+    )
 
   val googleIssuerId: String        = config.get[String]("googlePass.issuerId")
   val googleKey: String             = config.get[String]("googlePass.key")
